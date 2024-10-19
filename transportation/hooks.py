@@ -4,7 +4,7 @@ app_publisher = "Alastair Dare"
 app_description = "Transportation management system for T-ERP"
 app_email = "tech@t-erp.co.za"
 app_license = "gpl-3.0"
-workspaces = ["Transportation"]
+workspaces = ["Transportation", "Vehicle Service Setup"]
 add_to_apps_screen = [
 	{
 		"name": "transportation",
