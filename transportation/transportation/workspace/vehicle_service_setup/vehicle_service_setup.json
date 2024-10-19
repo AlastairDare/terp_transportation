@@ -1,6 +1,6 @@
 {
     "doctype": "Workspace",
-    "icon": "/assets/transportation/images/gear.svg",
+    "icon": "gear",
     "label": "Vehicle Service Setup",
     "module": "Transportation",
     "name": "Vehicle Service Setup",

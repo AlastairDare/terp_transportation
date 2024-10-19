@@ -4,7 +4,16 @@ app_publisher = "Alastair Dare"
 app_description = "Transportation management system for T-ERP"
 app_email = "tech@t-erp.co.za"
 app_license = "gpl-3.0"
-workspaces = ["Transportation", "Vehicle Service Setup"]
+workspaces = [
+    {
+        "name": "Transportation",
+        "icon": "truck",
+        "module": "Transportation",
+        "type": "module",
+        "link": "transportation",
+        "label": "Transportation"
+    }
+]
 add_to_apps_screen = [
 	{
 		"name": "transportation",
@@ -14,7 +23,5 @@ add_to_apps_screen = [
 	}
 ]
 
-app_include_js = [
-	"transportation.bundle.js",
-]
+app_include_js = "transportation.bundle.js"
 app_include_css = "transportation.bundle.css"

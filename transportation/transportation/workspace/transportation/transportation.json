@@ -1,6 +1,6 @@
 {
     "doctype": "Workspace",
-    "icon": "/assets/transportation/images/truck.svg",
+    "icon": "truck",
     "label": "Transportation",
     "module": "Transportation",
     "name": "Transportation",
