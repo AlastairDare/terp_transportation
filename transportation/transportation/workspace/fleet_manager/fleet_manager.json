@@ -1,12 +1,12 @@
 {
     "doctype": "Workspace",
     "icon": "gear",
-    "label": "Vehicle Service Setup",
+    "label": "Fleet Manager",
     "module": "Transportation",
-    "name": "Vehicle Service Setup",
+    "name": "Fleet Manager",
     "public": 1,
     "content": "[]",
-    "sequence_id": 18.0,
-    "title": "Vehicle Service Setup",
+    "sequence_id": 1.0,
+    "title": "Fleet Manager",
     "parent_page": "Transportation"
 }
