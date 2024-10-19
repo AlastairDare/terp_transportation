@@ -1,6 +1,6 @@
 {
     "doctype": "Workspace",
-    "icon": "gear",
+    "icon": "fleet",
     "label": "Fleet Manager",
     "module": "Transportation",
     "name": "Fleet Manager",
