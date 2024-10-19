@@ -6,6 +6,7 @@
     "name": "Vehicle Service Setup",
     "public": 1,
     "content": "[]",
-    "sequence_id": 20.0,
-    "title": "Vehicle Service Setup"
+    "sequence_id": 18.0,
+    "title": "Vehicle Service Setup",
+    "parent_page": "Transportation"
 }
