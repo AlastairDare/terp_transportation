@@ -32,6 +32,26 @@
       "fieldtype": "Date"
      },
      {
+        "fieldname": "certificate_of_roadworthiness",
+        "label": "Certificate of Roadworthiness (CRW)",
+        "fieldtype": "Check"
+     },
+     {
+        "fieldname": "certificate_of_roadworthiness_expiration",
+        "label": "Certificate of Roadworthiness (CRW) Expiry Date",
+        "fieldtype": "Date"
+     },
+     {
+        "fieldname": "cross_border_road_transport_permit",
+        "label": "Cross-Border Road Transport Permit (C-BRTA)",
+        "fieldtype": "Check"
+     },
+     {
+        "fieldname": "cross_border_road_transport_permit_expiration",
+        "label": "Cross-Border Road Transport Permit (C-BRTA) Expiry Date",
+        "fieldtype": "Date"
+     },
+     {
       "fieldname": "make",
       "label": "Make",
       "fieldtype": "Data"
@@ -47,10 +67,10 @@
       "fieldtype": "Int"
      },
      {
-      "fieldname": "vehicle_type",
-      "label": "Vehicle Type",
+      "fieldname": "vehicle_class",
+      "label": "Vehicle Class",
       "fieldtype": "Select",
-      "options": "Car\nTruck\nVan\nBus"
+      "options": "Class 1 (LMV)\nClass 2 (Medium Heavy Vehicle 2 Axles)\nClass 3 (Large Heavy Vehicle 3/4 Axles)\nClass 4 (Extra Large Vehicle 5+ Axles)"
      },
      {
       "fieldname": "fuel_type",

@@ -1,0 +1,118 @@
+{
+    "name": "Trailer",
+    "doctype": "DocType",
+    "module": "Transportation",
+    "custom": 1,
+    "autoname": "field:trailer_number",
+    "public": 1,
+    "fields": [
+        {
+            "fieldname": "trailer_number",
+            "label": "Trailer Number",
+            "fieldtype": "Data",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "vin",
+            "label": "VIN",
+            "fieldtype": "Data",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "license_plate",
+            "label": "License Plate",
+            "fieldtype": "Data",
+            "reqd": 1
+        },
+        {
+            "fieldname": "registration_expiry",
+            "label": "Trailer Registration Expiry Date",
+            "fieldtype": "Date"
+        },
+        {
+            "fieldname": "certificate_of_roadworthiness",
+            "label": "Certificate of Roadworthiness (CRW)",
+            "fieldtype": "Check"
+        },
+        {
+            "fieldname": "certificate_of_roadworthiness_expiration",
+            "label": "Certificate of Roadworthiness (CRW) Expiry Date",
+            "fieldtype": "Date"
+        },
+        {
+            "fieldname": "cross_border_road_transport_permit",
+            "label": "Cross-Border Road Transport Permit (C-BRTA)",
+            "fieldtype": "Check"
+        },
+        {
+            "fieldname": "cross_border_road_transport_permit_expiration",
+            "label": "Cross-Border Road Transport Permit (C-BRTA) Expiry Date",
+            "fieldtype": "Date"
+        },
+        {
+            "fieldname": "make",
+            "label": "Make",
+            "fieldtype": "Data"
+        },
+        {
+            "fieldname": "model",
+            "label": "Model",
+            "fieldtype": "Data"
+        },
+        {
+            "fieldname": "year",
+            "label": "Year",
+            "fieldtype": "Int"
+        },
+        {
+            "fieldname": "trailer_class",
+            "label": "Trailer Class",
+            "fieldtype": "Select",
+            "options": "Class 1 (GVM 0kg to 750kg)\nClass 2 (GVM 750kg to 3500kg)\nClass 3 (GVM 3500kg to 10000kg)\nClass 4 (GVM 10000kg+)"
+        },
+        {
+            "fieldname": "tare",
+            "label": "Tare (Unladen Weight)",
+            "fieldtype": "Float"
+        },
+        {
+            "fieldname": "tipper_type",
+            "label": "Tipper Type",
+            "fieldtype": "Select",
+            "options": "None\nRear Tipper\nSide Tipper\nEnd Tipper\nWalking Floor Tipper"
+        },
+        {
+            "fieldname": "platform_type",
+            "label": "Platform Type",
+            "fieldtype": "Select",
+            "options": "Flatbed\nLowbed\nCurtain Side\nReefer\nTautliner"
+        },
+        {
+            "fieldname": "status",
+            "label": "Status",
+            "fieldtype": "Select",
+            "options": "Active\nIn Maintenance\nRetired"
+        },
+        {
+            "fieldname": "cargo_capacity",
+            "label": "Cargo Capacity",
+            "fieldtype": "Float"
+        },
+        {
+            "fieldname": "warranty_expiration",
+            "label": "Warranty Expiration Date",
+            "fieldtype": "Date"
+        }
+    ],
+    "permissions": [
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1
+        }
+    ]
+}
