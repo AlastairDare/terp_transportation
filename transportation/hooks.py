@@ -4,6 +4,7 @@ app_publisher = "Alastair Dare"
 app_description = "Transportation management system for T-ERP"
 app_email = "tech@t-erp.co.za"
 app_license = "gpl-3.0"
+
 workspaces = [
     {
         "name": "Transportation",
@@ -14,6 +15,18 @@ workspaces = [
         "label": "Transportation"
     }
 ]
+
+workspaces = [
+    {
+        "name": "Fleet Manager",
+        "icon": "fleet",
+        "module": "Transportation",
+        "type": "module",
+        "link": "fleet-manager",
+        "label": "Fleet Manager"
+    }
+]
+
 add_to_apps_screen = [
 	{
 		"name": "transportation",
@@ -26,8 +39,14 @@ add_to_apps_screen = [
 app_include_js = "transportation.bundle.js"
 app_include_css = "transportation.bundle.css"
 
+# DocType JS
 doctype_js = {
-    "Vehicle": "public/js/vehicle.js"
+    "Vehicle": "transportation/doctype/vehicle/vehicle.js"
+}
+
+# List JS
+doctype_list_js = {
+    "Vehicle": "transportation/doctype/vehicle/vehicle_list.js"
 }
 
 custom_doctype_list = [
