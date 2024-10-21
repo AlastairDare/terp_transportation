@@ -1,0 +1,89 @@
+{
+    "name": "Vehicle",
+    "doctype": "DocType",
+    "module": "Transportation",
+    "custom": 1,
+    "autoname": "field:vin",
+    "fields": [
+     {
+      "fieldname": "vin",
+      "label": "VIN",
+      "fieldtype": "Data",
+      "reqd": 1,
+      "unique": 1
+     },
+     {
+      "fieldname": "license_plate",
+      "label": "License Plate",
+      "fieldtype": "Data",
+      "reqd": 1
+     },
+     {
+      "fieldname": "registration_expiry",
+      "label": "Vehicle Registration Expiry Date",
+      "fieldtype": "Date"
+     },
+     {
+      "fieldname": "make",
+      "label": "Make",
+      "fieldtype": "Data"
+     },
+     {
+      "fieldname": "model",
+      "label": "Model",
+      "fieldtype": "Data"
+     },
+     {
+      "fieldname": "year",
+      "label": "Year",
+      "fieldtype": "Int"
+     },
+     {
+      "fieldname": "vehicle_type",
+      "label": "Vehicle Type",
+      "fieldtype": "Select",
+      "options": "Car\nTruck\nVan\nBus"
+     },
+     {
+      "fieldname": "fuel_type",
+      "label": "Fuel Type",
+      "fieldtype": "Select",
+      "options": "Petrol\nDiesel\nElectric\nHybrid"
+     },
+     {
+      "fieldname": "current_mileage",
+      "label": "Current Mileage",
+      "fieldtype": "Float"
+     },
+     {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Active\nIn Maintenance\nRetired"
+     },
+     {
+      "fieldname": "cargo_capacity",
+      "label": "Cargo Capacity",
+      "fieldtype": "Float"
+     },
+     {
+      "fieldname": "passenger_capacity",
+      "label": "Passenger Capacity",
+      "fieldtype": "Int"
+     },
+     {
+      "fieldname": "warranty_expiration",
+      "label": "Warranty Expiration Date",
+      "fieldtype": "Date"
+     }
+    ],
+    "permissions": [
+     {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1
+     }
+    ]
+   }
