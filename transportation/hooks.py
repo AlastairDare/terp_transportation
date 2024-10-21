@@ -28,12 +28,4 @@ add_to_apps_screen = [
 app_include_js = "transportation.bundle.js"
 app_include_css = "transportation.bundle.css"
 
-# DocType JS
-doctype_js = {
-    "Vehicle": "transportation/doctype/vehicle/vehicle.js"
-}
 
-# List JS
-doctype_list_js = {
-    "Vehicle": "transportation/doctype/vehicle/vehicle_list.js"
-}
