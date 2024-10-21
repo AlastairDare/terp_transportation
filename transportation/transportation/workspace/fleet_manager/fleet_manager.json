@@ -28,5 +28,6 @@
     "name": "Fleet Manager",
     "parent_page": "Transportation",
     "public": 1,
-    "sequence_id": 1
+    "sequence_id": 1.0,
+    "title": "Fleet Manager"
 }

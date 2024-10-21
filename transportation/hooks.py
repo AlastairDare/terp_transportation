@@ -13,7 +13,16 @@ workspaces = [
         "type": "module",
         "link": "transportation",
         "label": "Transportation"
+    },
+    {
+        "name": "Fleet Manager",
+        "icon": "fleet",
+        "module": "Transportation",
+        "type": "page",
+        "link": "fleet_manager",
+        "label": "Fleet Manager"
     }
+
 ]
 
 add_to_apps_screen = [
