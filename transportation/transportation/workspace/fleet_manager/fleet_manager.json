@@ -3,6 +3,7 @@
     "doctype": "Workspace",
     "icon": "fleet",
     "label": "Fleet Manager",
+    "hide_custom": 0,
     "links": [
       {
         "hidden": 0,
