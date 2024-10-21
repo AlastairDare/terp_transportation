@@ -21,6 +21,14 @@ workspaces = [
         "type": "page",
         "link": "fleet_manager",
         "label": "Fleet Manager"
+    },
+    {
+        "name": "Driver Manager",
+        "icon": "users",
+        "module": "Transportation",
+        "type": "page",
+        "link": "driver_manager",
+        "label": "Driver Manager"
     }
 
 ]

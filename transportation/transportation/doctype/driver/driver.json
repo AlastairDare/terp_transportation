@@ -1,0 +1,79 @@
+{
+    "name": "Driver",
+    "doctype": "DocType",
+    "module": "Transportation",
+    "custom": 1,
+    "autoname": "field:driver_number",
+    "public": 1,
+    "fields": [
+        {
+            "fieldname": "driver_name",
+            "label": "Driver Name",
+            "fieldtype": "Data",
+            "reqd": 1
+        },
+        {
+            "fieldname": "driver_number",
+            "label": "Driver Number",
+            "fieldtype": "Data",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "date_of_birth",
+            "label": "Date of Birth",
+            "fieldtype": "Date"
+        },
+        {
+            "fieldname": "contact_number",
+            "label": "Contact Number",
+            "fieldtype": "Data"
+        },
+        {
+            "fieldname": "emergency_contact",
+            "label": "Emergency Contact",
+            "fieldtype": "Data"
+        },
+        {
+            "fieldname": "license_number",
+            "label": "License Number",
+            "fieldtype": "Data",
+            "reqd": 1
+        },
+        {
+            "fieldname": "license_type",
+            "label": "License Type",
+            "fieldtype": "Select",
+            "options": "Code B (Light Motor Vehicles)\nCode EB (Light Motor Vehicles with Trailers)\nCode C1\nCode C (Heavy Vehicles)\nCode EC1 (Heavy Vehicles with Trailers)\nCode EC (Heavy Articulated Vehicles)"
+        },
+        {
+            "fieldname": "license_expiry_date",
+            "label": "License Expiry Date",
+            "fieldtype": "Date"
+        },
+        {
+            "fieldname": "professional_driving_permit",
+            "label": "Professional Driving Permit (PrDP)",
+            "fieldtype": "Check"
+        },
+        {
+            "fieldname": "prdp_expiration_date",
+            "label": "PrDP Expiration Date",
+            "fieldtype": "Date"
+        },
+        {
+            "fieldname": "photo",
+            "label": "Photo",
+            "fieldtype": "Attach Image"
+        }
+    ],
+    "permissions": [
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1
+        }
+    ]
+}

@@ -1,0 +1,33 @@
+{
+    "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Driver Management</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Driver\",\"col\":3}},{\"type\":\"card\",\"data\":{\"card_name\":\"Drivers\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Driver List\",\"link_type\":\"DocType\",\"link_to\":\"Driver\",\"type\":\"List\",\"onboard\":0,\"col\":4}}]",
+    "doctype": "Workspace",
+    "icon": "users",
+    "label": "Driver Manager",
+    "hide_custom": 0,
+    "links": [
+      {
+        "hidden": 0,
+        "is_query_report": 0,
+        "label": "Drivers",
+        "link_count": 1,
+        "onboard": 0,
+        "type": "Card Break"
+      },
+      {
+        "hidden": 0,
+        "is_query_report": 0,
+        "label": "Driver",
+        "link_count": 0,
+        "link_to": "Driver",
+        "link_type": "DocType",
+        "onboard": 1,
+        "type": "Link"
+      }
+    ],
+    "module": "Transportation",
+    "name": "Driver Manager",
+    "parent_page": "Transportation",
+    "public": 1,
+    "sequence_id": 2.0,
+    "title": "Driver Manager"
+}

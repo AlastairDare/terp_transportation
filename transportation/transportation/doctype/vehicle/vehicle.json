@@ -3,9 +3,16 @@
     "doctype": "DocType",
     "module": "Transportation",
     "custom": 1,
-    "autoname": "field:vin",
+    "autoname": "field:truck_number",
     "public": 1,
     "fields": [
+    {
+        "fieldname": "truck_number",
+        "label": "Truck Number",
+        "fieldtype": "Data",
+        "reqd": 1,
+        "unique": 1
+        },
      {
       "fieldname": "vin",
       "label": "VIN",
