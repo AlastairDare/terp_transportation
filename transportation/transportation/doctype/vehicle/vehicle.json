@@ -4,6 +4,7 @@
     "module": "Transportation",
     "custom": 1,
     "autoname": "field:vin",
+    "public": 1,
     "fields": [
      {
       "fieldname": "vin",
