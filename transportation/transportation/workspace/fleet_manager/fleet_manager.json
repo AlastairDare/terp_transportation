@@ -1,14 +1,5 @@
 {
-    "content": "[
-      {\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Fleet Management</b></span>\",\"col\":12}},
-      {\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Vehicle\",\"col\":3}},
-      {\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Vehicle Log\",\"col\":3}},
-      {\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Dashboard\",\"col\":3}},
-      {\"type\":\"spacer\",\"data\":{\"col\":12}},
-      {\"type\":\"card\",\"data\":{\"card_name\":\"Vehicles\",\"col\":4}},
-      {\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},
-      {\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}
-    ]",
+    "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Fleet Management</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Vehicle\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Vehicle Log\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Dashboard\",\"col\":3}},{\"type\":\"spacer\",\"data\":{\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Vehicles\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
     "doctype": "Workspace",
     "icon": "fleet",
     "label": "Fleet Manager",
@@ -73,4 +64,4 @@
     "parent_page": "Transportation",
     "public": 1,
     "sequence_id": 1
-  }
+}
