@@ -1,5 +1,5 @@
 {
-    "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Fleet Management</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Vehicle\",\"col\":3}}]",
+    "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Fleet Management</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Vehicle\",\"col\":3}},{\"type\":\"card\",\"data\":{\"card_name\":\"Vehicles\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Vehicle List\",\"link_type\":\"DocType\",\"link_to\":\"Vehicle\",\"type\":\"List\",\"onboard\":0,\"col\":4}}]",
     "doctype": "Workspace",
     "icon": "fleet",
     "label": "Fleet Manager",
