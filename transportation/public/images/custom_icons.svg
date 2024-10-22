@@ -32,4 +32,9 @@
         <rect x="5" y="2" width="14" height="20" rx="2" ry="2" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
         <line x1="12" y1="18" x2="12.01" y2="18" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
     </symbol>
+
+    <symbol id="icon-camera" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
+        <circle cx="12" cy="13" r="4" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
+    </symbol>
 </svg>

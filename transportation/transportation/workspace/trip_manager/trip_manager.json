@@ -1,4 +1,10 @@
 {
+    "cards": [],
+    "charts": [],
+    "creation": "2024-10-22 12:00:00.000000",
+    "docstatus": 0,
+    "idx": 0,
+    "is_standard": 1,
     "doctype": "Workspace",
     "icon": "smartphone",
     "label": "Trip Manager",
@@ -8,5 +14,13 @@
     "parent_page": "Transportation",
     "public": 1,
     "sequence_id": 3.0,
-    "title": "Trip Manager"
+    "title": "Trip Manager",
+    "shortcuts": [
+        {
+            "label": "Capture Trip",
+            "link_to": "Trip Capture",
+            "type": "DocType",
+            "icon": "icon-camera"
+        }
+    ]
   }
