@@ -15,6 +15,7 @@
     "public": 1,
     "sequence_id": 3.0,
     "title": "Trip Manager",
+    "onboarding": "",
     "shortcuts": [
         {
             "label": "Capture Trip",

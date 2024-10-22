@@ -30,6 +30,14 @@ workspaces = [
         "link": "driver_manager",
         "label": "Driver Manager"
     }
+    {
+        "name": "Trip Manager",
+        "icon": "smartphone",
+        "module": "Transportation",
+        "type": "page",
+        "link": "trip_manager",
+        "label": "Trip Manager"
+    }
 
 ]
 
