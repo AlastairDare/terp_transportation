@@ -1,0 +1,12 @@
+{
+    "doctype": "Workspace",
+    "icon": "smartphone",
+    "label": "Trip Manager",
+    "hide_custom": 0,
+    "module": "Transportation",
+    "name": "Trip Manager",
+    "parent_page": "Transportation",
+    "public": 1,
+    "sequence_id": 3.0,
+    "title": "Trip Manager"
+  }
