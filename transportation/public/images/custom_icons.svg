@@ -11,7 +11,7 @@
     </symbol>
     <symbol id="icon-fleet" viewBox="0 0 100 100">
         <defs>
-            <symbol id="fleet" viewBox="0 0 24 24">
+            <symbol id="icon-fleet" viewBox="0 0 24 24">
                 <rect x="1" y="3" width="15" height="13" stroke="black" stroke-width="2" fill="white"/>
                 <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" stroke="black" stroke-width="2" fill="white"/>
                 <circle cx="5.5" cy="18.5" r="2.5" stroke="black" stroke-width="2" fill="white"/>
@@ -28,7 +28,7 @@
         <!-- Bottom left truck (front layer) -->
         <use href="#fleet" x="0" y="60" width="50" height="50"/>
     </symbol>
-    <symbol id="smartphone" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="icon-smartphone" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="5" y="2" width="14" height="20" rx="2" ry="2" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
         <line x1="12" y1="18" x2="12.01" y2="18" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
     </symbol>
