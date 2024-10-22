@@ -5,29 +5,29 @@
         <circle cx="5.5" cy="18.5" r="2.5" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
         <circle cx="18.5" cy="18.5" r="2.5" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
     </symbol>
+    
     <symbol id="icon-gear" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="3" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
-    <symbol id="icon-fleet" viewBox="0 0 100 100">
-        <defs>
-            <symbol id="icon-fleet" viewBox="0 0 24 24">
-                <rect x="1" y="3" width="15" height="13" stroke="black" stroke-width="2" fill="white"/>
-                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" stroke="black" stroke-width="2" fill="white"/>
-                <circle cx="5.5" cy="18.5" r="2.5" stroke="black" stroke-width="2" fill="white"/>
-                <circle cx="18.5" cy="18.5" r="2.5" stroke="black" stroke-width="2" fill="white"/>
-            </symbol>
-        </defs>
+    
+    <symbol id="icon-fleet" viewBox="0 0 810 810">
+        <rect x="382.284126" y="0.00002" width="267.857485" height="232.562487" stroke="#000000" stroke-width="17.812499" fill="none" stroke-miterlimit="10" stroke-linecap="square"/>
+        <path d="M 667.284126 142.499979 L 738.284126 142.499979 L 791.284126 195.499979 L 791.284126 284.999979 L 667.284126 284.999979 Z" stroke="#000000" stroke-width="17.812499" fill="none" stroke-miterlimit="10" stroke-linecap="square"/>
+        <circle cx="480.5" cy="329.500058" r="44.53125" stroke="#000000" stroke-width="17.812499" fill="none" stroke-miterlimit="10" stroke-linecap="square"/>
+        <circle cx="711.5" cy="329.500058" r="44.53125" stroke="#000000" stroke-width="17.812499" fill="none" stroke-miterlimit="10" stroke-linecap="square"/>
         
-        <!-- Top right truck (back layer) -->
-        <use href="#fleet" x="40" y="20" width="50" height="50"/>
+        <rect x="191.142063" y="191.14208" width="267.857485" height="232.562487" stroke="#000000" stroke-width="17.812499" fill="none" stroke-miterlimit="10" stroke-linecap="square"/>
+        <path d="M 476.142063 333.641916 L 547.142063 333.641916 L 600.142063 386.641916 L 600.142063 476.141916 L 476.142063 476.141916 Z" stroke="#000000" stroke-width="17.812499" fill="none" stroke-miterlimit="10" stroke-linecap="square"/>
+        <circle cx="289.35794" cy="520.641995" r="44.53125" stroke="#000000" stroke-width="17.812499" fill="none" stroke-miterlimit="10" stroke-linecap="square"/>
+        <circle cx="520.35794" cy="520.641995" r="44.53125" stroke="#000000" stroke-width="17.812499" fill="none" stroke-miterlimit="10" stroke-linecap="square"/>
         
-        <!-- Middle truck (middle layer) -->
-        <use href="#fleet" x="20" y="40" width="50" height="50"/>
-        
-        <!-- Bottom left truck (front layer) -->
-        <use href="#fleet" x="0" y="60" width="50" height="50"/>
+        <rect x="0.0000035" y="382.284142" width="267.857485" height="232.562487" stroke="#000000" stroke-width="17.812499" fill="none" stroke-miterlimit="10" stroke-linecap="square"/>
+        <path d="M 285.000004 524.784081 L 356.000004 524.784081 L 409.000004 577.784081 L 409.000004 667.284081 L 285.000004 667.284081 Z" stroke="#000000" stroke-width="17.812499" fill="none" stroke-miterlimit="10" stroke-linecap="square"/>
+        <circle cx="98.215881" cy="711.78416" r="44.53125" stroke="#000000" stroke-width="17.812499" fill="none" stroke-miterlimit="10" stroke-linecap="square"/>
+        <circle cx="329.215881" cy="711.78416" r="44.53125" stroke="#000000" stroke-width="17.812499" fill="none" stroke-miterlimit="10" stroke-linecap="square"/>
     </symbol>
+    
     <symbol id="icon-smartphone" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="5" y="2" width="14" height="20" rx="2" ry="2" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
         <line x1="12" y1="18" x2="12.01" y2="18" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
