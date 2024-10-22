@@ -1,7 +1,7 @@
 {
   "cards": [],
   "charts": [],
-  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Trip Management</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip Capture\",\"col\":3}}]",
+  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Trip Management</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"name\":\"Capture Trip\",\"type\":\"DocType\",\"link_to\":\"Trip Capture\",\"icon\":\"icon-camera\",\"color\":\"Grey\",\"col\":3}}]",
   "creation": "2024-10-22 12:00:00.000000",
   "docstatus": 0,
   "doctype": "Workspace",
@@ -22,15 +22,15 @@
   "public": 1,
   "sequence_id": 3.0,
   "shortcuts": [
-        {
-            "color": "Grey",
-            "doc_view": "List",
-            "label": "Capture Trip",
-            "link_to": "Trip Capture",
-            "stats_filter": "[]",
-            "type": "DocType",
-            "icon": "icon-camera"
-        }
-    ],
+      {
+          "color": "Grey",
+          "doc_view": "List",
+          "label": "Capture Trip",
+          "link_to": "Trip Capture",
+          "stats_filter": "[]",
+          "type": "DocType",
+          "icon": "icon-camera"
+      }
+  ],
   "title": "Trip Manager"
 }
