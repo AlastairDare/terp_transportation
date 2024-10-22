@@ -29,7 +29,7 @@ workspaces = [
         "type": "page",
         "link": "driver_manager",
         "label": "Driver Manager"
-    }
+    },
     {
         "name": "Trip Manager",
         "icon": "smartphone",
