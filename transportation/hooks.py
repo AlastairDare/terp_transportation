@@ -45,4 +45,8 @@ add_to_apps_screen = [
 app_include_js = "transportation.bundle.js"
 app_include_css = "transportation.bundle.css"
 
+website_route_rules = [
+    {"from_route": "/trip-capture", "to_route": "www/trip_capture"}
+]
+
 
