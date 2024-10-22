@@ -1,152 +1,5 @@
 frappe.provide('transportation');
 
-import React, { useState } from 'react';
-import { Camera } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-
-const TripCaptureComponent = () => {
-  const [tripSheetImage, setTripSheetImage] = useState(null);
-  const [deliveryNoteImage, setDeliveryNoteImage] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const captureImage = async (type) => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'environment',  // Prefer rear camera
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        } 
-      });
-      
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      await video.play();
-
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      
-      const context = canvas.getContext('2d');
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.8));
-      
-      stream.getTracks().forEach(track => track.stop());
-      
-      if (type === 'tripSheet') {
-        setTripSheetImage(blob);
-        frappe.show_alert({
-          message: '✅ Trip Sheet photo captured successfully!',
-          indicator: 'green'
-        });
-      } else {
-        setDeliveryNoteImage(blob);
-        frappe.show_alert({
-          message: '✅ Delivery Note photo captured successfully!',
-          indicator: 'green'
-        });
-      }
-    } catch (error) {
-      console.error('Camera error:', error);
-      frappe.show_alert({
-        message: '❌ Camera access failed. Please check permissions and try again.',
-        indicator: 'red'
-      });
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!tripSheetImage || !deliveryNoteImage) return;
-    
-    setIsSubmitting(true);
-    
-    try {
-      const formData = new FormData();
-      formData.append('trip_sheet', tripSheetImage, 'trip_sheet.jpg');
-      formData.append('delivery_note', deliveryNoteImage, 'delivery_note.jpg');
-      
-      await frappe.call({
-        method: 'transportation.api.create_trip_record',
-        args: {
-          images: formData
-        },
-        callback: function(r) {
-          if (r.message) {
-            frappe.show_alert({
-              message: '✅ Trip records submitted successfully!',
-              indicator: 'green'
-            });
-            
-            // Reset the form
-            setTripSheetImage(null);
-            setDeliveryNoteImage(null);
-          }
-        }
-      });
-    } catch (error) {
-      console.error('Submission error:', error);
-      frappe.show_alert({
-        message: '❌ Failed to submit trip records. Please try again.',
-        indicator: 'red'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardContent className="p-6 space-y-6">
-          {/* Trip Sheet Button */}
-          <div className="flex flex-col items-center">
-            <Button
-              size="lg"
-              className={`w-full h-24 text-lg font-bold ${tripSheetImage ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
-              onClick={() => captureImage('tripSheet')}
-              disabled={isSubmitting}
-            >
-              <Camera className="mr-2 h-8 w-8" />
-              {tripSheetImage ? '✓ Trip Sheet Captured' : '1. Take Trip Sheet Picture'}
-            </Button>
-            {tripSheetImage && (
-              <span className="text-green-600 mt-2 font-semibold">Picture 1 taken successfully!</span>
-            )}
-          </div>
-
-          {/* Delivery Note Button */}
-          <div className="flex flex-col items-center">
-            <Button
-              size="lg"
-              className={`w-full h-24 text-lg font-bold ${deliveryNoteImage ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
-              onClick={() => captureImage('deliveryNote')}
-              disabled={isSubmitting}
-            >
-              <Camera className="mr-2 h-8 w-8" />
-              {deliveryNoteImage ? '✓ Delivery Note Captured' : '2. Take Delivery Note Picture'}
-            </Button>
-            {deliveryNoteImage && (
-              <span className="text-green-600 mt-2 font-semibold">Picture 2 taken successfully!</span>
-            )}
-          </div>
-
-          {/* Submit Button */}
-          <Button
-            size="lg"
-            className="w-full h-16 text-xl font-bold bg-green-600 hover:bg-green-700 disabled:bg-gray-400"
-            disabled={!tripSheetImage || !deliveryNoteImage || isSubmitting}
-            onClick={handleSubmit}
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit Trip'}
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
 transportation.TripCapturePage = class TripCapturePage {
     constructor(wrapper) {
         this.wrapper = wrapper;
@@ -155,16 +8,176 @@ transportation.TripCapturePage = class TripCapturePage {
 
     init() {
         this.make();
+        this.setup_handlers();
     }
 
     make() {
-        const component = frappe.react.Component({
-            component: TripCaptureComponent
-        });
-        
-        ReactDOM.render(
-            component,
-            this.wrapper
-        );
+        this.wrapper.innerHTML = `
+            <div class="page-container">
+                <div class="camera-container">
+                    <!-- Trip Sheet Button -->
+                    <div class="camera-button-container">
+                        <button class="btn btn-primary btn-lg trip-sheet-btn" style="height: 100px; width: 100%; margin-bottom: 20px;">
+                            <i class="fa fa-camera" style="margin-right: 10px;"></i>
+                            Take Trip Sheet Picture
+                        </button>
+                        <div class="trip-sheet-status"></div>
+                    </div>
+
+                    <!-- Delivery Note Button -->
+                    <div class="camera-button-container">
+                        <button class="btn btn-primary btn-lg delivery-note-btn" style="height: 100px; width: 100%; margin-bottom: 20px;">
+                            <i class="fa fa-camera" style="margin-right: 10px;"></i>
+                            Take Delivery Note Picture
+                        </button>
+                        <div class="delivery-note-status"></div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button class="btn btn-success btn-lg submit-btn" style="height: 80px; width: 100%;" disabled>
+                        Submit Trip
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Add some basic styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .page-container {
+                padding: 20px;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+            .camera-container {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+            .camera-button-container {
+                text-align: center;
+            }
+            .trip-sheet-status, .delivery-note-status {
+                color: green;
+                margin-top: 5px;
+                font-weight: bold;
+            }
+        `;
+        document.head.appendChild(style);
     }
-}
+
+    setup_handlers() {
+        this.tripSheetImage = null;
+        this.deliveryNoteImage = null;
+
+        // Trip Sheet Button Handler
+        this.wrapper.querySelector('.trip-sheet-btn').onclick = () => {
+            this.capture_image('tripSheet');
+        };
+
+        // Delivery Note Button Handler
+        this.wrapper.querySelector('.delivery-note-btn').onclick = () => {
+            this.capture_image('deliveryNote');
+        };
+
+        // Submit Button Handler
+        this.wrapper.querySelector('.submit-btn').onclick = () => {
+            this.submit_images();
+        };
+    }
+
+    async capture_image(type) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment'  // Use back camera
+                } 
+            });
+
+            // Create and set up video element
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            await video.play();
+
+            // Create canvas to capture frame
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Capture frame
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert to blob
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.8));
+            
+            // Stop camera
+            stream.getTracks().forEach(track => track.stop());
+
+            // Update status and store image
+            if (type === 'tripSheet') {
+                this.tripSheetImage = blob;
+                this.wrapper.querySelector('.trip-sheet-status').textContent = '✓ Picture taken successfully!';
+                this.wrapper.querySelector('.trip-sheet-btn').classList.add('btn-success');
+            } else {
+                this.deliveryNoteImage = blob;
+                this.wrapper.querySelector('.delivery-note-status').textContent = '✓ Picture taken successfully!';
+                this.wrapper.querySelector('.delivery-note-btn').classList.add('btn-success');
+            }
+
+            // Enable submit if both images are captured
+            if (this.tripSheetImage && this.deliveryNoteImage) {
+                this.wrapper.querySelector('.submit-btn').disabled = false;
+            }
+
+        } catch (error) {
+            console.error('Camera error:', error);
+            frappe.throw(__('Failed to access camera. Please check permissions and try again.'));
+        }
+    }
+
+    async submit_images() {
+        if (!this.tripSheetImage || !this.deliveryNoteImage) return;
+
+        try {
+            const formData = new FormData();
+            formData.append('trip_sheet', this.tripSheetImage, 'trip_sheet.jpg');
+            formData.append('delivery_note', this.deliveryNoteImage, 'delivery_note.jpg');
+
+            frappe.show_alert({
+                message: __('Uploading images...'),
+                indicator: 'blue'
+            });
+
+            await frappe.call({
+                method: 'transportation.api.create_trip_record',
+                args: {
+                    images: formData
+                },
+                callback: (r) => {
+                    if (r.message && r.message.success) {
+                        frappe.show_alert({
+                            message: __('Trip records submitted successfully!'),
+                            indicator: 'green'
+                        });
+                        
+                        // Reset the form
+                        this.tripSheetImage = null;
+                        this.deliveryNoteImage = null;
+                        this.wrapper.querySelector('.trip-sheet-status').textContent = '';
+                        this.wrapper.querySelector('.delivery-note-status').textContent = '';
+                        this.wrapper.querySelector('.submit-btn').disabled = true;
+                        this.wrapper.querySelector('.trip-sheet-btn').classList.remove('btn-success');
+                        this.wrapper.querySelector('.delivery-note-btn').classList.remove('btn-success');
+                    } else {
+                        frappe.throw(__('Failed to submit trip records'));
+                    }
+                }
+            });
+
+        } catch (error) {
+            console.error('Submission error:', error);
+            frappe.throw(__('Failed to submit trip records'));
+        }
+    }
+};
