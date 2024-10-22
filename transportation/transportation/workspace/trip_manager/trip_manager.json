@@ -1,27 +1,32 @@
 {
-    "cards": [],
-    "charts": [],
-    "creation": "2024-10-22 12:00:00.000000",
-    "docstatus": 0,
-    "idx": 0,
-    "is_standard": 1,
-    "doctype": "Workspace",
-    "icon": "smartphone",
-    "label": "Trip Manager",
-    "hide_custom": 0,
-    "module": "Transportation",
-    "name": "Trip Manager",
-    "parent_page": "Transportation",
-    "public": 1,
-    "sequence_id": 3.0,
-    "title": "Trip Manager",
-    "onboarding": "",
-    "shortcuts": [
-        {
-            "label": "Capture Trip",
-            "link_to": "Trip Capture",
-            "type": "DocType",
-            "icon": "icon-camera"
-        }
-    ]
-  }
+  "cards": [],
+  "charts": [],
+  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Trip Management</b></span>\",\"col\":12}}]",
+  "creation": "2024-10-22 12:00:00.000000",
+  "docstatus": 0,
+  "doctype": "Workspace",
+  "hide_custom": 0,
+  "idx": 0,
+  "is_standard": 1,
+  "label": "Trip Manager",
+  "links": [],
+  "modified": "2024-10-22 12:00:00.000000",
+  "modified_by": "Administrator",
+  "module": "Transportation",
+  "name": "Trip Manager",
+  "owner": "Administrator",
+  "parent_page": "",
+  "public": 1,
+  "quick_lists": [],
+  "roles": [],
+  "sequence_id": 1.0,
+  "shortcuts": [
+      {
+          "label": "Capture Trip",
+          "link_to": "Trip Capture",
+          "type": "DocType",
+          "icon": "icon-camera"
+      }
+  ],
+  "title": "Trip Manager"
+}
