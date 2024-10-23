@@ -6,50 +6,21 @@
     "doctype": "DocType",
     "engine": "InnoDB",
     "field_order": [
-        "description_section",
-        "description",
-        "image_section",
         "trip_sheet_image",
-        "delivery_note_image",
-        "status"
+        "delivery_note_image"
     ],
     "fields": [
-        {
-            "fieldname": "description_section",
-            "fieldtype": "Section Break",
-            "label": "Description"
-        },
-        {
-            "fieldname": "description",
-            "fieldtype": "HTML",
-            "label": "Description",
-            "options": "<div class='text-center'><h2>Trip Capture Form</h2></div>"
-        },
-        {
-            "fieldname": "image_section",
-            "fieldtype": "Section Break",
-            "label": "Images"
-        },
         {
             "fieldname": "trip_sheet_image",
             "fieldtype": "Attach Image",
             "label": "Trip Sheet Image",
-            "mandatory_depends_on": null,
-            "reqd": 0
+            "reqd": 1
         },
         {
             "fieldname": "delivery_note_image",
             "fieldtype": "Attach Image",
             "label": "Delivery Note Image",
-            "mandatory_depends_on": null,
-            "reqd": 0
-        },
-        {
-            "fieldname": "status",
-            "fieldtype": "Select",
-            "label": "Status",
-            "options": "Draft\nSubmitted",
-            "default": "Draft"
+            "reqd": 1
         }
     ],
     "index_web_pages_for_search": 0,
@@ -72,5 +43,6 @@
         }
     ],
     "sort_field": "modified",
-    "sort_order": "DESC"
+    "sort_order": "DESC",
+    "__custom_js": "trip_capture.js"
 }
