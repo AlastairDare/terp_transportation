@@ -6,14 +6,15 @@
     "doctype": "DocType",
     "engine": "InnoDB",
     "field_order": [
-        "trip_sheet_image",
+        "driver_name",
         "delivery_note_image"
     ],
     "fields": [
         {
-            "fieldname": "trip_sheet_image",
-            "fieldtype": "Attach Image",
-            "label": "Trip Sheet Image",
+            "fieldname": "driver_name",
+            "fieldtype": "Link",
+            "label": "Driver Name",
+            "options": "Driver",
             "reqd": 1
         },
         {
