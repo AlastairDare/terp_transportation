@@ -4,6 +4,8 @@
     "module": "Transportation",
     "custom": 1,
     "autoname": "field:driver_number",
+    "title_field": "driver_name",
+    "search_fields": "driver_name,driver_number",
     "public": 1,
     "fields": [
         {

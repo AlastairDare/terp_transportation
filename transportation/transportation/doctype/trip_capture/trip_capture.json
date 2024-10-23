@@ -11,10 +11,11 @@
     ],
     "fields": [
         {
-            "fieldname": "driver_name",
+            "fieldname": "driver",
             "fieldtype": "Link",
-            "label": "Driver Name",
+            "label": "Driver",
             "options": "Driver",
+            "in_list_view": 1,
             "reqd": 1
         },
         {
