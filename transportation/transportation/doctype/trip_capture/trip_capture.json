@@ -16,13 +16,15 @@
             "label": "Driver",
             "options": "Driver",
             "in_list_view": 1,
-            "reqd": 1
+            "reqd": 1,
+            "idx": 1
         },
         {
             "fieldname": "delivery_note_image",
             "fieldtype": "Attach Image",
             "label": "Delivery Note Image",
-            "reqd": 1
+            "reqd": 1,
+            "idx": 2
         }
     ],
     "index_web_pages_for_search": 0,
