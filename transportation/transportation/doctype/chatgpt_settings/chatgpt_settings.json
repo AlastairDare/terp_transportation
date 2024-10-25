@@ -1,43 +1,57 @@
 {
-    "chatgpt_settings": {
-      "issingle": 1,
-      "module": "Integrations",
-      "naming_rule": "Set by System",
-      "fields": [
-        {
-          "fieldname": "api_key",
-          "fieldtype": "Password",
-          "label": "OpenAI API Key",
-          "mandatory": 1,
-          "encrypted": 1
-        },
-        {
-          "fieldname": "base_url",
-          "fieldtype": "Data",
-          "label": "API Base URL",
-          "default": "https://api.openai.com/v1",
-          "description": "The base URL for API calls"
-        },
-        {
-          "fieldname": "default_model",
-          "fieldtype": "Select",
-          "label": "Default Model",
-          "options": [
-            "gpt-4-turbo-preview",
-            "gpt-4",
-            "gpt-3.5-turbo"
-          ],
-          "default": "gpt-3.5-turbo",
-          "mandatory": 1
-        },
-        {
-          "fieldname": "temperature",
-          "fieldtype": "Float",
-          "label": "Temperature",
-          "default": 0.7,
-          "description": "Controls randomness (0-1)",
-          "precision": 1
-        }
-      ]
-    }
+    "doctype": "DocType",
+    "name": "ChatGPT Settings",
+    "owner": "Administrator",
+    "issingle": 1,
+    "module": "Transportation",
+    "creation": "2024-10-25 12:00:00.000000",
+    "modified": "2024-10-25 12:00:00.000000",
+    "modified_by": "Administrator",
+    "naming_rule": "Set by System",
+    "fields": [
+      {
+        "fieldname": "api_key",
+        "fieldtype": "Password",
+        "label": "OpenAI API Key",
+        "mandatory": 1,
+        "encrypted": 1
+      },
+      {
+        "fieldname": "base_url",
+        "fieldtype": "Data",
+        "label": "API Base URL",
+        "default": "https://api.openai.com/v1",
+        "description": "The base URL for API calls"
+      },
+      {
+        "fieldname": "default_model",
+        "fieldtype": "Select",
+        "label": "Default Model",
+        "options": [
+          "gpt-4-turbo-preview",
+          "gpt-4",
+          "gpt-3.5-turbo"
+        ],
+        "default": "gpt-3.5-turbo",
+        "mandatory": 1
+      },
+      {
+        "fieldname": "temperature",
+        "fieldtype": "Float",
+        "label": "Temperature",
+        "default": 0.7,
+        "description": "Controls randomness (0-1)",
+        "precision": 1
+      }
+    ],
+    "permissions": [
+      {
+        "role": "System Manager",
+        "read": 1,
+        "write": 1,
+        "create": 1,
+        "delete": 1,
+        "permlevel": 0
+      }
+    ]
   }
