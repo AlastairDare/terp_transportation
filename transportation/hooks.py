@@ -53,3 +53,8 @@ add_to_apps_screen = [
 app_include_js = "transportation.bundle.js"
 app_include_css = "transportation.bundle.css"
 
+doc_events = {
+    "Trip Capture": {
+        "after_insert": "transportation.handlers.trip_capture_handler.TripCaptureHandler.process_new_capture"
+    }
+}

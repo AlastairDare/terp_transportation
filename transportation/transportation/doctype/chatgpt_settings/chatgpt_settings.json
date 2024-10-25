@@ -27,8 +27,8 @@
         "fieldname": "default_model",
         "fieldtype": "Select",
         "label": "Default Model",
-        "options": "gpt-4-turbo-preview\ngpt-4\ngpt-3.5-turbo",
-        "default": "gpt-3.5-turbo",
+        "options": "gpt-4-turbo\ngpt-4\ngpt-3.5-turbo\ngpt-4o",
+        "default": "gpt-4o",
         "mandatory": 1
       },
       {
