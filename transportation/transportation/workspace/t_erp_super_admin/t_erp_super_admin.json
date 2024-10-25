@@ -1,6 +1,6 @@
 {
     "doctype": "Workspace",
-    "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>T-ERP Super Admin</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip Capture\",\"col\":3,\"icon\":\"camera\",\"link_type\":\"DocType\",\"link_to\":\"Trip Capture\",\"type\":\"Form\"}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ChatGPT Settings\",\"col\":3,\"icon\":\"settings\",\"link_type\":\"DocType\",\"link_to\":\"ChatGPT Settings\",\"type\":\"Form\"}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"OCR Settings\",\"col\":3,\"icon\":\"scan\",\"link_type\":\"DocType\",\"link_to\":\"OCR Settings\",\"type\":\"Form\"}},{\"type\":\"card\",\"data\":{\"card_name\":\"Trip Management\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Trip Capture\",\"link_type\":\"DocType\",\"link_to\":\"Trip Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Integrations\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"ChatGPT Settings\",\"link_type\":\"DocType\",\"link_to\":\"ChatGPT Settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"OCR Settings\",\"link_type\":\"DocType\",\"link_to\":\"OCR Settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}}]",
+    "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>T-ERP Super Admin</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip Capture\",\"col\":3,\"icon\":\"camera\",\"link_type\":\"DocType\",\"link_to\":\"Trip Capture\",\"type\":\"Form\"}},{\"type\":\"card\",\"data\":{\"card_name\":\"Trip Management\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Trip Capture\",\"link_type\":\"DocType\",\"link_to\":\"Trip Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"ChatGPT Settings\",\"link_type\":\"DocType\",\"link_to\":\"ChatGPT Settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"OCR Settings\",\"link_type\":\"DocType\",\"link_to\":\"OCR Settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}}]",
     "icon": "gear",
     "label": "T-ERP Super Admin",
     "module": "Transportation",
@@ -8,11 +8,15 @@
     "public": 1,
     "sequence_id": 40.0,
     "title": "T-ERP Super Admin",
+    "extends": "T-ERP Super Admin",
+    "extends_another_page": 1,
+    "is_default": 0,
+    "for_user": "",
     "links": [
         {
             "hidden": 0,
             "is_query_report": 0,
-            "label": "Administrative Settings",
+            "label": "Settings",
             "link_count": 2,
             "onboard": 0,
             "type": "Card Break"
@@ -37,5 +41,9 @@
             "onboard": 1,
             "type": "Link"
         }
-    ]
+    ],
+    "restrict_to_domain": "",
+    "hide_custom": 1,
+    "pin_to_top": 0,
+    "hide_edges": 0
 }
