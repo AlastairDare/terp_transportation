@@ -1,6 +1,6 @@
 {
     "doctype": "Workspace",
-    "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>T-ERP Super Admin</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip Capture\",\"col\":3,\"icon\":\"camera\",\"link_type\":\"DocType\",\"link_to\":\"Trip Capture\",\"type\":\"Form\"}},{\"type\":\"card\",\"data\":{\"card_name\":\"Trip Management\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Trip Capture\",\"link_type\":\"DocType\",\"link_to\":\"Trip Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Integrations\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"ChatGPT Settings\",\"link_type\":\"DocType\",\"link_to\":\"ChatGPT Settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}}]",
+    "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>T-ERP Super Admin</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip Capture\",\"col\":3,\"icon\":\"camera\",\"link_type\":\"DocType\",\"link_to\":\"Trip Capture\",\"type\":\"Form\"}},{\"type\":\"card\",\"data\":{\"card_name\":\"Trip Management\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Trip Capture\",\"link_type\":\"DocType\",\"link_to\":\"Trip Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Integrations\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"ChatGPT Settings\",\"link_type\":\"DocType\",\"link_to\":\"transportation.settings.chatgpt_settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"OCR Settings\",\"link_type\":\"DocType\",\"link_to\":\"transportation.settings.ocr_settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}}]",
     "icon": "gear",
     "label": "T-ERP Super Admin",
     "module": "Transportation",
@@ -9,23 +9,33 @@
     "sequence_id": 40.0,
     "title": "T-ERP Super Admin",
     "links": [
-      {
-        "hidden": 0,
-        "is_query_report": 0,
-        "label": "Administrative Settings",
-        "link_count": 1,
-        "onboard": 0,
-        "type": "Card Break"
-      },
-      {
-        "hidden": 0,
-        "is_query_report": 0,
-        "label": "ChatGPT Settings",
-        "link_count": 0,
-        "link_to": "ChatGPT Settings",
-        "link_type": "DocType",
-        "onboard": 1,
-        "type": "Link"
-      }
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Administrative Settings",
+            "link_count": 2,
+            "onboard": 0,
+            "type": "Card Break"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "ChatGPT Settings",
+            "link_count": 0,
+            "link_to": "transportation.settings.chatgpt_settings",
+            "link_type": "DocType",
+            "onboard": 1,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "OCR Settings",
+            "link_count": 0,
+            "link_to": "transportation.settings.ocr_settings",
+            "link_type": "DocType",
+            "onboard": 1,
+            "type": "Link"
+        }
     ]
-  }
+}
