@@ -7,7 +7,8 @@
     "engine": "InnoDB",
     "field_order": [
         "driver_name",
-        "delivery_note_image"
+        "delivery_note_image",
+        "delivery_note_number"
     ],
     "fields": [
         {
@@ -25,6 +26,13 @@
             "label": "Delivery Note Image",
             "reqd": 1,
             "idx": 2
+        },
+        {
+            "fieldname": "delivery_note_number",
+            "fieldtype": "Data",
+            "label": "Delivery Note Number",
+            "hidden": 1,
+            "idx": 3
         }
     ],
     "index_web_pages_for_search": 0,
@@ -47,6 +55,5 @@
         }
     ],
     "sort_field": "modified",
-    "sort_order": "DESC",
-    "__custom_js": "trip_capture.js"
+    "sort_order": "DESC"
 }

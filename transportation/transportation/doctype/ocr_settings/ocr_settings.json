@@ -1,0 +1,81 @@
+{
+    "custom": 1,
+    "public": 1,
+    "actions": [],
+    "creation": "2024-10-22 12:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "function",
+        "language_prompt",
+        "json_example"
+    ],
+    "fields": [
+        {
+            "fieldname": "function",
+            "fieldtype": "Select",
+            "label": "Function",
+            "options": "Trip Capture Config\nSchedule Sheet Capture\nDelivery Note Capture",
+            "in_list_view": 1,
+            "reqd": 1,
+            "unique": 1,
+            "description": "Select the function this configuration will be used for",
+            "idx": 1
+        },
+        {
+            "fieldname": "language_prompt",
+            "fieldtype": "Long Text",
+            "label": "Language Prompt",
+            "description": "Enter the prompt that will be sent to ChatGPT for image analysis. Use {image_data} where the base64 image should be inserted.",
+            "reqd": 1,
+            "in_list_view": 1,
+            "default": "You are an expert at analyzing delivery note images. Please analyze this image and extract the following information: date, truck number, odometer readings at each stop, start time, end time, and delivery note number. Format the response exactly like the example JSON structure provided. Here is the image to analyze: {image_data}",
+            "idx": 2
+        },
+        {
+            "fieldname": "json_example",
+            "fieldtype": "Code",
+            "label": "JSON Example",
+            "description": "Provide an example JSON structure that ChatGPT should follow when returning data",
+            "reqd": 1,
+            "options": "JSON",
+            "default": "{\n  \"date\": \"2024-10-25\",\n  \"truck_number\": \"ABC123\",\n  \"delivery_note_number\": \"DN001\",\n  \"odo_start\": 1000,\n  \"odo_end\": 1500,\n  \"time_start\": \"08:00\",\n  \"time_end\": \"17:00\",\n  \"drop_details_odo\": [1100, 1200, 1300, 1400]\n}",
+            "idx": 3
+        }
+    ],
+    "index_web_pages_for_search": 0,
+    "issingle": 0,
+    "is_tree": 0,
+    "links": [],
+    "modified": "2024-10-22 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Transportation",
+    "name": "OCR Settings",
+    "name_case": "",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "print": 1,
+            "read": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "create": 1,
+            "delete": 0,
+            "email": 1,
+            "print": 1,
+            "read": 1,
+            "role": "Transportation Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "track_changes": 1
+}

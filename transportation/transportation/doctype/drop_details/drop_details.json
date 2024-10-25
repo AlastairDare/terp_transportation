@@ -1,0 +1,38 @@
+{
+    "custom": 1,
+    "public": 1,
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "odometer_reading",
+        "parent_trip"
+    ],
+    "fields": [
+        {
+            "fieldname": "odometer_reading",
+            "fieldtype": "Int",
+            "label": "Odometer Reading",
+            "in_list_view": 1,
+            "reqd": 1,
+            "idx": 1
+        },
+        {
+            "fieldname": "parent_trip",
+            "fieldtype": "Link",
+            "label": "Parent Trip",
+            "options": "Trip",
+            "in_list_view": 1,
+            "reqd": 1,
+            "idx": 2
+        }
+    ],
+    "istable": 1,
+    "modified": "2024-10-22 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Transportation",
+    "name": "Drop Details",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC"
+}

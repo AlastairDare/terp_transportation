@@ -1,0 +1,108 @@
+{
+    "custom": 1,
+    "public": 1,
+    "actions": [],
+    "creation": "2024-10-22 12:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "date",
+        "truck_number",
+        "delivery_note_number",
+        "odo_start",
+        "odo_end",
+        "time_start",
+        "time_end",
+        "drop_details_odo"
+    ],
+    "fields": [
+        {
+            "fieldname": "date",
+            "fieldtype": "Date",
+            "label": "Date",
+            "in_list_view": 1,
+            "reqd": 1,
+            "idx": 1
+        },
+        {
+            "fieldname": "truck_number",
+            "fieldtype": "Data",
+            "label": "Truck Number",
+            "in_list_view": 1,
+            "reqd": 1,
+            "idx": 2
+        },
+        {
+            "fieldname": "delivery_note_number",
+            "fieldtype": "Data",
+            "label": "Delivery Note Number",
+            "in_list_view": 1,
+            "reqd": 1,
+            "idx": 3
+        },
+        {
+            "fieldname": "driver_name",
+            "label": "Driver Name",
+            "fieldtype": "Data",
+            "reqd": 0,
+            "idx": 4
+        },
+        {
+            "fieldname": "odo_start",
+            "fieldtype": "Int",
+            "label": "Odometer Start",
+            "reqd": 1,
+            "idx": 5
+        },
+        {
+            "fieldname": "odo_end",
+            "fieldtype": "Int",
+            "label": "Odometer End",
+            "reqd": 1,
+            "idx": 6
+        },
+        {
+            "fieldname": "time_start",
+            "fieldtype": "Time",
+            "label": "Start Time",
+            "reqd": 1,
+            "idx": 7
+        },
+        {
+            "fieldname": "time_end",
+            "fieldtype": "Time",
+            "label": "End Time",
+            "reqd": 1,
+            "idx": 8
+        },
+        {
+            "fieldname": "drop_details_odo",
+            "fieldtype": "Table",
+            "label": "Drop Details Odometer",
+            "options": "Drop Details",
+            "reqd": 0,
+            "idx": 9
+        }
+    ],
+    "index_web_pages_for_search": 0,
+    "issingle": 0,
+    "links": [],
+    "modified": "2024-10-22 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Transportation",
+    "name": "Trip",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "print": 1,
+            "read": 1,
+            "role": "System Manager",
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC"
+}
