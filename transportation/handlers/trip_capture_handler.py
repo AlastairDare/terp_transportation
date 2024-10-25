@@ -39,21 +39,28 @@ class TripCaptureHandler:
         Validates inputs, creates Trip document, and initiates processing.
         """
         try:
+            frappe.logger().debug("Starting process_new_capture")
+            
             # Input validation
+            frappe.logger().debug("Validating required fields")
             self._validate_required_fields()
             
             # Fetch and validate settings
+            frappe.logger().debug("Fetching settings")
             self._fetch_settings()
             
             # Create initial Trip document
+            frappe.logger().debug("Creating initial Trip document")
             trip_doc = self._create_initial_trip()
             
             # Enqueue processing job
+            frappe.logger().debug(f"Enqueueing processing for Trip: {trip_doc.name}")
             self._enqueue_processing(trip_doc.name)
             
             return trip_doc.name
 
         except Exception as e:
+            frappe.logger().error(f"Error in process_new_capture: {str(e)}")
             frappe.log_error(
                 frappe.get_traceback(),
                 f"Trip Capture Processing Error: {str(e)}"
@@ -337,5 +344,24 @@ def on_trip_capture_save(doc, method):
         doc: TripCapture document
         method: Trigger method name
     """
-    handler = TripCaptureHandler(doc, method)
-    handler.process_new_capture()
+    try:
+        # Add initial hook trigger logging
+        frappe.logger().debug(f"Trip Capture hook triggered - Doc: {doc.name}, Method: {method}")
+        
+        # Log document details
+        frappe.logger().debug(f"Trip Capture Details - Driver: {doc.driver}, Image: {doc.delivery_note_image}")
+        
+        handler = TripCaptureHandler(doc, method)
+        result = handler.process_new_capture()
+        
+        # Log successful processing
+        frappe.logger().debug(f"Trip Capture processed successfully. Created Trip: {result}")
+        
+    except Exception as e:
+        # Log any errors that occur
+        frappe.logger().error(f"Error in trip capture hook: {str(e)}")
+        frappe.log_error(
+            frappe.get_traceback(),
+            f"Trip Capture Hook Error: {str(e)}"
+        )
+        raise
