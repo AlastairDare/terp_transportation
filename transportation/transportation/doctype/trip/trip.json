@@ -6,9 +6,11 @@
     "doctype": "DocType",
     "engine": "InnoDB",
     "field_order": [
+        "status",
         "date",
         "truck_number",
         "delivery_note_number",
+        "driver_name",
         "odo_start",
         "odo_end",
         "time_start",
@@ -17,12 +19,22 @@
     ],
     "fields": [
         {
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "label": "Status",
+            "options": "Draft\nPending\nProcessing\nCompleted\nError",
+            "default": "Draft",
+            "reqd": 1,
+            "in_list_view": 1,
+            "idx": 1
+        },
+        {
             "fieldname": "date",
             "fieldtype": "Date",
             "label": "Date",
             "in_list_view": 1,
             "reqd": 1,
-            "idx": 1
+            "idx": 2
         },
         {
             "fieldname": "truck_number",
@@ -30,7 +42,7 @@
             "label": "Truck Number",
             "in_list_view": 1,
             "reqd": 1,
-            "idx": 2
+            "idx": 3
         },
         {
             "fieldname": "delivery_note_number",
@@ -38,42 +50,43 @@
             "label": "Delivery Note Number",
             "in_list_view": 1,
             "reqd": 1,
-            "idx": 3
+            "idx": 4
         },
         {
             "fieldname": "driver_name",
             "label": "Driver Name",
-            "fieldtype": "Data",
-            "reqd": 0,
-            "idx": 4
+            "fieldtype": "Link",
+            "options": "Driver",
+            "reqd": 1,
+            "idx": 5
         },
         {
             "fieldname": "odo_start",
             "fieldtype": "Int",
             "label": "Odometer Start",
             "reqd": 1,
-            "idx": 5
+            "idx": 6
         },
         {
             "fieldname": "odo_end",
             "fieldtype": "Int",
             "label": "Odometer End",
             "reqd": 1,
-            "idx": 6
+            "idx": 7
         },
         {
             "fieldname": "time_start",
             "fieldtype": "Time",
             "label": "Start Time",
             "reqd": 1,
-            "idx": 7
+            "idx": 8
         },
         {
             "fieldname": "time_end",
             "fieldtype": "Time",
             "label": "End Time",
             "reqd": 1,
-            "idx": 8
+            "idx": 9
         },
         {
             "fieldname": "drop_details_odo",
@@ -81,7 +94,7 @@
             "label": "Drop Details Odometer",
             "options": "Drop Details",
             "reqd": 0,
-            "idx": 9
+            "idx": 10
         }
     ],
     "index_web_pages_for_search": 0,
