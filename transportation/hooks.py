@@ -63,6 +63,6 @@ app_include_css = "transportation.bundle.css"
 
 doc_events = {
     "Trip Capture": {
-        "after_insert": "transportation.trip_capture_handler.on_trip_capture_save"
+        "after_insert": "transportation.handlers.trip_capture_handler.on_trip_capture_save"
     }
 }
