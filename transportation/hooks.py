@@ -37,6 +37,14 @@ workspaces = [
         "type": "page",
         "link": "trip_manager",
         "label": "Trip Manager"
+    },
+    {
+        "name": "T-ERP Super Admin",
+        "icon": "gear",
+        "module": "Transportation",
+        "type": "page",
+        "link": "t_erp_super_admin",
+        "label": "T-ERP Super Admin"
     }
 
 ]
