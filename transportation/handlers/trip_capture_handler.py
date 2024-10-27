@@ -19,6 +19,7 @@ class TripCaptureHandler:
 
     def process_new_capture(self):
         try:
+            frappe.log_error(f"Starting process_new_capture for driver {self.doc.driver}", "Trip Processing Start")
             self._validate_required_fields()
             self._fetch_settings()
             trip_doc = self._create_initial_trip()
@@ -174,22 +175,22 @@ class TripCaptureHandler:
 
     def _handle_processing_error(self, error, trip_id):
         try:
+            error_msg = f"""
+            Trip Processing Error Details:
+            Error Type: {type(error).__name__}
+            Error Message: {str(error)}
+            Trip ID: {trip_id}
+            Driver: {self.doc.driver}
+            Image Path: {self.doc.delivery_note_image}
+            """
+            frappe.log_error(error_msg, "Detailed Trip Processing Error")
+            
             trip_doc = frappe.get_doc("Trip", trip_id)
             trip_doc.status = "Error"
             trip_doc.save(ignore_permissions=True)
-            admin_email = frappe.get_system_settings('admin_email_address')
-            if admin_email:
-                frappe.sendmail(
-                    recipients=[admin_email],
-                    subject=f"Trip Processing Error: {trip_id}",
-                    message=f"Error processing trip capture: {str(error)}\n\n"
-                            f"Trip ID: {trip_id}\n"
-                            f"Trip Capture: {self.doc.name}\n"
-                            f"Driver: {self.doc.driver}\n\n"
-                            f"Please check the error log for details."
-                )
+        
         except Exception as e:
-            frappe.log_error(str(e), "Error Handler Failed")
+            frappe.log_error(f"Error Handler Failed: {str(e)}", "Error Handler Failure")
 
 def on_trip_capture_save(doc, method):
     handler = TripCaptureHandler(doc, method)
