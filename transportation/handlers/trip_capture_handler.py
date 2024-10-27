@@ -337,31 +337,22 @@ class TripCaptureHandler:
             )
 
 def on_trip_capture_save(doc, method):
-    """
-    Handler function to be connected via hooks.
-    
-    Args:
-        doc: TripCapture document
-        method: Trigger method name
-    """
+    frappe.log_error("Trip Capture hook triggered", "Debug")  # This will create an error log entry
     try:
-        # Add initial hook trigger logging
-        frappe.logger().debug(f"Trip Capture hook triggered - Doc: {doc.name}, Method: {method}")
+        frappe.db.commit()  # Force commit the log
         
         # Log document details
-        frappe.logger().debug(f"Trip Capture Details - Driver: {doc.driver}, Image: {doc.delivery_note_image}")
+        frappe.log_error(f"Trip Capture Details - Driver: {doc.driver}", "Debug Details")
+        frappe.db.commit()
         
         handler = TripCaptureHandler(doc, method)
         result = handler.process_new_capture()
         
         # Log successful processing
-        frappe.logger().debug(f"Trip Capture processed successfully. Created Trip: {result}")
+        frappe.log_error(f"Trip Capture processed with result: {result}", "Debug Success")
+        frappe.db.commit()
         
     except Exception as e:
-        # Log any errors that occur
-        frappe.logger().error(f"Error in trip capture hook: {str(e)}")
-        frappe.log_error(
-            frappe.get_traceback(),
-            f"Trip Capture Hook Error: {str(e)}"
-        )
+        frappe.log_error(f"Trip Capture Error: {str(e)}", "Error")
+        frappe.db.commit()
         raise
