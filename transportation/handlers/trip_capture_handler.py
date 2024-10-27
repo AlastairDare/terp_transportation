@@ -38,14 +38,27 @@ class TripCaptureHandler:
             frappe.throw(_("Delivery Note Image file not found"))
 
     def _fetch_settings(self):
-        self.ocr_settings = frappe.get_cached_doc("OCR Settings", {
-            "function": "Trip Capture Config"
-        })
-        if not self.ocr_settings:
-            frappe.throw(_("OCR Settings not found for Trip Capture Config"))
-        self.chatgpt_settings = frappe.get_single("ChatGPT Settings")
-        if not self.chatgpt_settings or not self.chatgpt_settings.api_key:
-            frappe.throw(_("ChatGPT Settings not properly configured"))
+        try:
+            frappe.log_error("Starting _fetch_settings", "Trip Debug")
+            self.ocr_settings = frappe.get_cached_doc("OCR Settings", {
+                "function": "Trip Capture Config"
+            })
+            frappe.log_error("Got OCR settings", "Trip Debug")
+            
+            if not self.ocr_settings:
+                frappe.log_error("No OCR Settings found", "Trip Error")
+                frappe.throw(_("OCR Settings not found for Trip Capture Config"))
+
+            self.chatgpt_settings = frappe.get_single("ChatGPT Settings")
+            frappe.log_error("Got ChatGPT settings", "Trip Debug")
+            
+            if not self.chatgpt_settings or not self.chatgpt_settings.api_key:
+                frappe.log_error("ChatGPT Settings missing or no API key", "Trip Error")
+                frappe.throw(_("ChatGPT Settings not properly configured"))
+
+        except Exception as e:
+            frappe.log_error(f"Settings Error: {str(e)}", "Trip Error")
+            raise
 
     def _create_initial_trip(self):
         try:
