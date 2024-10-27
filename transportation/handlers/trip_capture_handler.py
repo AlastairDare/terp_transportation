@@ -80,20 +80,18 @@ class TripCaptureHandler:
             frappe.throw(_("Delivery Note Image file not found"))
 
     def _fetch_settings(self):
-        """Fetch and validate OCR and ChatGPT settings."""
-        # Get OCR settings
-        self.ocr_settings = frappe.get_cached_doc("OCR Settings", {
-            "function": "Trip Capture Config"
-        })
-        
-        if not self.ocr_settings:
-            frappe.throw(_("OCR Settings not found for Trip Capture Config"))
+    self.ocr_settings = frappe.get_cached_doc("OCR Settings", {
+        "function": "Trip Capture Config"
+    })
+    
+    if not self.ocr_settings:
+        frappe.throw(_("OCR Settings not found for Trip Capture Config"))
 
-        # Get ChatGPT settings
-        self.chatgpt_settings = frappe.get_cached_single("ChatGPT Settings")
-        
-        if not self.chatgpt_settings or not self.chatgpt_settings.api_key:
-            frappe.throw(_("ChatGPT Settings not properly configured"))
+    # Changed from get_cached_single to get_single
+    self.chatgpt_settings = frappe.get_single("ChatGPT Settings")
+    
+    if not self.chatgpt_settings or not self.chatgpt_settings.api_key:
+        frappe.throw(_("ChatGPT Settings not properly configured"))
 
     def _create_initial_trip(self):
         """Create initial Trip document in Draft status."""
