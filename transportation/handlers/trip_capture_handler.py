@@ -206,4 +206,15 @@ class TripCaptureHandler:
             frappe.log_error(f"Error Handler Failed: {str(e)}", "Error Handler Failure")
 
 def on_trip_capture_save(doc, method):
-    raise Exception("TESTING IF HOOK IS FIRING")
+    try:
+        print("STEP 1: Before handler creation")
+        handler = TripCaptureHandler(doc, method)
+        
+        print("STEP 2: Before process_new_capture")
+        result = handler.process_new_capture()
+        
+        print("STEP 3: After process_new_capture")
+        return result
+        
+    except Exception as e:
+        raise Exception(f"Error in handler: {str(e)}")
