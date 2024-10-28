@@ -206,5 +206,7 @@ class TripCaptureHandler:
             frappe.log_error(f"Error Handler Failed: {str(e)}", "Error Handler Failure")
 
 def on_trip_capture_save(doc, method):
+    frappe.log_error("TESTING INITIAL LOG", "Trip Test")
+    frappe.db.commit()  # Force commit to ensure log is written
     handler = TripCaptureHandler(doc, method)
     return handler.process_new_capture()
