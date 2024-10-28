@@ -205,16 +205,22 @@ class TripCaptureHandler:
         except Exception as e:
             frappe.log_error(f"Error Handler Failed: {str(e)}", "Error Handler Failure")
 
-def on_trip_capture_save(doc, method):
+def process_new_capture(self):
     try:
-        frappe.msgprint("STEP 1: Before handler creation")
-        handler = TripCaptureHandler(doc, method)
+        frappe.msgprint("Starting validation")
+        self._validate_required_fields()
         
-        frappe.msgprint("STEP 2: Before process_new_capture")
-        result = handler.process_new_capture()
+        frappe.msgprint("Starting settings fetch")
+        self._fetch_settings()
         
-        frappe.msgprint("STEP 3: After process_new_capture")
-        return result
+        frappe.msgprint("Creating trip document")
+        trip_doc = self._create_initial_trip()
         
+        frappe.msgprint("Enqueueing processing")
+        self._enqueue_processing(trip_doc.name)
+        
+        return trip_doc.name
+
     except Exception as e:
-        raise Exception(f"Error in handler: {str(e)}")
+        frappe.msgprint(f"Failed at: {str(e)}")
+        raise
