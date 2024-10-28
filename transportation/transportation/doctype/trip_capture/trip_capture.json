@@ -8,7 +8,8 @@
     "field_order": [
         "driver_name",
         "delivery_note_image",
-        "delivery_note_number"
+        "delivery_note_number",
+        "ocr_ready_image"
     ],
     "fields": [
         {
@@ -33,6 +34,13 @@
             "label": "Delivery Note Number",
             "hidden": 1,
             "idx": 3
+        },
+        {
+            "fieldname": "ocr_ready_image",
+            "fieldtype": "Attach",
+            "label": "OCR Ready Image",
+            "hidden": 1,
+            "idx": 4
         }
     ],
     "index_web_pages_for_search": 0,

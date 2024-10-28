@@ -66,3 +66,18 @@ doc_events = {
         "after_insert": "transportation.handlers.trip_capture_handler.on_trip_capture_save"
     }
 }
+
+dependencies = [
+    {
+        "package": "opencv-python-headless",
+        "version": ">=4.8.0"
+    },
+    {
+        "package": "Pillow",
+        "version": ">=10.0.0"
+    },
+    {
+        "package": "numpy",
+        "version": ">=1.24.0"
+    }
+]
