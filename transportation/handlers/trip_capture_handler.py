@@ -150,7 +150,7 @@ class TripCaptureHandler:
             
             frappe.msgprint("Preparing API request data")
             data = {
-                "model": "gpt-4-vision-preview",
+                "model": self.chatgpt_settings.default_model,  # Use model from settings
                 "messages": [
                     {
                         "role": "user",
