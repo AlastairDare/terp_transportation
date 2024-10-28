@@ -221,11 +221,13 @@ class TripCaptureHandler:
                     if doc_field in ['odo_start', 'odo_end']:
                         value = cint(value)
                     trip_doc.set(doc_field, value)
-            trip_doc.drop_details_odo = []
+            # In the _update_documents method, modify the drop details section:
+            trip_doc.drop_details_odo = []  # Clear existing
             if 'drop_details_odo' in chatgpt_data:
                 for odo_reading in chatgpt_data['drop_details_odo']:
                     trip_doc.append('drop_details_odo', {
-                        'odometer_reading': cint(odo_reading)
+                        'odometer_reading': cint(odo_reading),
+                        'parent': trip_doc.name  # Add the parent field
                     })
             trip_doc.status = 'Completed'
             trip_doc.save(ignore_permissions=True)
