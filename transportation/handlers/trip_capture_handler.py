@@ -76,14 +76,29 @@ class TripCaptureHandler:
             raise
 
     def _enqueue_processing(self, trip_id):
-        enqueue(
-            method=self.process_image_with_chatgpt,
-            queue='long',
-            timeout=1500,
-            job_name=f'process_trip_capture_{self.doc.name}',
-            trip_id=trip_id,
-            now=True
-        )
+        try:
+            frappe.msgprint("Starting direct processing")
+            
+            # Update trip status
+            trip_doc = frappe.get_doc("Trip", trip_id)
+            trip_doc.status = "Processing"
+            trip_doc.save(ignore_permissions=True)
+            frappe.db.commit()
+            
+            # Process directly instead of enqueueing
+            try:
+                self.process_image_with_chatgpt(trip_id)
+                frappe.msgprint("Processing completed successfully")
+            except Exception as e:
+                frappe.msgprint(f"Processing error: {str(e)}")
+                trip_doc.status = "Error"
+                trip_doc.save(ignore_permissions=True)
+                frappe.db.commit()
+                raise
+                
+        except Exception as e:
+            frappe.msgprint(f"Enqueue error: {str(e)}")
+            raise
 
     def process_image_with_chatgpt(self, trip_id):
         try:
