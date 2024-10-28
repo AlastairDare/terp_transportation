@@ -227,7 +227,7 @@ class TripCaptureHandler:
                 for odo_reading in chatgpt_data['drop_details_odo']:
                     trip_doc.append('drop_details_odo', {
                         'odometer_reading': cint(odo_reading),
-                        'parent': trip_doc.name  # Add the parent field
+                        'parent_trip': trip_doc.name # Add the parent field
                     })
             trip_doc.status = 'Completed'
             trip_doc.save(ignore_permissions=True)
