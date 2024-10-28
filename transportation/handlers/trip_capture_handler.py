@@ -15,28 +15,39 @@ from frappe.utils.background_jobs import enqueue
 class ImageOptimizer:
     def __init__(self, doc):
         self.doc = doc
-        self.max_dimension = 1800  # Maximum width or height
-        self.target_dpi = 300      # Target DPI for OCR
-        self.jpeg_quality = 85     # JPEG quality (1-100)
+        self.max_dimension = 1024
+        self.jpeg_quality = 60
         self.optimized_image_path = None
+        self.max_file_size = 1024 * 1024  # 1MB target size
         
     def process_image(self):
         """Main function to process and optimize the image"""
         try:
             # Get original image path
             original_image_path = get_files_path() + '/' + self.doc.delivery_note_image.lstrip('/files/')
+            original_size = os.path.getsize(original_image_path)
             
-            # Open image with PIL
+            frappe.log_error(f"Original image size: {original_size} bytes", "Image Processing")
+            
+            # If original is already small enough, just use it
+            if original_size <= self.max_file_size:
+                frappe.log_error("Original image is already optimized, using as-is", "Image Processing")
+                self.optimized_image_path = original_image_path
+                return self.doc.delivery_note_image
+            
+            # Only proceed with optimization if the original is too large
             with Image.open(original_image_path) as img:
-                # Convert to RGB if needed
+                width, height = img.size
+                frappe.log_error(f"Original dimensions: {width}x{height}", "Image Processing")
+                
+                # Only convert if not already RGB
                 if img.mode != 'RGB':
                     img = img.convert('RGB')
                 
-                # Resize if necessary
-                img = self._resize_image(img)
-                
-                # Enhance image for OCR
-                img = self._enhance_for_ocr(img)
+                # Only resize if dimensions are too large
+                if width > self.max_dimension or height > self.max_dimension:
+                    img = self._resize_image(img)
+                    frappe.log_error(f"Resized dimensions: {img.size}", "Image Processing")
                 
                 # Save optimized image
                 optimized_filename = f"ocr_ready_{os.path.basename(original_image_path)}"
@@ -46,8 +57,19 @@ class ImageOptimizer:
                     self.optimized_image_path,
                     'JPEG',
                     quality=self.jpeg_quality,
-                    dpi=(self.target_dpi, self.target_dpi)
+                    optimize=True
                 )
+                
+                optimized_size = os.path.getsize(self.optimized_image_path)
+                frappe.log_error(f"Optimized image size: {optimized_size} bytes", "Image Processing")
+                
+                # If optimized is larger, use original
+                if optimized_size > original_size:
+                    frappe.log_error("Optimized image is larger, reverting to original", "Image Processing")
+                    if os.path.exists(self.optimized_image_path):
+                        os.remove(self.optimized_image_path)
+                    self.optimized_image_path = original_image_path
+                    return self.doc.delivery_note_image
                 
                 # Update document with relative path
                 relative_path = os.path.join('files', optimized_filename)
@@ -61,49 +83,21 @@ class ImageOptimizer:
             raise
             
     def _resize_image(self, img):
-        """Resize image while maintaining aspect ratio"""
         width, height = img.size
-        
-        # Check if resizing is needed
         if width > self.max_dimension or height > self.max_dimension:
-            # Calculate new dimensions
             if width > height:
                 new_width = self.max_dimension
                 new_height = int(height * (self.max_dimension / width))
             else:
                 new_height = self.max_dimension
                 new_width = int(width * (self.max_dimension / height))
-                
-            # Resize using high-quality downsampling
             img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-            
         return img
-        
-    def _enhance_for_ocr(self, pil_img):
-        """Enhance image for better OCR results"""
-        # Convert PIL Image to OpenCV format
-        cv_img = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
-        
-        # Apply adaptive thresholding
-        gray = cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
-        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-        thresh = cv2.adaptiveThreshold(
-            blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-            cv2.THRESH_BINARY, 11, 2
-        )
-        
-        # Denoise
-        denoised = cv2.fastNlMeansDenoising(thresh)
-        
-        # Convert back to PIL Image
-        enhanced_img = Image.fromarray(cv2.cvtColor(denoised, cv2.COLOR_GRAY2RGB))
-        
-        return enhanced_img
 
     def get_base64_image(self):
-        """Convert optimized image to base64 string"""
+        """Convert image to base64 string"""
         if not self.optimized_image_path or not os.path.exists(self.optimized_image_path):
-            raise ValueError("Optimized image not found")
+            raise ValueError("Image not found")
             
         with open(self.optimized_image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')
