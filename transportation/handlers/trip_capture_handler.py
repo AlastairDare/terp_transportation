@@ -102,17 +102,33 @@ class TripCaptureHandler:
 
     def process_image_with_chatgpt(self, trip_id):
         try:
+            frappe.msgprint("Starting image processing")
+            
             trip_doc = frappe.get_doc("Trip", trip_id)
             if trip_doc.status != "Processing":
+                frappe.msgprint("Invalid Trip status for processing")
                 frappe.throw(_("Invalid Trip status for processing"))
+
+            frappe.msgprint("Getting image file")
             image_path = get_files_path() + '/' + self.doc.delivery_note_image.lstrip('/files/')
+            
+            frappe.msgprint(f"Image path: {image_path}")
+            
             with open(image_path, "rb") as image_file:
                 encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+
+            frappe.msgprint("Calling ChatGPT API")
             chatgpt_response = self._call_chatgpt_api(encoded_image)
+            
             if not chatgpt_response:
+                frappe.msgprint("No response from ChatGPT")
                 raise Exception("Failed to get response from ChatGPT")
+
+            frappe.msgprint(f"ChatGPT Response: {chatgpt_response}")
             self._update_documents(chatgpt_response, trip_id)
+
         except Exception as e:
+            frappe.msgprint(f"Error in process_image_with_chatgpt: {str(e)}")
             self._handle_processing_error(e, trip_id)
 
     def _call_chatgpt_api(self, encoded_image):
