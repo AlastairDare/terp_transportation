@@ -207,13 +207,13 @@ class TripCaptureHandler:
 
 def on_trip_capture_save(doc, method):
     try:
-        print("STEP 1: Before handler creation")
+        frappe.msgprint("STEP 1: Before handler creation")
         handler = TripCaptureHandler(doc, method)
         
-        print("STEP 2: Before process_new_capture")
+        frappe.msgprint("STEP 2: Before process_new_capture")
         result = handler.process_new_capture()
         
-        print("STEP 3: After process_new_capture")
+        frappe.msgprint("STEP 3: After process_new_capture")
         return result
         
     except Exception as e:
