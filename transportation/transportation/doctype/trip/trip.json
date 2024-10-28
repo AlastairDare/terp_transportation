@@ -22,7 +22,7 @@
             "fieldname": "status",
             "fieldtype": "Select",
             "label": "Status",
-            "options": "Draft\nPending\nProcessing\nCompleted\nError",
+            "options": "Draft\nPending\nProcessing\nCompleted\nError\nAwaiting Approval",
             "default": "Draft",
             "reqd": 1,
             "in_list_view": 1,

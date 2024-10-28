@@ -321,7 +321,7 @@ class TripCaptureHandler:
                         'odometer_reading': cint(odo_reading),
                         'parent_trip': trip_doc.name # Add the parent field
                     })
-            trip_doc.status = 'Completed'
+            trip_doc.status = 'Awaiting Approval'
             trip_doc.save(ignore_permissions=True)
             if 'delivery_note_number' in chatgpt_data:
                 self.doc.delivery_note_number = chatgpt_data['delivery_note_number']
