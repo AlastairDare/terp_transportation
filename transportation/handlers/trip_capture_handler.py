@@ -210,13 +210,10 @@ class TripCaptureHandler:
                 frappe.msgprint("Invalid Trip status for processing")
                 frappe.throw(_("Invalid Trip status for processing"))
 
-            frappe.msgprint("Getting image file")
-            image_path = get_files_path() + '/' + self.doc.delivery_note_image.lstrip('/files/')
-            
-            frappe.msgprint(f"Image path: {image_path}")
-            
-            with open(image_path, "rb") as image_file:
-                encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+            # Create and use ImageOptimizer
+            optimizer = ImageOptimizer(self.doc)
+            optimizer.process_image()  # This creates the optimized image
+            encoded_image = optimizer.get_base64_image()  # Get the optimized image in base64
 
             frappe.msgprint("Calling ChatGPT API")
             chatgpt_response = self._call_chatgpt_api(encoded_image)
