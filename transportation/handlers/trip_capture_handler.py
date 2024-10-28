@@ -133,15 +133,22 @@ class TripCaptureHandler:
 
     def _call_chatgpt_api(self, encoded_image):
         try:
+            frappe.msgprint("Setting up API call")
             headers = {
                 "Authorization": f"Bearer {self.chatgpt_settings.get_password('api_key')}",
                 "Content-Type": "application/json"
             }
+            
             base_url = self.chatgpt_settings.base_url.rstrip('/')
+            frappe.msgprint(f"Using base URL: {base_url}")
+            
+            # Prepare prompt with example
             prompt = (
                 f"{self.ocr_settings.language_prompt.replace('{image_data}', encoded_image)}\n\n"
                 f"Please format the response exactly like this example:\n{self.ocr_settings.json_example}"
             )
+            
+            frappe.msgprint("Preparing API request data")
             data = {
                 "model": "gpt-4-vision-preview",
                 "messages": [
@@ -161,28 +168,40 @@ class TripCaptureHandler:
                 "max_tokens": 500,
                 "temperature": float(self.chatgpt_settings.temperature)
             }
+
+            frappe.msgprint("Making API request")
             response = requests.post(
                 f"{base_url}/chat/completions",
                 headers=headers,
                 json=data,
                 timeout=30
             )
+
             if response.status_code != 200:
+                frappe.msgprint(f"API Error: Status {response.status_code}")
+                frappe.msgprint(f"Error Response: {response.text}")
                 raise Exception(f"ChatGPT API error: {response.text}")
+
             result = response.json()
             response_text = result['choices'][0]['message']['content']
+            
             json_start = response_text.find('{')
             json_end = response_text.rfind('}') + 1
+            
             if json_start == -1 or json_end == 0:
+                frappe.msgprint("No JSON found in response")
                 raise Exception("No valid JSON found in ChatGPT response")
+                
             json_str = response_text[json_start:json_end]
             return json.loads(json_str)
+
         except Exception as e:
             if self.retry_count < self.max_retries:
                 self.retry_count += 1
+                frappe.msgprint(f"API call failed (attempt {self.retry_count}): {str(e)}")
                 return self._call_chatgpt_api(encoded_image)
             else:
-                raise Exception(f"Failed to process image after {self.max_retries} attempts")
+                frappe.msgprint
 
     def _update_documents(self, chatgpt_data, trip_id):
         try:
