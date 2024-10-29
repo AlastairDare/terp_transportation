@@ -1,117 +1,119 @@
 {
-    "name": "Vehicle",
-    "doctype": "DocType",
-    "module": "Transportation",
-    "custom": 1,
-    "autoname": "field:truck_number",
-    "public": 1,
-    "fields": [
-    {
-        "fieldname": "truck_number",
-        "label": "Truck Number",
-        "fieldtype": "Data",
-        "reqd": 1,
-        "unique": 1
-        },
-     {
-      "fieldname": "vin",
-      "label": "VIN",
-      "fieldtype": "Data",
-      "reqd": 1,
-      "unique": 1
-     },
-     {
-      "fieldname": "license_plate",
-      "label": "License Plate",
-      "fieldtype": "Data",
-      "reqd": 1
-     },
-     {
-      "fieldname": "registration_expiry",
-      "label": "Vehicle Registration Expiry Date",
-      "fieldtype": "Date"
-     },
-     {
-        "fieldname": "certificate_of_roadworthiness",
-        "label": "Certificate of Roadworthiness (CRW)",
-        "fieldtype": "Check"
-     },
-     {
-        "fieldname": "certificate_of_roadworthiness_expiration",
-        "label": "Certificate of Roadworthiness (CRW) Expiry Date",
-        "fieldtype": "Date"
-     },
-     {
-        "fieldname": "cross_border_road_transport_permit",
-        "label": "Cross-Border Road Transport Permit (C-BRTA)",
-        "fieldtype": "Check"
-     },
-     {
-        "fieldname": "cross_border_road_transport_permit_expiration",
-        "label": "Cross-Border Road Transport Permit (C-BRTA) Expiry Date",
-        "fieldtype": "Date"
-     },
-     {
-      "fieldname": "make",
-      "label": "Make",
-      "fieldtype": "Data"
-     },
-     {
-      "fieldname": "model",
-      "label": "Model",
-      "fieldtype": "Data"
-     },
-     {
-      "fieldname": "year",
-      "label": "Year",
-      "fieldtype": "Int"
-     },
-     {
-      "fieldname": "vehicle_class",
-      "label": "Vehicle Class",
-      "fieldtype": "Select",
-      "options": "Class 1 (LMV)\nClass 2 (Medium Heavy Vehicle 2 Axles)\nClass 3 (Large Heavy Vehicle 3/4 Axles)\nClass 4 (Extra Large Vehicle 5+ Axles)"
-     },
-     {
-      "fieldname": "fuel_type",
-      "label": "Fuel Type",
-      "fieldtype": "Select",
-      "options": "Petrol\nDiesel\nElectric\nHybrid"
-     },
-     {
-      "fieldname": "current_mileage",
-      "label": "Current Mileage",
-      "fieldtype": "Float"
-     },
-     {
-      "fieldname": "status",
-      "label": "Status",
-      "fieldtype": "Select",
-      "options": "Active\nIn Maintenance\nRetired"
-     },
-     {
-      "fieldname": "cargo_capacity",
-      "label": "Cargo Capacity",
-      "fieldtype": "Float"
-     },
-     {
-      "fieldname": "passenger_capacity",
-      "label": "Passenger Capacity",
-      "fieldtype": "Int"
-     },
-     {
-      "fieldname": "warranty_expiration",
-      "label": "Warranty Expiration Date",
-      "fieldtype": "Date"
-     }
-    ],
-    "permissions": [
-     {
-      "role": "System Manager",
-      "read": 1,
-      "write": 1,
-      "create": 1,
-      "delete": 1
-     }
-    ]
+   "name": "Vehicle",
+   "doctype": "DocType",
+   "module": "Transportation",
+   "custom": 1,
+   "autoname": "field:truck_number",
+   "public": 1,
+   "fields": [
+   {
+       "fieldname": "truck_number",
+       "label": "Truck Number",
+       "fieldtype": "Data",
+       "reqd": 1,
+       "unique": 1
+   },
+   {
+       "fieldname": "fixed_asset",
+       "label": "Fixed Asset",
+       "fieldtype": "Link",
+       "options": "Asset",
+       "description": "Link to corresponding Fixed Asset record"
+   },
+   {
+       "fieldname": "vin",
+       "label": "VIN",
+       "fieldtype": "Data",
+       "reqd": 1,
+       "unique": 1
+   },
+   {
+       "fieldname": "license_plate",
+       "label": "License Plate",
+       "fieldtype": "Data",
+       "reqd": 1
+   },
+   {
+       "fieldname": "registration_expiry",
+       "label": "Vehicle Registration Expiry Date",
+       "fieldtype": "Date"
+   },
+   {
+       "fieldname": "certificate_of_roadworthiness",
+       "label": "Certificate of Roadworthiness (CRW)",
+       "fieldtype": "Check"
+   },
+   {
+       "fieldname": "certificate_of_roadworthiness_expiration",
+       "label": "Certificate of Roadworthiness (CRW) Expiry Date",
+       "fieldtype": "Date"
+   },
+   {
+       "fieldname": "cross_border_road_transport_permit",
+       "label": "Cross-Border Road Transport Permit (C-BRTA)",
+       "fieldtype": "Check"
+   },
+   {
+       "fieldname": "cross_border_road_transport_permit_expiration",
+       "label": "Cross-Border Road Transport Permit (C-BRTA) Expiry Date",
+       "fieldtype": "Date"
+   },
+   {
+       "fieldname": "make",
+       "label": "Make",
+       "fieldtype": "Data"
+   },
+   {
+       "fieldname": "model",
+       "label": "Model",
+       "fieldtype": "Data"
+   },
+   {
+       "fieldname": "year",
+       "label": "Year",
+       "fieldtype": "Int"
+   },
+   {
+       "fieldname": "vehicle_class",
+       "label": "Vehicle Class",
+       "fieldtype": "Select",
+       "options": "Class 1 (LMV)\nClass 2 (Medium Heavy Vehicle 2 Axles)\nClass 3 (Large Heavy Vehicle 3/4 Axles)\nClass 4 (Extra Large Vehicle 5+ Axles)"
+   },
+   {
+       "fieldname": "fuel_type",
+       "label": "Fuel Type",
+       "fieldtype": "Select",
+       "options": "Petrol\nDiesel\nElectric\nHybrid"
+   },
+   {
+       "fieldname": "current_mileage",
+       "label": "Current Mileage",
+       "fieldtype": "Float"
+   },
+   {
+       "fieldname": "status",
+       "label": "Status",
+       "fieldtype": "Select",
+       "options": "Active\nIn Maintenance\nRetired"
+   },
+   {
+       "fieldname": "cargo_capacity",
+       "label": "Cargo Capacity",
+       "fieldtype": "Float"
+   },
+   {
+       "fieldname": "warranty_expiration",
+       "label": "Warranty Expiration Date",
+       "fieldtype": "Date"
    }
+   ],
+   "permissions": [
+   {
+       "role": "System Manager",
+       "read": 1,
+       "write": 1,
+       "create": 1,
+       "delete": 1
+   }
+   ]
+}
