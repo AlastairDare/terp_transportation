@@ -5,8 +5,9 @@
     "label": "Tolls",
     "module": "Transportation",
     "icon": "toll",
-    "hide_custom": 1,
+    "hide_custom": 0,
     "parent_page": "Transportation",
     "public": 1,
-    "sequence_id": 4.0
+    "sequence_id": 4.0,
+    "title": "Tolls"
 }

@@ -54,7 +54,6 @@ workspaces = [
         "link": "tolls",
         "label": "Tolls"
     }
-
 ]
 
 add_to_apps_screen = [
