@@ -1,11 +1,31 @@
 {
     "doctype": "Workspace",
-    "content": "[{\"type\":\"link\",\"data\":{\"label\":\"Tolls\",\"link_type\":\"DocType\",\"link_to\":\"Tolls\",\"type\":\"Form\",\"onboard\":0,\"col\":12}}]",
+    "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Toll Management</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Tolls\",\"col\":3,\"icon\":\"toll\",\"link_type\":\"DocType\",\"link_to\":\"Tolls\",\"type\":\"Form\"}},{\"type\":\"card\",\"data\":{\"card_name\":\"Toll Management\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Tolls\",\"link_type\":\"DocType\",\"link_to\":\"Tolls\",\"type\":\"List\",\"onboard\":0,\"col\":4}}]",
     "name": "Tolls",
     "label": "Tolls",
     "module": "Transportation",
     "icon": "toll",
     "hide_custom": 0,
+    "links": [
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Toll Management",
+            "link_count": 1,
+            "onboard": 0,
+            "type": "Card Break"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Tolls",
+            "link_count": 0,
+            "link_to": "Tolls",
+            "link_type": "DocType",
+            "onboard": 1,
+            "type": "Link"
+        }
+    ],
     "parent_page": "Transportation",
     "public": 1,
     "sequence_id": 4.0,
