@@ -2,5 +2,11 @@
     "doctype": "Workspace",
     "content": "[{\"type\":\"link\",\"data\":{\"label\":\"Tolls\",\"link_type\":\"DocType\",\"link_to\":\"Tolls\",\"type\":\"Form\",\"onboard\":0,\"col\":12}}]",
     "name": "Tolls",
-    "module": "Transportation"
+    "label": "Tolls",
+    "module": "Transportation",
+    "icon": "toll",
+    "hide_custom": 1,
+    "parent_page": "Transportation",
+    "public": 1,
+    "sequence_id": 4.0
 }
