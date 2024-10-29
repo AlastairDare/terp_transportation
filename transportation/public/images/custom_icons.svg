@@ -37,10 +37,10 @@
         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
         <circle cx="12" cy="13" r="4" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"/>
     </symbol>
-    <symbol id="icon-hourglass" viewBox="0 0 512 512">
+    <symbol id="icon-road" viewBox="0 0 512 512">
     <path fill="currentColor" d="M168.4 29.55L24.38 477.6l15.24 4.8L183.6 34.45zm175.2 0l-15.2 4.9l144 447.95l15.2-4.8zM248 32l-.8 20h17.6l-.8-20zm-1.4 36l-.8 20h20.4l-.8-20zm-1.5 36l-1.3 32h24.4l-1.3-32zm-1.9 48l-2 48h29.6l-2-48zm-2.8 68l-2.4 60h36l-2.4-60zm-3.3 84l-2.9 72h43.6l-2.9-72zm-4 100l-3.1 76h52l-3.1-76z"/>
     </symbol>
-    <symbol id="icon-move-file" viewBox="0 0 2048 2048">
+    <symbol id="icon-toll" viewBox="0 0 2048 2048">
     <path fill="currentColor" d="M768 1920h128v128H0V0h1024v384H768v920l1085-542l185 371l-1270 635zm0-296l256-128v-176l-256 128zm384-192l256-128v-176l-256 128zm643-498l-259 130v176l330-165zM640 1280V640H384v640zM128 256h768V128H128zm512 1664v-512H256V512h384V384H128v1536z" stroke-width="0.9"/>
     </symbol>
 </svg>
