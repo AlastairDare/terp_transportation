@@ -3,38 +3,21 @@
     "doctype": "DocType",
     "module": "Transportation",
     "custom": 1,
-    "autoname": "field:driver_number",
-    "title_field": "driver_name",
-    "search_fields": "driver_name,driver_number",
+    "title_field": "employee_name",
     "public": 1,
     "fields": [
         {
-            "fieldname": "driver_name",
-            "label": "Driver Name",
-            "fieldtype": "Data",
+            "fieldname": "employee",
+            "label": "Employee",
+            "fieldtype": "Link",
+            "options": "Employee",
             "reqd": 1
         },
         {
-            "fieldname": "driver_number",
-            "label": "Driver Number",
-            "fieldtype": "Data",
-            "reqd": 1,
-            "unique": 1
-        },
-        {
-            "fieldname": "date_of_birth",
-            "label": "Date of Birth",
-            "fieldtype": "Date"
-        },
-        {
-            "fieldname": "contact_number",
-            "label": "Contact Number",
-            "fieldtype": "Data"
-        },
-        {
-            "fieldname": "emergency_contact",
-            "label": "Emergency Contact",
-            "fieldtype": "Data"
+            "fieldname": "employee_name",
+            "label": "Employee Name",
+            "fieldtype": "Read Only",
+            "fetch_from": "employee.employee_name"
         },
         {
             "fieldname": "license_number",
@@ -43,8 +26,8 @@
             "reqd": 1
         },
         {
-            "fieldname": "license_type",
-            "label": "License Type",
+            "fieldname": "license_code",
+            "label": "License Code",
             "fieldtype": "Select",
             "options": "Code B (Light Motor Vehicles)\nCode EB (Light Motor Vehicles with Trailers)\nCode C1\nCode C (Heavy Vehicles)\nCode EC1 (Heavy Vehicles with Trailers)\nCode EC (Heavy Articulated Vehicles)"
         },
@@ -54,9 +37,10 @@
             "fieldtype": "Date"
         },
         {
-            "fieldname": "professional_driving_permit",
-            "label": "Professional Driving Permit (PrDP)",
-            "fieldtype": "Check"
+            "fieldname": "prdp_code",
+            "label": "Professional Driving Permit (PrDP) Code",
+            "fieldtype": "Select",
+            "options": "None\nCode G (Goods)\nCode D (Dangerous Goods)"
         },
         {
             "fieldname": "prdp_expiration_date",
