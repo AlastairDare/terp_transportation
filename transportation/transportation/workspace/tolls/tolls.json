@@ -1,0 +1,6 @@
+{
+    "doctype": "Workspace",
+    "content": "[{\"type\":\"link\",\"data\":{\"label\":\"Tolls\",\"link_type\":\"DocType\",\"link_to\":\"Tolls\",\"type\":\"Form\",\"onboard\":0,\"col\":12}}]",
+    "name": "Tolls",
+    "module": "Transportation"
+}

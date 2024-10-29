@@ -1,7 +1,7 @@
 {
   "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Trip Management</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip Capture\",\"col\":3,\"icon\":\"camera\",\"link_type\":\"DocType\",\"link_to\":\"Trip Capture\",\"type\":\"Form\"}},{\"type\":\"card\",\"data\":{\"card_name\":\"Trip Management\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Trip Capture\",\"link_type\":\"DocType\",\"link_to\":\"Trip Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}}]",
   "doctype": "Workspace",
-  "icon": "smartphone",
+  "icon": "road",
   "label": "Trip Manager",
   "hide_custom": 0,
   "links": [

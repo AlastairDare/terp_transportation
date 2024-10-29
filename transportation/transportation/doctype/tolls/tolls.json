@@ -1,0 +1,50 @@
+{
+    "name": "Tolls",
+    "doctype": "DocType",
+    "module": "Transportation",
+    "custom": 1,
+    "autoname": "format:TOLL-{####}",
+    "public": 1,
+    "fields": [
+    {
+        "fieldname": "etag_number",
+        "label": "E-Tag Number",
+        "fieldtype": "Link",
+        "options": "Vehicle",
+        "reqd": 1,
+        "in_list_view": 1,
+        "description": "Link to corresponding Vehicle record"
+    },
+    {
+        "fieldname": "location",
+        "label": "Location",
+        "fieldtype": "Data",
+        "reqd": 1,
+        "in_list_view": 1
+    },
+    {
+        "fieldname": "amount",
+        "label": "Amount (ZAR)",
+        "fieldtype": "Currency",
+        "reqd": 1,
+        "in_list_view": 1,
+        "options": "ZAR"
+    },
+    {
+        "fieldname": "transaction_date",
+        "label": "Transaction Date",
+        "fieldtype": "Date",
+        "reqd": 1,
+        "in_list_view": 1
+    }
+    ],
+    "permissions": [
+    {
+        "role": "System Manager",
+        "read": 1,
+        "write": 1,
+        "create": 1,
+        "delete": 1
+    }
+    ]
+ }

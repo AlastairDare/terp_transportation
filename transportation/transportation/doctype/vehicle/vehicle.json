@@ -14,6 +14,12 @@
        "unique": 1
    },
    {
+    "fieldname": "etag_number",
+    "label": "E-Tag Number",
+    "fieldtype": "Data",
+    "reqd": 0
+    },
+   {
        "fieldname": "fixed_asset",
        "label": "Fixed Asset",
        "fieldtype": "Link",

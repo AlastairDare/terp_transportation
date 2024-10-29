@@ -45,6 +45,14 @@ workspaces = [
         "type": "page",
         "link": "t_erp_super_admin",
         "label": "T-ERP Super Admin"
+    },
+    {
+        "name": "Tolls",
+        "icon": "toll",
+        "module": "Transportation",
+        "type": "page",
+        "link": "tolls",
+        "label": "Tolls"
     }
 
 ]
