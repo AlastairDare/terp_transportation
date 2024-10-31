@@ -6,41 +6,49 @@
     "doctype": "DocType",
     "engine": "InnoDB",
     "field_order": [
-        "driver_name",
+        "employee",
+        "employee_name",
         "delivery_note_image",
         "delivery_note_number",
         "ocr_ready_image"
     ],
     "fields": [
         {
-            "fieldname": "driver",
+            "fieldname": "employee",
             "fieldtype": "Link",
-            "label": "Driver",
-            "options": "Driver",
+            "label": "Employee",
+            "options": "Employee",
             "in_list_view": 1,
             "reqd": 1,
             "idx": 1
+        },
+        {
+            "fieldname": "employee_name",
+            "fieldtype": "Read Only",
+            "label": "Employee Name",
+            "fetch_from": "employee.employee_name",
+            "idx": 2
         },
         {
             "fieldname": "delivery_note_image",
             "fieldtype": "Attach Image",
             "label": "Delivery Note Image",
             "reqd": 1,
-            "idx": 2
+            "idx": 3
         },
         {
             "fieldname": "delivery_note_number",
             "fieldtype": "Data",
             "label": "Delivery Note Number",
             "hidden": 1,
-            "idx": 3
+            "idx": 4
         },
         {
             "fieldname": "ocr_ready_image",
             "fieldtype": "Attach",
             "label": "OCR Ready Image",
             "hidden": 1,
-            "idx": 4
+            "idx": 5
         }
     ],
     "index_web_pages_for_search": 0,
@@ -49,7 +57,7 @@
     "modified": "2024-10-22 12:00:00.000000",
     "modified_by": "Administrator",
     "module": "Transportation",
-    "name": "Trip Capture",
+    "name": "Delivery Note Capture",
     "owner": "Administrator",
     "permissions": [
         {

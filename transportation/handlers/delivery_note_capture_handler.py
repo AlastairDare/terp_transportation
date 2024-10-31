@@ -23,33 +23,22 @@ class ImageOptimizer:
     def process_image(self):
         """Main function to process and optimize the image"""
         try:
-            # Get original image path
             original_image_path = get_files_path() + '/' + self.doc.delivery_note_image.lstrip('/files/')
             original_size = os.path.getsize(original_image_path)
             
-            frappe.log_error(f"Original image size: {original_size} bytes", "Image Processing")
-            
-            # If original is already small enough, just use it
             if original_size <= self.max_file_size:
-                frappe.log_error("Original image is already optimized, using as-is", "Image Processing")
                 self.optimized_image_path = original_image_path
                 return self.doc.delivery_note_image
             
-            # Only proceed with optimization if the original is too large
             with Image.open(original_image_path) as img:
                 width, height = img.size
-                frappe.log_error(f"Original dimensions: {width}x{height}", "Image Processing")
                 
-                # Only convert if not already RGB
                 if img.mode != 'RGB':
                     img = img.convert('RGB')
                 
-                # Only resize if dimensions are too large
                 if width > self.max_dimension or height > self.max_dimension:
                     img = self._resize_image(img)
-                    frappe.log_error(f"Resized dimensions: {img.size}", "Image Processing")
                 
-                # Save optimized image
                 optimized_filename = f"ocr_ready_{os.path.basename(original_image_path)}"
                 self.optimized_image_path = os.path.join(get_files_path(), optimized_filename)
                 
@@ -61,17 +50,13 @@ class ImageOptimizer:
                 )
                 
                 optimized_size = os.path.getsize(self.optimized_image_path)
-                frappe.log_error(f"Optimized image size: {optimized_size} bytes", "Image Processing")
                 
-                # If optimized is larger, use original
                 if optimized_size > original_size:
-                    frappe.log_error("Optimized image is larger, reverting to original", "Image Processing")
                     if os.path.exists(self.optimized_image_path):
                         os.remove(self.optimized_image_path)
                     self.optimized_image_path = original_image_path
                     return self.doc.delivery_note_image
                 
-                # Update document with relative path
                 relative_path = os.path.join('files', optimized_filename)
                 self.doc.ocr_ready_image = relative_path
                 self.doc.save(ignore_permissions=True)
@@ -103,7 +88,7 @@ class ImageOptimizer:
             return base64.b64encode(image_file.read()).decode('utf-8')
 
 
-class TripCaptureHandler:
+class DeliveryNoteCaptureHandler:
     def __init__(self, doc, method):
         self.doc = doc
         self.method = method
@@ -114,7 +99,6 @@ class TripCaptureHandler:
 
     def process_new_capture(self):
         try:
-            frappe.log_error(f"Starting process_new_capture for driver {self.doc.driver}", "Trip Processing Start")
             self._validate_required_fields()
             self._fetch_settings()
             trip_doc = self._create_initial_trip()
@@ -124,8 +108,8 @@ class TripCaptureHandler:
             raise
 
     def _validate_required_fields(self):
-        if not self.doc.driver:
-            frappe.throw(_("Driver is required"))
+        if not self.doc.employee:
+            frappe.throw(_("Employee is required"))
         if not self.doc.delivery_note_image:
             frappe.throw(_("Delivery Note Image is required"))
         image_path = get_files_path() + '/' + self.doc.delivery_note_image.lstrip('/files/')
@@ -134,34 +118,30 @@ class TripCaptureHandler:
 
     def _fetch_settings(self):
         try:
-            frappe.log_error("Starting _fetch_settings", "Trip Debug")
             self.ocr_settings = frappe.get_cached_doc("OCR Settings", {
-                "function": "Trip Capture Config"
+                "function": "Delivery Note Capture Config"
             })
-            frappe.log_error("Got OCR settings", "Trip Debug")
             
             if not self.ocr_settings:
-                frappe.log_error("No OCR Settings found", "Trip Error")
-                frappe.throw(_("OCR Settings not found for Trip Capture Config"))
+                frappe.throw(_("OCR Settings not found for Delivery Note Capture Config"))
 
             self.chatgpt_settings = frappe.get_single("ChatGPT Settings")
-            frappe.log_error("Got ChatGPT settings", "Trip Debug")
             
             if not self.chatgpt_settings or not self.chatgpt_settings.api_key:
-                frappe.log_error("ChatGPT Settings missing or no API key", "Trip Error")
                 frappe.throw(_("ChatGPT Settings not properly configured"))
 
         except Exception as e:
-            frappe.log_error(f"Settings Error: {str(e)}", "Trip Error")
             raise
 
     def _create_initial_trip(self):
         try:
+            employee_name = frappe.get_value("Employee", self.doc.employee, "employee_name")
             trip_doc = frappe.get_doc({
                 "doctype": "Trip",
                 "date": frappe.utils.today(),
                 "status": "Draft",
-                "driver_name": self.doc.driver
+                "employee": self.doc.employee,
+                "employee_name": employee_name
             })
             trip_doc.insert(ignore_permissions=True)
             trip_doc.status = "Processing"
@@ -172,77 +152,60 @@ class TripCaptureHandler:
 
     def _enqueue_processing(self, trip_id):
         try:
-            frappe.msgprint("Starting direct processing")
-            
-            # Update trip status
+            frappe.msgprint(_("Processing delivery note capture..."))
             trip_doc = frappe.get_doc("Trip", trip_id)
             trip_doc.status = "Processing"
             trip_doc.save(ignore_permissions=True)
             frappe.db.commit()
             
-            # Process directly instead of enqueueing
             try:
                 self.process_image_with_chatgpt(trip_id)
-                frappe.msgprint("Processing completed successfully")
+                frappe.msgprint(_("Processing completed successfully"))
             except Exception as e:
-                frappe.msgprint(f"Processing error: {str(e)}")
                 trip_doc.status = "Error"
                 trip_doc.save(ignore_permissions=True)
                 frappe.db.commit()
                 raise
                 
         except Exception as e:
-            frappe.msgprint(f"Enqueue error: {str(e)}")
             raise
 
     def process_image_with_chatgpt(self, trip_id):
         try:
-            frappe.msgprint("Starting image processing")
-            
             trip_doc = frappe.get_doc("Trip", trip_id)
             if trip_doc.status != "Processing":
-                frappe.msgprint("Invalid Trip status for processing")
                 frappe.throw(_("Invalid Trip status for processing"))
 
-            # Create and use ImageOptimizer
             optimizer = ImageOptimizer(self.doc)
-            optimizer.process_image()  # This creates the optimized image
-            encoded_image = optimizer.get_base64_image()  # Get the optimized image in base64
+            optimizer.process_image()
+            encoded_image = optimizer.get_base64_image()
 
-            frappe.msgprint("Calling ChatGPT API")
             chatgpt_response = self._call_chatgpt_api(encoded_image)
             
             if not chatgpt_response:
-                frappe.msgprint("No response from ChatGPT")
                 raise Exception("Failed to get response from ChatGPT")
 
-            frappe.msgprint(f"ChatGPT Response: {chatgpt_response}")
             self._update_documents(chatgpt_response, trip_id)
 
         except Exception as e:
-            frappe.msgprint(f"Error in process_image_with_chatgpt: {str(e)}")
             self._handle_processing_error(e, trip_id)
 
     def _call_chatgpt_api(self, encoded_image):
         try:
-            frappe.msgprint("Setting up API call")
             headers = {
                 "Authorization": f"Bearer {self.chatgpt_settings.get_password('api_key')}",
                 "Content-Type": "application/json"
             }
             
             base_url = self.chatgpt_settings.base_url.rstrip('/')
-            frappe.msgprint(f"Using base URL: {base_url}")
             
-            # Prepare prompt with example
             prompt = (
                 f"{self.ocr_settings.language_prompt.replace('{image_data}', encoded_image)}\n\n"
                 f"Please format the response exactly like this example:\n{self.ocr_settings.json_example}"
             )
             
-            frappe.msgprint("Preparing API request data")
             data = {
-                "model": self.chatgpt_settings.default_model,  # Use model from settings
+                "model": self.chatgpt_settings.default_model,
                 "messages": [
                     {
                         "role": "user",
@@ -261,7 +224,6 @@ class TripCaptureHandler:
                 "temperature": float(self.chatgpt_settings.temperature)
             }
 
-            frappe.msgprint("Making API request")
             response = requests.post(
                 f"{base_url}/chat/completions",
                 headers=headers,
@@ -270,8 +232,6 @@ class TripCaptureHandler:
             )
 
             if response.status_code != 200:
-                frappe.msgprint(f"API Error: Status {response.status_code}")
-                frappe.msgprint(f"Error Response: {response.text}")
                 raise Exception(f"ChatGPT API error: {response.text}")
 
             result = response.json()
@@ -281,7 +241,6 @@ class TripCaptureHandler:
             json_end = response_text.rfind('}') + 1
             
             if json_start == -1 or json_end == 0:
-                frappe.msgprint("No JSON found in response")
                 raise Exception("No valid JSON found in ChatGPT response")
                 
             json_str = response_text[json_start:json_end]
@@ -290,10 +249,9 @@ class TripCaptureHandler:
         except Exception as e:
             if self.retry_count < self.max_retries:
                 self.retry_count += 1
-                frappe.msgprint(f"API call failed (attempt {self.retry_count}): {str(e)}")
                 return self._call_chatgpt_api(encoded_image)
             else:
-                frappe.msgprint
+                raise
 
     def _update_documents(self, chatgpt_data, trip_id):
         try:
@@ -313,13 +271,13 @@ class TripCaptureHandler:
                     if doc_field in ['odo_start', 'odo_end']:
                         value = cint(value)
                     trip_doc.set(doc_field, value)
-            # In the _update_documents method, modify the drop details section:
-            trip_doc.drop_details_odo = []  # Clear existing
+
+            trip_doc.drop_details_odo = []
             if 'drop_details_odo' in chatgpt_data:
                 for odo_reading in chatgpt_data['drop_details_odo']:
                     trip_doc.append('drop_details_odo', {
                         'odometer_reading': cint(odo_reading),
-                        'parent_trip': trip_doc.name # Add the parent field
+                        'parent_trip': trip_doc.name
                     })
             trip_doc.status = 'Awaiting Approval'
             trip_doc.save(ignore_permissions=True)
@@ -332,15 +290,8 @@ class TripCaptureHandler:
 
     def _handle_processing_error(self, error, trip_id):
         try:
-            error_msg = f"""
-            Trip Processing Error Details:
-            Error Type: {type(error).__name__}
-            Error Message: {str(error)}
-            Trip ID: {trip_id}
-            Driver: {self.doc.driver}
-            Image Path: {self.doc.delivery_note_image}
-            """
-            frappe.log_error(error_msg, "Detailed Trip Processing Error")
+            error_msg = f"Trip Processing Error: {str(error)}"
+            frappe.log_error(error_msg, "Trip Processing Error")
             
             trip_doc = frappe.get_doc("Trip", trip_id)
             trip_doc.status = "Error"
@@ -349,25 +300,13 @@ class TripCaptureHandler:
         except Exception as e:
             frappe.log_error(f"Error Handler Failed: {str(e)}", "Error Handler Failure")
 
-def on_trip_capture_save(doc, method):
+def on_delivery_note_capture_save(doc, method):
     try:
-        frappe.msgprint("Starting validation")
-        handler = TripCaptureHandler(doc, method)
-        
-        frappe.msgprint("Starting settings fetch")
+        handler = DeliveryNoteCaptureHandler(doc, method)
         handler._validate_required_fields()
-        
-        frappe.msgprint("Creating trip document")
         handler._fetch_settings()
-        
-        frappe.msgprint("Enqueueing processing")
         trip_doc = handler._create_initial_trip()
-        
-        frappe.msgprint("Final step - enqueue")
         handler._enqueue_processing(trip_doc.name)
-        
         return trip_doc.name
-
     except Exception as e:
-        frappe.msgprint(f"Failed at: {str(e)}")
         raise

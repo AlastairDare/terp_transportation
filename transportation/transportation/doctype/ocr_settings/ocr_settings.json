@@ -15,7 +15,7 @@
             "fieldname": "function",
             "fieldtype": "Select",
             "label": "Function",
-            "options": "Trip Capture Config\nSchedule Sheet Capture\nDelivery Note Capture",
+            "options": "Trip Capture Config\nSchedule Sheet Capture Config\nDelivery Note Capture Config",
             "in_list_view": 1,
             "reqd": 1,
             "unique": 1,
