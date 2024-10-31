@@ -1,0 +1,74 @@
+{
+    "name": "Refuel",
+    "doctype": "DocType",
+    "module": "Transportation",
+    "custom": 1,
+    "autoname": "format:FUEL-{fixed_asset}-.YYYY.-.####",
+    "fields": [
+        {
+            "fieldname": "fixed_asset",
+            "label": "Fixed Asset",
+            "fieldtype": "Link",
+            "options": "Asset"
+        },
+        {
+            "fieldname": "expense_link",
+            "label": "Expense Reference",
+            "fieldtype": "Link",
+            "options": "Expense",
+            "hidden": 1
+        },
+        {
+            "fieldname": "date",
+            "label": "Date",
+            "fieldtype": "Date"
+        },
+        {
+            "fieldname": "location_vendor",
+            "label": "Location/Vendor",
+            "fieldtype": "Data"
+        },
+        {
+            "fieldname": "fuel_type",
+            "label": "Fuel Type",
+            "fieldtype": "Select",
+            "options": "Diesel\n93 Unleaded\n95 Unleaded\nElectric"
+        },
+        {
+            "fieldname": "amount",
+            "label": "Amount (ZAR)",
+            "fieldtype": "Currency"
+        },
+        {
+            "fieldname": "price_per_litre",
+            "label": "Price per Litre (ZAR)",
+            "fieldtype": "Currency"
+        },
+        {
+            "fieldname": "fuel_amount",
+            "label": "Fuel Amount (ℓ)",
+            "fieldtype": "Float"
+        },
+        {
+            "fieldname": "fuel_receipt",
+            "label": "Fuel Receipt",
+            "fieldtype": "Attach Image"
+        },
+        {
+            "fieldname": "status",
+            "label": "Status",
+            "fieldtype": "Select",
+            "options": "Draft\nSubmitted\nCancelled",
+            "default": "Draft"
+        }
+    ],
+    "permissions": [
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1
+        }
+    ]
+}

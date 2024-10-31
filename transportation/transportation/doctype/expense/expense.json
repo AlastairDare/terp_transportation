@@ -1,0 +1,64 @@
+{
+    "name": "Expense",
+    "doctype": "DocType",
+    "module": "Transportation",
+    "custom": 1,
+    "autoname": "format:EXP-{fixed_asset}-.YYYY.-.####",
+    "fields": [
+        {
+            "fieldname": "fixed_asset",
+            "label": "Fixed Asset",
+            "fieldtype": "Link",
+            "options": "Asset"
+        },
+        {
+            "fieldname": "expense_type",
+            "label": "Expense Type",
+            "fieldtype": "Select",
+            "options": "Toll\nRefuel\nMaintenance"
+        },
+        {
+            "fieldname": "date",
+            "label": "Date",
+            "fieldtype": "Date"
+        },
+        {
+            "fieldname": "amount",
+            "label": "Amount (ZAR)",
+            "fieldtype": "Currency"
+        },
+        {
+            "fieldname": "status",
+            "label": "Status",
+            "fieldtype": "Select",
+            "options": "Draft\nSubmitted\nApproved\nCancelled",
+            "default": "Draft"
+        },
+        {
+            "fieldname": "notes",
+            "label": "Notes",
+            "fieldtype": "Text Editor"
+        },
+        {
+            "fieldname": "reference_doctype",
+            "label": "Reference DocType",
+            "fieldtype": "Link",
+            "options": "DocType"
+        },
+        {
+            "fieldname": "reference_name",
+            "label": "Reference Name",
+            "fieldtype": "Dynamic Link",
+            "options": "reference_doctype"
+        }
+    ],
+    "permissions": [
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1
+        }
+    ]
+}

@@ -1,5 +1,5 @@
 {
-  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Fleet Management</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Vehicle\",\"col\":3}},{\"type\":\"card\",\"data\":{\"card_name\":\"Vehicles\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Vehicle List\",\"link_type\":\"DocType\",\"link_to\":\"Vehicle\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Trailers\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Trailer List\",\"link_type\":\"DocType\",\"link_to\":\"Trailer\",\"type\":\"List\",\"onboard\":0,\"col\":4}}]",
+  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Fleet Management</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Vehicle\",\"col\":3}},{\"type\":\"card\",\"data\":{\"card_name\":\"Vehicles\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Vehicle List\",\"link_type\":\"DocType\",\"link_to\":\"Vehicle\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Trailers\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Trailer List\",\"link_type\":\"DocType\",\"link_to\":\"Trailer\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Expenses\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Expense List\",\"link_type\":\"DocType\",\"link_to\":\"Expense\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Refuel List\",\"link_type\":\"DocType\",\"link_to\":\"Refuel\",\"type\":\"List\",\"onboard\":0,\"col\":4}}]",
   "doctype": "Workspace",
   "icon": "fleet",
   "label": "Fleet Manager",
@@ -37,6 +37,34 @@
       "label": "Trailer",
       "link_count": 0,
       "link_to": "Trailer",
+      "link_type": "DocType",
+      "onboard": 1,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Expenses",
+      "link_count": 2,
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Expense",
+      "link_count": 0,
+      "link_to": "Expense",
+      "link_type": "DocType",
+      "onboard": 1,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Refuel",
+      "link_count": 0,
+      "link_to": "Refuel",
       "link_type": "DocType",
       "onboard": 1,
       "type": "Link"
