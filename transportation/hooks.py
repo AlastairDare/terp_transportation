@@ -65,7 +65,7 @@ doc_events = {
         "after_insert": "transportation.handlers.delivery_note_capture_handler.on_delivery_note_capture_save"
     },
     "Trailer": {
-        "validate": "your_app.transportation.doctype.trailer.trailer.validate"
+        "validate": "transportation.transportation.doctype.trailer.trailer.validate"
     }
 }
 
