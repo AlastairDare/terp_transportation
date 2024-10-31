@@ -1,5 +1,5 @@
 {
-  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Trip Management</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Delivery Note Capture\",\"col\":3,\"icon\":\"camera\",\"link_type\":\"DocType\",\"link_to\":\"Delivery Note Capture\",\"type\":\"Form\"}},{\"type\":\"card\",\"data\":{\"card_name\":\"Trip Management\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Delivery Note Capture\",\"link_type\":\"DocType\",\"link_to\":\"Delivery Note Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}}]",
+  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Trips</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip\",\"col\":3,\"icon\":\"camera\",\"link_type\":\"DocType\",\"link_to\":\"Trip\",\"type\":\"Form\"}},{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Tolls</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Tolls\",\"col\":3,\"icon\":\"camera\",\"link_type\":\"DocType\",\"link_to\":\"Tolls\",\"type\":\"Form\"}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Toll Capture\",\"col\":3,\"icon\":\"camera\",\"link_type\":\"DocType\",\"link_to\":\"Toll Capture\",\"type\":\"Form\"}},{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Documents</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Delivery Note Capture\",\"col\":3,\"icon\":\"camera\",\"link_type\":\"DocType\",\"link_to\":\"Delivery Note Capture\",\"type\":\"Form\"}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Toll Capture\",\"col\":3,\"icon\":\"camera\",\"link_type\":\"DocType\",\"link_to\":\"Toll Capture\",\"type\":\"Form\"}}]",
   "doctype": "Workspace",
   "icon": "road",
   "label": "Trip Manager",
@@ -8,7 +8,53 @@
     {
       "hidden": 0,
       "is_query_report": 0,
-      "label": "Trip Management",
+      "label": "Trips",
+      "link_count": 1,
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Trip",
+      "link_count": 0,
+      "link_to": "Trip",
+      "link_type": "DocType",
+      "onboard": 1,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Tolls",
+      "link_count": 1,
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Tolls",
+      "link_count": 0,
+      "link_to": "Tolls",
+      "link_type": "DocType",
+      "onboard": 1,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Toll Capture",
+      "link_count": 0,
+      "link_to": "Toll Capture",
+      "link_type": "DocType",
+      "onboard": 1,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Documents",
       "link_count": 1,
       "onboard": 0,
       "type": "Card Break"
@@ -19,6 +65,16 @@
       "label": "Delivery Note Capture",
       "link_count": 0,
       "link_to": "Delivery Note Capture",
+      "link_type": "DocType",
+      "onboard": 1,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Toll Capture",
+      "link_count": 0,
+      "link_to": "Toll Capture",
       "link_type": "DocType",
       "onboard": 1,
       "type": "Link"
