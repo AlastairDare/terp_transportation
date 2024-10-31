@@ -10,7 +10,8 @@
         "date",
         "truck_number",
         "delivery_note_number",
-        "driver_name",
+        "employee",
+        "employee_name",
         "odo_start",
         "odo_end",
         "time_start",
@@ -53,40 +54,47 @@
             "idx": 4
         },
         {
-            "fieldname": "driver_name",
-            "label": "Driver Name",
+            "fieldname": "employee",
+            "label": "Employee",
             "fieldtype": "Link",
-            "options": "Driver",
+            "options": "Employee",
             "reqd": 1,
             "idx": 5
+        },
+        {
+            "fieldname": "employee_name",
+            "label": "Employee Name",
+            "fieldtype": "Read Only",
+            "fetch_from": "employee.employee_name",
+            "idx": 6
         },
         {
             "fieldname": "odo_start",
             "fieldtype": "Int",
             "label": "Odometer Start",
             "reqd": 0,
-            "idx": 6
+            "idx": 7
         },
         {
             "fieldname": "odo_end",
             "fieldtype": "Int",
             "label": "Odometer End",
             "reqd": 0,
-            "idx": 7
+            "idx": 8
         },
         {
             "fieldname": "time_start",
             "fieldtype": "Time",
             "label": "Start Time",
             "reqd": 0,
-            "idx": 8
+            "idx": 9
         },
         {
             "fieldname": "time_end",
             "fieldtype": "Time",
             "label": "End Time",
             "reqd": 0,
-            "idx": 9
+            "idx": 10
         },
         {
             "fieldname": "drop_details_odo",
@@ -94,7 +102,7 @@
             "label": "Drop Details Odometer",
             "options": "Drop Details",
             "reqd": 0,
-            "idx": 10
+            "idx": 11
         }
     ],
     "index_web_pages_for_search": 0,
