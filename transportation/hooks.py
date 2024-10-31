@@ -69,7 +69,7 @@ app_include_js = "transportation.bundle.js"
 app_include_css = "transportation.bundle.css"
 
 doc_events = {
-    "Trip Capture": {
+    "Delivery Note Capture": {
         "after_insert": "transportation.handlers.delivery_note_capture_handler.on_delivery_note_capture_save"
     }
 }
