@@ -1,0 +1,58 @@
+{
+    "custom": 1,
+    "public": 1,
+    "actions": [],
+    "creation": "2024-10-31 12:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "statement_period_open_date",
+        "statement_period_close_date",
+        "etoll_statement"
+    ],
+    "fields": [
+        {
+            "fieldname": "statement_period_open_date",
+            "fieldtype": "Date",
+            "label": "Statement Period Open Date",
+            "hidden": 1,
+            "idx": 1
+        },
+        {
+            "fieldname": "statement_period_close_date",
+            "fieldtype": "Date",
+            "label": "Statement Period Close Date",
+            "hidden": 1,
+            "idx": 2
+        },
+        {
+            "fieldname": "etoll_statement",
+            "fieldtype": "Attach",
+            "label": "E-Toll Statement",
+            "reqd": 1,
+            "idx": 3
+        }
+    ],
+    "index_web_pages_for_search": 0,
+    "issingle": 0,
+    "links": [],
+    "modified": "2024-10-31 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Transportation",
+    "name": "Toll Capture",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "print": 1,
+            "read": 1,
+            "role": "System Manager",
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "autoname": "format:E-DOC-{#####}"
+}
