@@ -3,7 +3,7 @@
     "doctype": "Workspace",
     "icon": "users",
     "label": "Driver Manager",
-    "hide_custom": 0,
+    "hide_custom": 1,
     "links": [
       {
         "hidden": 0,

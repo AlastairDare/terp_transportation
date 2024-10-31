@@ -7,25 +7,25 @@
    "public": 1,
    "fields": [
    {
-       "fieldname": "truck_number",
-       "label": "Truck Number",
-       "fieldtype": "Data",
-       "reqd": 1,
-       "unique": 1
-   },
-   {
-    "fieldname": "etag_number",
-    "label": "E-Tag Number",
-    "fieldtype": "Data",
-    "reqd": 0
-    },
-   {
        "fieldname": "fixed_asset",
        "label": "Fixed Asset",
        "fieldtype": "Link",
        "options": "Asset",
        "description": "Link to corresponding Fixed Asset record"
    },
+   {
+    "fieldname": "truck_number",
+    "label": "Truck Number",
+    "fieldtype": "Data",
+    "reqd": 1,
+    "unique": 1
+    },
+    {
+    "fieldname": "etag_number",
+    "label": "E-Tag Number",
+    "fieldtype": "Data",
+    "reqd": 0
+    },
    {
        "fieldname": "vin",
        "label": "VIN",
