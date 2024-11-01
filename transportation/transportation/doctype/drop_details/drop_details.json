@@ -5,6 +5,7 @@
     "engine": "InnoDB",
     "field_order": [
         "odometer_reading",
+        "location",
         "parent_trip"
     ],
     "fields": [
@@ -17,13 +18,22 @@
             "idx": 1
         },
         {
+            "fieldname": "location",
+            "fieldtype": "Link",
+            "label": "Location",
+            "options": "Location",
+            "in_list_view": 1,
+            "reqd": 1,
+            "idx": 2
+        },
+        {
             "fieldname": "parent_trip",
             "fieldtype": "Link",
             "label": "Parent Trip",
             "options": "Trip",
             "in_list_view": 1,
             "reqd": 1,
-            "idx": 2
+            "idx": 3
         }
     ],
     "istable": 1,
