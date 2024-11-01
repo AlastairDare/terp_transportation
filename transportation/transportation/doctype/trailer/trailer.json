@@ -3,7 +3,7 @@
     "doctype": "DocType",
     "module": "Transportation",
     "custom": 1,
-    "autoname": "field:trailer_number",
+    "autoname": "field:license_plate",
     "public": 1,
     "fields": [
         {
@@ -38,7 +38,8 @@
             "fieldname": "license_plate",
             "label": "License Plate",
             "fieldtype": "Data",
-            "reqd": 1
+            "reqd": 1,
+            "unique": 1
         },
         {
             "fieldname": "registration_expiry",

@@ -15,7 +15,7 @@
             "fieldname": "function",
             "fieldtype": "Select",
             "label": "Function",
-            "options": "Trip Capture Config\nSchedule Sheet Capture Config\nDelivery Note Capture Config",
+            "options": "Trip Capture Config\nSchedule Sheet Capture Config\nDelivery Note Capture Config\nProof of Delivery Config",
             "in_list_view": 1,
             "reqd": 1,
             "unique": 1,
@@ -29,7 +29,7 @@
             "description": "Enter the prompt that will be sent to ChatGPT for image analysis. Use {image_data} where the base64 image should be inserted.",
             "reqd": 1,
             "in_list_view": 1,
-            "default": "You are an expert at analyzing delivery note images. Please analyze this image and extract the following information: date, truck number, odometer readings at each stop, start time, end time, and delivery note number. Format the response exactly like the example JSON structure provided. Here is the image to analyze: {image_data}",
+            "default": "You are an expert at analyzing delivery note and proof of delivery images. If certain fields are certainly not found then leave the value for that specific field in the JSON blank.Please analyze this image and extract the following information: date, truck number, start odometer reading, end odometer reading, start time, end time,all of the drop detail line odometer readings if applicable and delivery note number. Format the response exactly like the example JSON structure provided. Here is the image to analyze: {image_data}",
             "idx": 2
         },
         {
@@ -53,6 +53,7 @@
     "name": "OCR Settings",
     "name_case": "",
     "owner": "Administrator",
+    "autoname": "field:function",
     "permissions": [
         {
             "create": 1,

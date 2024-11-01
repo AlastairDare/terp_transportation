@@ -8,7 +8,10 @@
     "field_order": [
         "status",
         "date",
+        "vehicle",
         "truck_number",
+        "trailer_1",
+        "trailer_2",
         "delivery_note_number",
         "employee",
         "employee_name",
@@ -38,12 +41,40 @@
             "idx": 2
         },
         {
-            "fieldname": "truck_number",
-            "fieldtype": "Data",
-            "label": "Truck Number",
+            "fieldname": "vehicle",
+            "fieldtype": "Link",
+            "label": "Vehicle",
+            "options": "Vehicle",
             "in_list_view": 1,
             "reqd": 0,
             "idx": 3
+        },
+        {
+            "fieldname": "truck_number",
+            "fieldtype": "Data",
+            "label": "Truck Number",
+            "fetch_from": "vehicle.truck_number",
+            "read_only": 1,
+            "in_list_view": 1,
+            "reqd": 0,
+            "idx": 4
+        },
+        {
+            "fieldname": "trailer_1",
+            "fieldtype": "Link",
+            "label": "Trailer 1",
+            "options": "Trailer",
+            "reqd": 0,
+            "idx": 5
+        },
+        {
+            "fieldname": "trailer_2",
+            "fieldtype": "Link",
+            "label": "Trailer 2",
+            "options": "Trailer",
+            "fetch_from": "trailer_1.paired_trailer",
+            "reqd": 0,
+            "idx": 6
         },
         {
             "fieldname": "delivery_note_number",
@@ -51,7 +82,7 @@
             "label": "Delivery Note Number",
             "in_list_view": 1,
             "reqd": 0,
-            "idx": 4
+            "idx": 7
         },
         {
             "fieldname": "employee",
@@ -59,42 +90,84 @@
             "fieldtype": "Link",
             "options": "Employee",
             "reqd": 1,
-            "idx": 5
+            "idx": 8
         },
         {
             "fieldname": "employee_name",
             "label": "Employee Name",
             "fieldtype": "Read Only",
             "fetch_from": "employee.employee_name",
-            "idx": 6
+            "idx": 9
+        },
+        {
+            "fieldname": "first_mass",
+            "fieldtype": "Int",
+            "label": "First Mass",
+            "reqd": 0,
+            "idx": 10
+        },
+        {
+            "fieldname": "second_mass",
+            "fieldtype": "Int",
+            "label": "First Mass",
+            "reqd": 0,
+            "idx": 11
+        },
+        {
+            "fieldname": "net_mass",
+            "fieldtype": "Int",
+            "label": "First Mass",
+            "reqd": 0,
+            "idx": 12
+        },
+        {
+            "fieldname": "destination",
+            "fieldtype": "Data",
+            "label": "Destination",
+            "reqd": 0,
+            "idx": 13
+        },
+        {
+            "fieldname": "weighbill_number",
+            "fieldtype": "Data",
+            "label": "Destination",
+            "reqd": 0,
+            "idx": 14
         },
         {
             "fieldname": "odo_start",
             "fieldtype": "Int",
             "label": "Odometer Start",
             "reqd": 0,
-            "idx": 7
+            "idx": 15
         },
         {
             "fieldname": "odo_end",
             "fieldtype": "Int",
             "label": "Odometer End",
             "reqd": 0,
-            "idx": 8
+            "idx": 16
+        },
+        {
+            "fieldname": "total_distance",
+            "fieldtype": "Int",
+            "label": "Odometer End",
+            "reqd": 0,
+            "idx": 17
         },
         {
             "fieldname": "time_start",
             "fieldtype": "Time",
             "label": "Start Time",
             "reqd": 0,
-            "idx": 9
+            "idx": 18
         },
         {
             "fieldname": "time_end",
             "fieldtype": "Time",
             "label": "End Time",
             "reqd": 0,
-            "idx": 10
+            "idx": 19
         },
         {
             "fieldname": "drop_details_odo",
@@ -102,7 +175,7 @@
             "label": "Drop Details Odometer",
             "options": "Drop Details",
             "reqd": 0,
-            "idx": 11
+            "idx": 20
         }
     ],
     "index_web_pages_for_search": 0,
