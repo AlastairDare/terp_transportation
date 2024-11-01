@@ -151,7 +151,7 @@
         {
             "fieldname": "total_distance",
             "fieldtype": "Int",
-            "label": "Odometer End",
+            "label": "Total Distance",
             "reqd": 0,
             "idx": 17
         },

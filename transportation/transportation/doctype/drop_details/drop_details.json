@@ -4,8 +4,8 @@
     "doctype": "DocType",
     "engine": "InnoDB",
     "field_order": [
-        "odometer_reading",
         "location",
+        "odometer_reading",
         "parent_trip"
     ],
     "fields": [
@@ -23,7 +23,7 @@
             "label": "Location",
             "options": "Location",
             "in_list_view": 1,
-            "reqd": 1,
+            "reqd": 0,
             "idx": 2
         },
         {
@@ -32,7 +32,10 @@
             "label": "Parent Trip",
             "options": "Trip",
             "in_list_view": 1,
-            "reqd": 1,
+            "reqd": 0,
+            "default": "parent.name",
+            "read_only": 1,
+            "hidden": 1,
             "idx": 3
         }
     ],
