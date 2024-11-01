@@ -27,7 +27,7 @@
         "fieldname": "default_model",
         "fieldtype": "Select",
         "label": "Default Model",
-        "options": "claude-3-opus-20240229\nclaude-3-sonnet-20240229\nclaude-3-haiku-20240307\nclaude-2.1\nclaude-2.0",
+        "options": "claude-3-5-sonnet-latest\nclaude-3-5-haiku-latest\nclaude-3-opus-latest",
         "default": "claude-3-opus-20240229",
         "mandatory": 1
       },
@@ -38,13 +38,6 @@
         "default": 0.7,
         "description": "Controls randomness (0-1)",
         "precision": 1
-      },
-      {
-        "fieldname": "max_tokens",
-        "fieldtype": "Int",
-        "label": "Max Tokens",
-        "default": 4096,
-        "description": "Maximum number of tokens in the response"
       }
     ],
     "permissions": [
