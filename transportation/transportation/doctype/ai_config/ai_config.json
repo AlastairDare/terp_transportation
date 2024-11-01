@@ -1,0 +1,38 @@
+{
+    "doctype": "DocType",
+    "name": "AI Config",
+    "owner": "Administrator",
+    "issingle": 1,
+    "module": "Transportation",
+    "creation": "2024-10-25 12:00:00.000000",
+    "modified": "2024-10-25 12:00:00.000000",
+    "modified_by": "Administrator",
+    "naming_rule": "Set by System",
+    "fields": [
+      {
+        "fieldname": "llm_model_family",
+        "fieldtype": "Select",
+        "label": "LLM Model Family",
+        "options": "ChatGPT by OpenAI\nClaude by Anthropic",
+        "default": "ChatGPT by OpenAI",
+        "mandatory": 1
+      },
+      {
+        "fieldname": "active",
+        "fieldtype": "Check",
+        "label": "Active",
+        "default": 1,
+        "description": "Enable/Disable AI integration"
+      }
+    ],
+    "permissions": [
+      {
+        "role": "System Manager",
+        "read": 1,
+        "write": 1,
+        "create": 1,
+        "delete": 1,
+        "permlevel": 0
+      }
+    ]
+  }
