@@ -62,7 +62,7 @@ app_include_css = "transportation.bundle.css"
 
 doc_events = {
     "Delivery Note Capture": {
-        "after_insert": "transportation.ai_processing.chain_builder.process_delivery_note_capture"
+        "after_insert": "transportation.transportation.ai_processing.chain_builder.process_delivery_note_capture"
     },
     "Trailer": {
         "validate": "transportation.transportation.doctype.trailer.trailer.validate"
