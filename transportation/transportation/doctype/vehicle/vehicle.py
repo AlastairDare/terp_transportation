@@ -24,56 +24,8 @@ def validate(doc, method):
             if paired_trailer.status != "Active":
                 frappe.throw(_("The paired trailer {0} is not active. Cannot assign trailer pair to vehicle.").format(
                     paired_trailer.name))
-            frappe.db.set_value("Vehicle", doc.name, "secondary_trailer", trailer.paired_trailer)
             doc.secondary_trailer = trailer.paired_trailer
         else:
-            frappe.db.set_value("Vehicle", doc.name, "secondary_trailer", None)
             doc.secondary_trailer = None
     else:
-        frappe.db.set_value("Vehicle", doc.name, "secondary_trailer", None)
         doc.secondary_trailer = None
-
-# Create a new file called vehicle.js in the same directory as vehicle.py
-def get_js():
-    return """
-frappe.ui.form.on('Vehicle', {
-    setup: function(frm) {
-        frm.set_query('primary_trailer', function() {
-            return {
-                filters: {
-                    'status': 'Active'
-                }
-            };
-        });
-    },
-    
-    primary_trailer: function(frm) {
-        if (!frm.doc.primary_trailer) {
-            frm.set_value('secondary_trailer', '');
-            frm.refresh_field('secondary_trailer');
-            return;
-        }
-        
-        frappe.call({
-            method: 'frappe.client.get',
-            args: {
-                doctype: 'Trailer',
-                name: frm.doc.primary_trailer
-            },
-            callback: function(response) {
-                if (response.message && response.message.paired_trailer) {
-                    frm.set_value('secondary_trailer', response.message.paired_trailer);
-                } else {
-                    frm.set_value('secondary_trailer', '');
-                }
-                frm.refresh_field('secondary_trailer');
-            }
-        });
-    },
-    
-    refresh: function(frm) {
-        frm.set_df_property('secondary_trailer', 'description', 
-            'This trailer is automatically assigned based on the primary trailer\'s pairing relationship');
-    }
-});
-"""
