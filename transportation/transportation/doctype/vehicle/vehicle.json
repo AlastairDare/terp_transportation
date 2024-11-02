@@ -121,8 +121,7 @@
         "fieldtype": "Link",
         "options": "Trailer",
         "read_only": 1,
-        "description": "This field is automatically populated based on the primary trailer's pairing",
-        "fetch_from": ""
+        "description": "This field is automatically populated based on the primary trailer's pairing"
     },
    {
        "fieldname": "warranty_expiration",
