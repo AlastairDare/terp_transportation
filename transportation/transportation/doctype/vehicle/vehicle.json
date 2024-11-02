@@ -27,6 +27,21 @@
     "unique": 1
     },
     {
+    "fieldname": "primary_trailer",
+    "label": "Primary Trailer",
+    "fieldtype": "Link",
+    "options": "Trailer",
+    "description": "Select a trailer to assign to this vehicle"
+    },
+    {
+        "fieldname": "secondary_trailer",
+        "label": "Secondary Trailer",
+        "fieldtype": "Link",
+        "options": "Trailer",
+        "read_only": 1,
+        "description": "This field is automatically populated based on the primary trailer's pairing setup"
+    },
+    {
     "fieldname": "etag_number",
     "label": "E-Tag Number",
     "fieldtype": "Data",
@@ -41,16 +56,48 @@
    },
    {
        "fieldname": "license_plate",
-       "label": "License Plate",
+       "label": "License Plate / Registration",
        "fieldtype": "Data",
        "reqd": 1,
        "unique": 1
    },
    {
        "fieldname": "registration_expiry",
-       "label": "Vehicle Registration Expiry Date",
+       "label": "Registration Expiry Date",
        "fieldtype": "Date"
    },
+   {
+    "fieldname": "fuel_type",
+    "label": "Fuel Type",
+    "fieldtype": "Select",
+    "options": "Petrol\nDiesel\nElectric\nHybrid"
+    },
+   {
+    "fieldname": "status",
+    "label": "Status",
+    "fieldtype": "Select",
+    "options": "Active\nIn Maintenance\nRetired"
+    },
+    {
+        "fieldtype": "Section Break",
+        "label": "Warranty",
+        "collapsible": 1
+    },
+    {
+        "fieldname": "warranty",
+        "label": "In Warranty",
+        "fieldtype": "Check"
+    },
+    {
+        "fieldname": "warranty_expiration",
+        "label": "Warranty Expiration Date",
+        "fieldtype": "Date"
+    },
+   {
+    "fieldtype": "Section Break",
+    "label": "Certificates & Permits",
+    "collapsible": 1
+    },
    {
        "fieldname": "certificate_of_roadworthiness",
        "label": "Certificate of Roadworthiness (CRW)",
@@ -72,6 +119,11 @@
        "fieldtype": "Date"
    },
    {
+    "fieldtype": "Section Break",
+    "label": "Model Detail",
+    "collapsible": 1
+    },
+   {
        "fieldname": "make",
        "label": "Make",
        "fieldtype": "Data"
@@ -87,52 +139,32 @@
        "fieldtype": "Int"
    },
    {
-       "fieldname": "vehicle_class",
-       "label": "Vehicle Class",
-       "fieldtype": "Select",
-       "options": "Class 1 (LMV)\nClass 2 (Medium Heavy Vehicle 2 Axles)\nClass 3 (Large Heavy Vehicle 3/4 Axles)\nClass 4 (Extra Large Vehicle 5+ Axles)"
-   },
+    "fieldname": "vehicle_class",
+    "label": "Vehicle Class",
+    "fieldtype": "Select",
+    "options": "Class 1 (LMV)\nClass 2 (Medium Heavy Vehicle 2 Axles)\nClass 3 (Large Heavy Vehicle 3/4 Axles)\nClass 4 (Extra Large Vehicle 5+ Axles)"
+    },
    {
-       "fieldname": "fuel_type",
-       "label": "Fuel Type",
-       "fieldtype": "Select",
-       "options": "Petrol\nDiesel\nElectric\nHybrid"
-   },
+    "fieldtype": "Section Break",
+    "label": "Logistics Detail",
+    "collapsible": 1
+    },
+   {
+    "fieldname": "vehicle_mass",
+    "label": "Vehicle Mass (KG)",
+    "fieldtype": "Int",
+    "description": "Mass of the vehicle"
+    },
    {
        "fieldname": "current_mileage",
-       "label": "Current Mileage",
-       "fieldtype": "Float"
-   },
-   {
-       "fieldname": "status",
-       "label": "Status",
-       "fieldtype": "Select",
-       "options": "Active\nIn Maintenance\nRetired"
+       "label": "Current Mileage (KM)",
+       "fieldtype": "Int"
    },
    {
        "fieldname": "cargo_capacity",
-       "label": "Cargo Capacity",
-       "fieldtype": "Float"
-   },
-   {
-    "fieldname": "primary_trailer",
-    "label": "Primary Trailer",
-    "fieldtype": "Link",
-    "options": "Trailer",
-    "description": "Select a trailer to assign to this vehicle"
-    },
-    {
-        "fieldname": "secondary_trailer",
-        "label": "Secondary Trailer",
-        "fieldtype": "Link",
-        "options": "Trailer",
-        "read_only": 1,
-        "description": "This field is automatically populated based on the primary trailer's pairing"
-    },
-   {
-       "fieldname": "warranty_expiration",
-       "label": "Warranty Expiration Date",
-       "fieldtype": "Date"
+       "label": "Carrying Capacity (KG)",
+       "fieldtype": "Int",
+       "description": "Maximum combined mass of the trailers and cargo that the vehicle can reliably haul"
    }
    ],
    "permissions": [
