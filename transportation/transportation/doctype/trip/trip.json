@@ -5,28 +5,12 @@
     "creation": "2024-10-22 12:00:00.000000",
     "doctype": "DocType",
     "engine": "InnoDB",
-    "field_order": [
-        "status",
-        "date",
-        "vehicle",
-        "truck_number",
-        "trailer_1",
-        "trailer_2",
-        "delivery_note_number",
-        "employee",
-        "employee_name",
-        "odo_start",
-        "odo_end",
-        "time_start",
-        "time_end",
-        "drop_details_odo"
-    ],
     "fields": [
         {
             "fieldname": "status",
             "fieldtype": "Select",
             "label": "Status",
-            "options": "Draft\nPending\nProcessing\nCompleted\nError\nAwaiting Approval",
+            "options": "Draft\nPlanned\nIn Progress\nCompleted\nError\nAwaiting Approval\nApproved",
             "default": "Draft",
             "reqd": 1,
             "in_list_view": 1,
@@ -34,7 +18,7 @@
         },
         {
             "fieldname": "date",
-            "fieldtype": "Date",
+            "fieldtype": "Trip Date",
             "label": "Date",
             "in_list_view": 1,
             "reqd": 0,
@@ -77,23 +61,16 @@
             "idx": 6
         },
         {
-            "fieldname": "delivery_note_number",
-            "fieldtype": "Data",
-            "label": "Delivery Note Number",
-            "in_list_view": 1,
-            "reqd": 0,
-            "idx": 7
-        },
-        {
             "fieldname": "employee",
             "label": "Driver",
             "fieldtype": "Link",
             "options": "Employee",
+            "description": "Select the driver for the trip",
             "reqd": 1,
             "idx": 8
         },
         {
-            "fieldname": "employee_name",
+            "fieldname": "driver_name",
             "label": "Driver Name",
             "fieldtype": "Read Only",
             "fetch_from": "employee.employee_name",
@@ -102,72 +79,88 @@
         {
             "fieldname": "first_mass",
             "fieldtype": "Int",
-            "label": "First Mass",
+            "label": "First Mass (KG)",
+            "description": "Mass of the vehicle without cargo",
             "reqd": 0,
             "idx": 10
         },
         {
             "fieldname": "second_mass",
             "fieldtype": "Int",
-            "label": "Second Mass",
+            "label": "Second Mass (KG)",
+            "description": "Mass of the vehicle including cargo",
             "reqd": 0,
             "idx": 11
         },
         {
             "fieldname": "net_mass",
             "fieldtype": "Int",
-            "label": "Net Mass",
+            "label": "Net Mass (KG)",
+            "description": "Mass of just the cargo",
             "reqd": 0,
             "idx": 12
         },
         {
-            "fieldname": "destination",
-            "fieldtype": "Data",
-            "label": "Destination",
-            "reqd": 0,
-            "idx": 13
+            "fieldname": "is_return_trip",
+            "label": "Is Return Trip",
+            "fieldtype": "Check",
+            "default": 1,
+            "idx": 14
         },
         {
             "fieldname": "weighbill_number",
             "fieldtype": "Data",
             "label": "Weighbill Number",
             "reqd": 0,
-            "idx": 14
+            "idx": 15
+        },
+        {
+            "fieldname": "delivery_note_number",
+            "fieldtype": "Data",
+            "label": "Delivery Note Number",
+            "in_list_view": 1,
+            "reqd": 0,
+            "idx": 16
         },
         {
             "fieldname": "odo_start",
             "fieldtype": "Int",
-            "label": "Odometer Start",
+            "label": "Odometer Start (KM)",
+            "description": "The initial reading on the odometer of the vehicle when beginning a trip",
             "reqd": 0,
-            "idx": 15
+            "idx": 17
         },
         {
             "fieldname": "odo_end",
             "fieldtype": "Int",
-            "label": "Odometer End",
+            "label": "Odometer End (KM)",
+            "description": "The final reading on the odometer of the vehicle when finishing a trip",
             "reqd": 0,
-            "idx": 16
+            "idx": 18
         },
         {
             "fieldname": "total_distance",
             "fieldtype": "Int",
             "label": "Total Distance",
+            "description": "The total distance travelled on the trip including all stops and the journey home if it is a return trip",
             "reqd": 0,
-            "idx": 17
+            "idx": 19
         },
         {
             "fieldname": "time_start",
             "fieldtype": "Time",
             "label": "Start Time",
+            "description": "The time the trip began at",
             "reqd": 0,
-            "idx": 18
+            "idx": 20
         },
         {
             "fieldname": "time_end",
             "fieldtype": "Time",
             "label": "End Time",
+            "description": "The time the trip ended at",
             "reqd": 0,
-            "idx": 19
+            "idx": 21
         },
         {
             "fieldname": "drop_details_odo",
@@ -175,7 +168,7 @@
             "label": "Drop Details Odometer",
             "options": "Drop Details",
             "reqd": 0,
-            "idx": 20
+            "idx": 22
         }
     ],
     "index_web_pages_for_search": 0,

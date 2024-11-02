@@ -109,6 +109,22 @@
        "fieldtype": "Float"
    },
    {
+    "fieldname": "primary_trailer",
+    "label": "Primary Trailer",
+    "fieldtype": "Link",
+    "options": "Trailer",
+    "description": "Select a trailer to assign to this vehicle"
+    },
+    {
+        "fieldname": "secondary_trailer",
+        "label": "Secondary Trailer",
+        "fieldtype": "Link",
+        "options": "Trailer",
+        "read_only": 1,
+        "description": "This field is automatically populated based on the primary trailer's pairing",
+        "fetch_from": ""
+    },
+   {
        "fieldname": "warranty_expiration",
        "label": "Warranty Expiration Date",
        "fieldtype": "Date"
