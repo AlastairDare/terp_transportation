@@ -86,7 +86,7 @@
         },
         {
             "fieldname": "employee",
-            "label": "Employee",
+            "label": "Driver",
             "fieldtype": "Link",
             "options": "Employee",
             "reqd": 1,
@@ -94,7 +94,7 @@
         },
         {
             "fieldname": "employee_name",
-            "label": "Employee Name",
+            "label": "Driver Name",
             "fieldtype": "Read Only",
             "fetch_from": "employee.employee_name",
             "idx": 9
@@ -109,14 +109,14 @@
         {
             "fieldname": "second_mass",
             "fieldtype": "Int",
-            "label": "First Mass",
+            "label": "Second Mass",
             "reqd": 0,
             "idx": 11
         },
         {
             "fieldname": "net_mass",
             "fieldtype": "Int",
-            "label": "First Mass",
+            "label": "Net Mass",
             "reqd": 0,
             "idx": 12
         },
@@ -130,7 +130,7 @@
         {
             "fieldname": "weighbill_number",
             "fieldtype": "Data",
-            "label": "Destination",
+            "label": "Weighbill Number",
             "reqd": 0,
             "idx": 14
         },
