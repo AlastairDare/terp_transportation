@@ -7,11 +7,17 @@
     "public": 1,
     "fields": [
         {
+            "fieldname": "general_information_section",
+            "fieldtype": "Section Break",
+            "label": "Trailer General Information"
+        },
+        {
             "fieldname": "fixed_asset",
             "label": "Fixed Asset",
             "fieldtype": "Link",
             "options": "Asset",
-            "description": "Link to corresponding Fixed Asset record"
+            "reqd":1,
+            "unique": 1
         },
         {
             "fieldname": "asset_name",
