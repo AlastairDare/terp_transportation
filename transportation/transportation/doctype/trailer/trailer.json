@@ -59,6 +59,7 @@
             "options": "Active\nIn Maintenance\nRetired"
         },
         {
+            "fieldname": "warranty_section",
             "fieldtype": "Section Break",
             "label": "Warranty",
             "collapsible": 1
@@ -74,6 +75,7 @@
             "fieldtype": "Date"
         },
         {
+            "fieldname": "certificates_and_permits_section",
             "fieldtype": "Section Break",
             "label": "Certificates & Permits",
             "collapsible": 1
@@ -99,6 +101,7 @@
             "fieldtype": "Date"
         },
         {
+            "fieldname": "model_detail_section",
             "fieldtype": "Section Break",
             "label": "Model Detail",
             "collapsible": 1
@@ -131,6 +134,7 @@
             "options": "None\nFlatbed\nLowbed\nCurtain Side\nDouble Deck\nDrop Deck\nConestoga"
         },
         {
+            "fieldname": "logistics_section",
             "fieldtype": "Section Break",
             "label": "Logistics Detail",
             "collapsible": 1

@@ -79,6 +79,7 @@
     "options": "Active\nIn Maintenance\nRetired"
     },
     {
+        "fieldname": "warranty_section",
         "fieldtype": "Section Break",
         "label": "Warranty",
         "collapsible": 1
@@ -94,6 +95,7 @@
         "fieldtype": "Date"
     },
    {
+    "fieldname": "certificates_and_permits_section",
     "fieldtype": "Section Break",
     "label": "Certificates & Permits",
     "collapsible": 1
@@ -119,6 +121,7 @@
        "fieldtype": "Date"
    },
    {
+    "fieldname": "model_detail_section",
     "fieldtype": "Section Break",
     "label": "Model Detail",
     "collapsible": 1
@@ -145,6 +148,7 @@
     "options": "Class 1 (LMV)\nClass 2 (Medium Heavy Vehicle 2 Axles)\nClass 3 (Large Heavy Vehicle 3/4 Axles)\nClass 4 (Extra Large Vehicle 5+ Axles)"
     },
    {
+    "fieldname": "logistics_section",
     "fieldtype": "Section Break",
     "label": "Logistics Detail",
     "collapsible": 1
