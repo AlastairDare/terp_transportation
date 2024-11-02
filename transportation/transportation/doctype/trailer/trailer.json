@@ -26,13 +26,6 @@
             "fetch_from": "fixed_asset.asset_name"
         },
         {
-            "fieldname": "paired_trailer",
-            "label": "Paired Trailer",
-            "fieldtype": "Link",
-            "options": "Trailer",
-            "description": "Link to paired trailer"
-        },
-        {
             "fieldname": "trailer_number",
             "label": "Trailer Number",
             "fieldtype": "Data",
@@ -40,29 +33,33 @@
             "unique": 1
         },
         {
-            "fieldname": "vin",
-            "label": "VIN",
-            "fieldtype": "Data",
-            "reqd": 1,
-            "unique": 1
+            "fieldname": "paired_trailer",
+            "label": "Paired Trailer",
+            "fieldtype": "Link",
+            "options": "Trailer",
+            "description": "Link to paired trailer"
         },
         {
-            "fieldname": "license_plate",
-            "label": "License Plate / Registration",
-            "fieldtype": "Data",
-            "reqd": 1,
-            "unique": 1
+        "fieldname": "col_break_1",
+        "fieldtype": "Column Break"
         },
         {
-            "fieldname": "registration_expiry",
-            "label": "Registration Expiry Date",
-            "fieldtype": "Date"
+        "fieldname": "license_plate",
+        "label": "License Plate / Registration",
+        "fieldtype": "Data",
+        "reqd": 1,
+        "unique": 1
         },
         {
-            "fieldname": "status",
-            "label": "Status",
-            "fieldtype": "Select",
-            "options": "Active\nIn Maintenance\nRetired"
+        "fieldname": "registration_expiry",
+        "label": "Registration Expiry Date",
+        "fieldtype": "Date"
+        },
+        {
+        "fieldname": "status",
+        "label": "Status",
+        "fieldtype": "Select",
+        "options": "Active\nIn Maintenance\nRetired"
         },
         {
             "fieldname": "warranty_section",
@@ -97,6 +94,10 @@
             "fieldtype": "Date"
         },
         {
+            "fieldname": "col_break_2",
+            "fieldtype": "Column Break"
+            },
+        {
             "fieldname": "cross_border_road_transport_permit",
             "label": "Cross-Border Road Transport Permit (C-BRTA)",
             "fieldtype": "Check"
@@ -128,6 +129,23 @@
             "fieldtype": "Int"
         },
         {
+        "fieldname": "col_break_3",
+        "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "trailer_class",
+            "label": "Trailer Class",
+            "fieldtype": "Select",
+            "options": "Class 1 (GVM 0kg to 750kg)\nClass 2 (GVM 750kg to 3500kg)\nClass 3 (GVM 3500kg to 10000kg)\nClass 4 (GVM 10000kg+)"
+        },
+        {
+            "fieldname": "vin",
+            "label": "VIN",
+            "fieldtype": "Data",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
             "fieldname": "tipper_type",
             "label": "Tipper Type",
             "fieldtype": "Select",
@@ -146,12 +164,6 @@
             "collapsible": 1
         },
         {
-            "fieldname": "trailer_class",
-            "label": "Trailer Class",
-            "fieldtype": "Select",
-            "options": "Class 1 (GVM 0kg to 750kg)\nClass 2 (GVM 750kg to 3500kg)\nClass 3 (GVM 3500kg to 10000kg)\nClass 4 (GVM 10000kg+)"
-        },
-        {
             "fieldname": "trailer_mass",
             "label": "Trailer Mass (KG)",
             "fieldtype": "Int",
@@ -162,6 +174,15 @@
             "label": "Carrying Capacity (KG)",
             "fieldtype": "Int",
             "description": "Maximum mass of the cargo that the trailer can reliably support"
+        },
+        {
+        "fieldname": "col_break_4",
+        "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "current_mileage",
+            "label": "Current Mileage (KM)",
+            "fieldtype": "Int"
         }
     ],
     "permissions": [
