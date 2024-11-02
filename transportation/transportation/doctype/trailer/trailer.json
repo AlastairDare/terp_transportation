@@ -14,6 +14,12 @@
             "description": "Link to corresponding Fixed Asset record"
         },
         {
+            "fieldname": "asset_name",
+            "label": "Trailer Name",
+            "fieldtype": "Read Only",
+            "fetch_from": "fixed_asset.asset_name"
+        },
+        {
             "fieldname": "paired_trailer",
             "label": "Paired Trailer",
             "fieldtype": "Link",

@@ -8,14 +8,14 @@
     "fields": [
         {
             "fieldname": "employee",
-            "label": "Employee",
+            "label": "Driver",
             "fieldtype": "Link",
             "options": "Employee",
             "reqd": 1
         },
         {
             "fieldname": "employee_name",
-            "label": "Employee Name",
+            "label": "Driver Name",
             "fieldtype": "Read Only",
             "fetch_from": "employee.employee_name"
         },
