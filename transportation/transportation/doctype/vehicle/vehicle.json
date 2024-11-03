@@ -7,9 +7,9 @@
    "public": 1,
    "fields": [
     {
-        "fieldname": "general_information_section",
-        "fieldtype": "Section Break",
-        "label": "Vehicle General Information"
+    "fieldname": "general_information_section",
+    "fieldtype": "Section Break",
+    "label": "Vehicle General Information"
     },
    {
     "fieldname": "fixed_asset",

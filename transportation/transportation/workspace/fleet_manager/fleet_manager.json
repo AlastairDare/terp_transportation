@@ -1,5 +1,5 @@
 {
-  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Fleet Management</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Vehicle\",\"col\":3}},{\"type\":\"card\",\"data\":{\"card_name\":\"Vehicles\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Vehicle List\",\"link_type\":\"DocType\",\"link_to\":\"Vehicle\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Trailers\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Trailer List\",\"link_type\":\"DocType\",\"link_to\":\"Trailer\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Expenses\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Expense List\",\"link_type\":\"DocType\",\"link_to\":\"Expense\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Refuel List\",\"link_type\":\"DocType\",\"link_to\":\"Refuel\",\"type\":\"List\",\"onboard\":0,\"col\":4}}]",
+  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Fleet Management</b></span>\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Assets\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Transportation Asset List\",\"link_type\":\"DocType\",\"link_to\":\"transportation_asset\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Expenses\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Expense List\",\"link_type\":\"DocType\",\"link_to\":\"Expense\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Refuel List\",\"link_type\":\"DocType\",\"link_to\":\"Refuel\",\"type\":\"List\",\"onboard\":0,\"col\":4}}]",
   "doctype": "Workspace",
   "icon": "fleet",
   "label": "Fleet Manager",
@@ -8,7 +8,7 @@
     {
       "hidden": 0,
       "is_query_report": 0,
-      "label": "Vehicles",
+      "label": "Assets",
       "link_count": 1,
       "onboard": 0,
       "type": "Card Break"
@@ -16,27 +16,9 @@
     {
       "hidden": 0,
       "is_query_report": 0,
-      "label": "Vehicle",
+      "label": "Transportation Asset",
       "link_count": 0,
-      "link_to": "Vehicle",
-      "link_type": "DocType",
-      "onboard": 1,
-      "type": "Link"
-    },
-    {
-      "hidden": 0,
-      "is_query_report": 0,
-      "label": "Trailers",
-      "link_count": 1,
-      "onboard": 0,
-      "type": "Card Break"
-    },
-    {
-      "hidden": 0,
-      "is_query_report": 0,
-      "label": "Trailer",
-      "link_count": 0,
-      "link_to": "Trailer",
+      "link_to": "transportation_asset",
       "link_type": "DocType",
       "onboard": 1,
       "type": "Link"

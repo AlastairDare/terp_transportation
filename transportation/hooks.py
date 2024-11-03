@@ -64,8 +64,8 @@ doc_events = {
     "Delivery Note Capture": {
         "after_insert": "transportation.transportation.ai_processing.chain_builder.process_delivery_note_capture"
     },
-    "Trailer": {
-        "validate": "transportation.transportation.doctype.trailer.trailer.validate"
+    "Transportation Asset": {
+        "validate": "transportation.transportation.doctype.transportation_asset.transportation_asset.validate"
     }
 }
 
