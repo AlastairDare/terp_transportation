@@ -16,9 +16,9 @@
     {
       "hidden": 0,
       "is_query_report": 0,
-      "label": "Transportation Asset",
+      "label": "Vehicles & Trailers",
       "link_count": 0,
-      "link_to": "transportation_asset",
+      "link_to": "Transportation Asset",
       "link_type": "DocType",
       "onboard": 1,
       "type": "Link"
