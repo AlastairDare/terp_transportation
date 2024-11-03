@@ -45,6 +45,12 @@
             "unique": 1
         },
         {
+            "fieldname": "etag_number",
+            "label": "E-Tag Number",
+            "fieldtype": "Data",
+            "depends_on": "eval:doc.transportation_asset_type=='Truck'"
+        },
+        {
             "fieldname": "col_break_1",
             "fieldtype": "Column Break"
         },
@@ -66,12 +72,6 @@
             "fieldtype": "Select",
             "options": "Active\nIn Maintenance\nRetired",
             "reqd": 1
-        },
-        {
-            "fieldname": "etag_number",
-            "label": "E-Tag Number",
-            "fieldtype": "Data",
-            "depends_on": "eval:doc.transportation_asset_type=='Truck'"
         },
         {
             "fieldname": "pairing_section",

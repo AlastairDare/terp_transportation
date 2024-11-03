@@ -2,18 +2,52 @@ frappe.ui.form.on('Transportation Asset', {
     refresh: function(frm) {
         updateFieldLabels(frm);
         setupFieldFilters(frm);
+        toggleSecondaryTrailer(frm);
     },
 
     transportation_asset_type: function(frm) {
         updateFieldLabels(frm);
         setupFieldFilters(frm);
         clearTypeSpecificFields(frm);
+        toggleSecondaryTrailer(frm);
     },
 
     primary_trailer: function(frm) {
         if (!frm.doc.primary_trailer) {
             frm.set_value('secondary_trailer', '');
+            toggleSecondaryTrailer(frm);
+            return;
         }
+
+        // Fetch the primary trailer's paired trailer
+        frappe.db.get_value('Transportation Asset', 
+            frm.doc.primary_trailer,
+            ['paired_trailer', 'status'],
+            function(data) {
+                if (data && data.paired_trailer) {
+                    // Check if the paired trailer is active
+                    frappe.db.get_value('Transportation Asset',
+                        data.paired_trailer,
+                        'status',
+                        function(trailer_data) {
+                            if (trailer_data && trailer_data.status === 'Active') {
+                                frm.set_value('secondary_trailer', data.paired_trailer);
+                            } else {
+                                frm.set_value('secondary_trailer', '');
+                                frappe.show_alert({
+                                    message: __('The paired trailer is not active and cannot be assigned'),
+                                    indicator: 'orange'
+                                });
+                            }
+                            toggleSecondaryTrailer(frm);
+                        }
+                    );
+                } else {
+                    frm.set_value('secondary_trailer', '');
+                    toggleSecondaryTrailer(frm);
+                }
+            }
+        );
     }
 });
 
@@ -119,6 +153,33 @@ function clearTypeSpecificFields(frm) {
 
     // Refresh the form to ensure all field properties are updated
     frm.refresh();
+}
+
+function toggleSecondaryTrailer(frm) {
+    if (frm.doc.transportation_asset_type !== 'Truck') {
+        frm.set_df_property('secondary_trailer', 'hidden', 1);
+        return;
+    }
+
+    // If there's no primary trailer, hide secondary trailer
+    if (!frm.doc.primary_trailer) {
+        frm.set_df_property('secondary_trailer', 'hidden', 1);
+        return;
+    }
+
+    // Check if primary trailer has a paired trailer
+    frappe.db.get_value('Transportation Asset',
+        frm.doc.primary_trailer,
+        'paired_trailer',
+        function(data) {
+            if (data && data.paired_trailer) {
+                frm.set_df_property('secondary_trailer', 'hidden', 0);
+            } else {
+                frm.set_df_property('secondary_trailer', 'hidden', 1);
+            }
+            frm.refresh_field('secondary_trailer');
+        }
+    );
 }
 
 // Add custom validations
