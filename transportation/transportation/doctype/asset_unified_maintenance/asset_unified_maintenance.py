@@ -1,8 +1,9 @@
 import frappe
 from frappe import _
 from frappe.utils import getdate
+from frappe.model.document import Document
 
-class AssetUnifiedMaintenance(frappe.Document):
+class AssetUnifiedMaintenance(Document):
     def validate(self):
         self.validate_dates()
         self.validate_issue_resolution()
