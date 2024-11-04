@@ -1,17 +1,17 @@
 frappe.ui.form.on('Issues', {
     refresh: function(frm) {
-        // Refresh triggers when form is loaded or refreshed
+        // Set query for asset field to include draft documents
         frm.set_query('asset', function() {
             return {
                 filters: {
-                    'docstatus': 1  // Only show submitted Transportation Assets
+                    'doctype': 'Transportation Asset',
+                    'docstatus': ['in', [0, 1]]  // Include both draft (0) and submitted (1) documents
                 }
             };
         });
     },
 
     validate: function(frm) {
-        // Validate if resolution details are filled when status is Resolved
         if (frm.doc.issue_status === 'Resolved') {
             if (!frm.doc.issue_resolution_date) {
                 frappe.throw(__('Please fill in the Resolution Date'));
@@ -26,7 +26,6 @@ frappe.ui.form.on('Issues', {
     },
 
     issue_status: function(frm) {
-        // Clear resolution fields if status is changed from Resolved
         if (frm.doc.issue_status !== 'Resolved') {
             frm.set_value('issue_resolution_date', '');
             frm.set_value('issue_resolution_notes', '');

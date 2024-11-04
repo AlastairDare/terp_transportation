@@ -17,7 +17,8 @@
             "in_list_view": 1,
             "label": "Transportation Asset",
             "options": "Transportation Asset",
-            "reqd": 1
+            "reqd": 1,
+            "description": "Select a transportation asset"
         },
         {
             "fetch_from": "asset.license_plate",
