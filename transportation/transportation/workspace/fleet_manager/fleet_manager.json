@@ -1,5 +1,5 @@
 {
-  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Fleet Management</b></span>\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Transportation Assets\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Transportation Assets\",\"link_type\":\"DocType\",\"link_to\":\"transportation_asset\",\"type\":\"List\",\"onboard\":1,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Expenses\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Expense List\",\"link_type\":\"DocType\",\"link_to\":\"Expense\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Refuel List\",\"link_type\":\"DocType\",\"link_to\":\"Refuel\",\"type\":\"List\",\"onboard\":0,\"col\":4}}]",
+  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Fleet Management</b></span>\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Transportation Assets\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Transportation Assets\",\"link_type\":\"DocType\",\"link_to\":\"transportation_asset\",\"type\":\"List\",\"onboard\":1,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Expenses\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Expense List\",\"link_type\":\"DocType\",\"link_to\":\"Expense\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Refuel List\",\"link_type\":\"DocType\",\"link_to\":\"Refuel\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Maintenance and Issues\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Issues\",\"link_type\":\"DocType\",\"link_to\":\"Issues\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Asset Unified Maintenance\",\"link_type\":\"DocType\",\"link_to\":\"Asset Unified Maintenance\",\"type\":\"List\",\"onboard\":0,\"col\":4}}]",
   "doctype": "Workspace",
   "icon": "fleet",
   "label": "Fleet Manager",
@@ -49,6 +49,34 @@
       "link_to": "Refuel",
       "link_type": "DocType",
       "onboard": 1,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Maintenance and Issues",
+      "link_count": 2,
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Issues",
+      "link_count": 0,
+      "link_to": "Issues",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Asset Unified Maintenance",
+      "link_count": 0,
+      "link_to": "Asset Unified Maintenance",
+      "link_type": "DocType",
+      "onboard": 0,
       "type": "Link"
     }
   ],

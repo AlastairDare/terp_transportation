@@ -1,0 +1,78 @@
+{
+    "actions": [],
+    "creation": "2024-11-04 12:00:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "issue",
+        "description",
+        "severity",
+        "date_reported",
+        "assign_to_maintenance",
+        "mark_as_resolved",
+        "resolution_notes"
+    ],
+    "fields": [
+        {
+            "fieldname": "issue",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Issue",
+            "options": "Issues",
+            "reqd": 1
+        },
+        {
+            "fetch_from": "issue.issue_description",
+            "fieldname": "description",
+            "fieldtype": "Text Editor",
+            "label": "Description",
+            "read_only": 1
+        },
+        {
+            "fetch_from": "issue.issue_severity",
+            "fieldname": "severity",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Severity",
+            "read_only": 1
+        },
+        {
+            "fetch_from": "issue.date_reported",
+            "fieldname": "date_reported",
+            "fieldtype": "Date",
+            "in_list_view": 1,
+            "label": "Date Reported",
+            "read_only": 1
+        },
+        {
+            "default": "0",
+            "fieldname": "assign_to_maintenance",
+            "fieldtype": "Check",
+            "in_list_view": 1,
+            "label": "Assign to This Maintenance"
+        },
+        {
+            "default": "0",
+            "fieldname": "mark_as_resolved",
+            "fieldtype": "Check",
+            "in_list_view": 1,
+            "label": "Mark as Resolved"
+        },
+        {
+            "fieldname": "resolution_notes",
+            "fieldtype": "Text",
+            "label": "Resolution Notes"
+        }
+    ],
+    "istable": 1,
+    "modified": "2024-11-04 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Transportation",
+    "name": "Maintenance Issue Detail",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "track_changes": 1
+}

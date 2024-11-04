@@ -1,0 +1,148 @@
+{
+    "actions": [],
+    "allow_rename": 0,
+    "autoname": "format:ISS-{license_plate}-{#####}",
+    "creation": "2024-11-04 12:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "fields": [
+        {
+            "fieldname": "issue_general_info_section",
+            "fieldtype": "Section Break",
+            "label": "Issue General Information"
+        },
+        {
+            "fieldname": "asset",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Transportation Asset",
+            "options": "Transportation Asset",
+            "reqd": 1
+        },
+        {
+            "fetch_from": "asset.license_plate",
+            "fieldname": "license_plate",
+            "fieldtype": "Data",
+            "label": "License Plate",
+            "in_list_view": 1,
+            "read_only": 1
+        },
+        {
+            "fieldname": "issue_severity",
+            "fieldtype": "Select",
+            "label": "Issue Severity",
+            "options": "Critical - Vehicle Immobilized\nUrgent - Limited Operation\nModerate - Affects Performance\nMinor - Monitor Only",
+            "in_list_view": 1,
+            "reqd": 1,
+            "default": "Moderate - Affects Performance"
+        },
+        {
+            "default": "Unresolved",
+            "fieldname": "issue_status",
+            "fieldtype": "Select",
+            "in_list_view": 1,
+            "label": "Issue Status",
+            "options": "Unresolved\nAssigned For Fix\nResolved",
+            "reqd": 1
+        },
+        {
+            "fieldname": "col_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "date_reported",
+            "fieldtype": "Date",
+            "in_list_view": 1,
+            "label": "Date Reported",
+            "reqd": 1
+        },
+        {
+            "fieldname": "reported_by",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Reported By",
+            "options": "Employee",
+            "reqd": 1
+        },
+        {
+            "fieldname": "issue_assigned_to_maintenance_job",
+            "fieldtype": "Link",
+            "label": "Issue Assigned to Maintenance Job",
+            "options": "Asset Unified Maintenance",
+            "read_only": 1
+        },
+        {
+            "fieldname": "issue_details_section",
+            "fieldtype": "Section Break",
+            "label": "Issue Details"
+        },
+        {
+            "fieldname": "issue_description",
+            "fieldtype": "Text Editor",
+            "label": "Issue Description",
+            "reqd": 1
+        },
+        {
+            "fieldname": "resolution_section",
+            "fieldtype": "Section Break",
+            "label": "Resolution Details"
+        },
+        {
+            "depends_on": "eval:doc.issue_status=='Resolved'",
+            "fieldname": "issue_resolution_date",
+            "fieldtype": "Date",
+            "label": "Issue Resolution Date"
+        },
+        {
+            "depends_on": "eval:doc.issue_status=='Resolved'",
+            "fieldname": "issue_resolution_notes",
+            "fieldtype": "Text Editor",
+            "label": "Issue Resolution Notes"
+        },
+        {
+            "depends_on": "eval:doc.issue_status=='Resolved'",
+            "fieldname": "issue_resolution_verified_by",
+            "fieldtype": "Link",
+            "label": "Issue Resolution Verified By",
+            "options": "Employee"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-11-04 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Transportation",
+    "name": "Issues",
+    "name_case": "Title Case",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "list_filters": [
+        {
+            "fieldname": "license_plate",
+            "label": "License Plate",
+            "fieldtype": "Data"
+        },
+        {
+            "fieldname": "issue_status",
+            "label": "Issue Status",
+            "fieldtype": "Select",
+            "options": "Unresolved\nAssigned For Fix\nResolved"
+        }
+    ]
+}

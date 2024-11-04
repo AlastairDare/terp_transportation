@@ -1,0 +1,203 @@
+{
+    "actions": [],
+    "allow_rename": 0,
+    "autoname": "format:MAINT-{license_plate}-{#####}",
+    "creation": "2024-11-04 12:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "fields": [
+        {
+            "fieldname": "asset_section",
+            "fieldtype": "Section Break",
+            "label": "Asset Information"
+        },
+        {
+            "fieldname": "asset",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Transportation Asset",
+            "options": "Transportation Asset",
+            "reqd": 1
+        },
+        {
+            "fetch_from": "asset.license_plate",
+            "fieldname": "license_plate",
+            "fieldtype": "Data",
+            "label": "License Plate",
+            "read_only": 1
+        },
+        {
+            "fetch_from": "asset.warranty",
+            "fieldname": "warranty_status",
+            "fieldtype": "Check",
+            "label": "In Warranty",
+            "read_only": 1
+        },
+        {
+            "fetch_from": "asset.warranty_expiration",
+            "fieldname": "warranty_expiration",
+            "fieldtype": "Date",
+            "label": "Warranty Expiration Date",
+            "read_only": 1
+        },
+        {
+            "fieldname": "last_dates_col",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "last_service_date",
+            "fieldtype": "Date",
+            "label": "Last Service Date",
+            "read_only": 1
+        },
+        {
+            "fieldname": "last_repair_date",
+            "fieldtype": "Date",
+            "label": "Last Repair Date",
+            "read_only": 1
+        },
+        {
+            "fieldname": "maintenance_details_section",
+            "fieldtype": "Section Break",
+            "label": "Maintenance Details"
+        },
+        {
+            "fieldname": "maintenance_type",
+            "fieldtype": "Select",
+            "in_list_view": 1,
+            "label": "Unified Maintenance Type",
+            "options": "Service\nRepair",
+            "reqd": 1
+        },
+        {
+            "fieldname": "maintenance_status",
+            "fieldtype": "Select",
+            "in_list_view": 1,
+            "label": "Status",
+            "options": "Planned\nIn Progress\nComplete\nCancelled",
+            "reqd": 1,
+            "default": "Planned"
+        },
+        {
+            "depends_on": "eval:doc.maintenance_type=='Service'",
+            "fieldname": "odometer_reading",
+            "fieldtype": "Float",
+            "label": "Odometer Reading",
+            "reqd": 0
+        },
+        {
+            "fieldname": "dates_col",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "begin_date",
+            "fieldtype": "Date",
+            "label": "Begin Date",
+            "reqd": 1
+        },
+        {
+            "fieldname": "complete_date",
+            "fieldtype": "Date",
+            "label": "Complete Date"
+        },
+        {
+            "fieldname": "execution_section",
+            "fieldtype": "Section Break",
+            "label": "Execution Details"
+        },
+        {
+            "fieldname": "execution_type",
+            "fieldtype": "Select",
+            "label": "Execution Type",
+            "options": "Internal\nExternal",
+            "reqd": 1
+        },
+        {
+            "depends_on": "eval:doc.execution_type=='Internal'",
+            "fieldname": "internal_details_section",
+            "fieldtype": "Section Break",
+            "label": "Internal Execution Details"
+        },
+        {
+            "depends_on": "eval:doc.execution_type=='Internal'",
+            "fieldname": "assigned_employee",
+            "fieldtype": "Link",
+            "label": "Assigned Employee",
+            "options": "Employee"
+        },
+        {
+            "depends_on": "eval:doc.execution_type=='Internal'",
+            "fieldname": "stock_items",
+            "fieldtype": "Table",
+            "label": "Stock Items Consumed",
+            "options": "Stock Entry Detail"
+        },
+        {
+            "depends_on": "eval:doc.execution_type=='External'",
+            "fieldname": "external_details_section",
+            "fieldtype": "Section Break",
+            "label": "External Execution Details"
+        },
+        {
+            "depends_on": "eval:doc.execution_type=='External'",
+            "fieldname": "vendor",
+            "fieldtype": "Link",
+            "label": "Vendor",
+            "options": "Supplier"
+        },
+        {
+            "depends_on": "eval:doc.execution_type=='External'",
+            "fieldname": "purchase_invoice",
+            "fieldtype": "Link",
+            "label": "Purchase Invoice",
+            "options": "Purchase Invoice"
+        },
+        {
+            "fieldname": "cost_section",
+            "fieldtype": "Section Break",
+            "label": "Cost Details"
+        },
+        {
+            "fieldname": "total_cost",
+            "fieldtype": "Currency",
+            "label": "Total Cost",
+            "read_only": 1
+        },
+        {
+            "fieldname": "issues_section",
+            "fieldtype": "Section Break",
+            "label": "Related Issues"
+        },
+        {
+            "fieldname": "maintenance_issues",
+            "fieldtype": "Table",
+            "label": "Maintenance Issues",
+            "options": "Maintenance Issue Detail"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-11-04 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Transportation",
+    "name": "Asset Unified Maintenance",
+    "name_case": "Title Case",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}
