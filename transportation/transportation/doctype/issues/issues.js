@@ -3,9 +3,9 @@ frappe.ui.form.on('Issues', {
         // Set query for asset field to include draft documents
         frm.set_query('asset', function() {
             return {
+                doctype: 'Transportation Asset',  // Specify doctype here, not in filters
                 filters: {
-                    'doctype': 'Transportation Asset',
-                    'docstatus': ['in', [0, 1]]  // Include both draft (0) and submitted (1) documents
+                    'docstatus': ['in', [0, 1]]  // Include both draft and submitted documents
                 }
             };
         });
