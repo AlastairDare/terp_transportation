@@ -1,53 +1,3 @@
-frappe.ui.form.on('Asset Unified Maintenance', {
-    refresh: function(frm) {
-        update_field_labels(frm);
-    },
-    
-    asset: function(frm) {
-        if (frm.doc.asset) {
-            frappe.call({
-                method: 'get_last_maintenance_dates',
-                doc: frm.doc,
-                callback: function(r) {
-                    if (r.message) {
-                        frm.set_value('last_service_date', r.message.last_service_date);
-                        frm.set_value('last_repair_date', r.message.last_repair_date);
-                        frm.refresh_fields(['last_service_date', 'last_repair_date']);
-                    }
-                }
-            });
-        }
-    },
-    
-    maintenance_type: function(frm) {
-        update_field_labels(frm);
-    },
-    
-    execution_type: function(frm) {
-        if (frm.doc.execution_type === 'Internal') {
-            frm.set_value('vendor', '');
-            frm.set_value('purchase_invoice', '');
-        } else {
-            frm.clear_table('stock_items');
-            frm.set_value('assigned_employee', '');
-        }
-        frm.refresh_fields();
-    }
-});
-
-function update_field_labels(frm) {
-    const type = frm.doc.maintenance_type;
-    const label_prefix = type || 'Maintenance';
-    
-    frm.set_df_property('maintenance_status', 'label',
-        `${label_prefix} Status`);
-    frm.set_df_property('begin_date', 'label',
-        `${label_prefix} Begin Date`);
-    frm.set_df_property('complete_date', 'label',
-        `${label_prefix} Complete Date`);
-}
-
-// Stock Entry Detail handling
 frappe.ui.form.on('Stock Entry Detail', {
     s_warehouse: function(frm, cdt, cdn) {
         update_available_qty(frm, cdt, cdn);
@@ -103,16 +53,31 @@ function update_available_qty(frm, cdt, cdn) {
                 fieldname: ['actual_qty']
             },
             callback: function(r) {
-                if (r.message) {
+                if (r.message && r.message.actual_qty !== undefined) {
                     // Store available quantity in a custom field
                     frappe.model.set_value(cdt, cdn, 'available_qty', r.message.actual_qty);
                     
-                    // Update the qty field placeholder
-                    let qty_field = frm.fields_dict.stock_items.grid.grid_rows[row.idx - 1].columns
-                        .qty.field;
-                    qty_field.$input.attr('placeholder', `Available: ${r.message.actual_qty}`);
+                    // Find the grid row and update placeholder
+                    let grid_row = frm.fields_dict.stock_items.grid.grid_rows_by_docname[cdn];
+                    if (grid_row) {
+                        let qty_field = grid_row.columns.qty;
+                        if (qty_field && qty_field.field) {
+                            const formattedQty = format_number(r.message.actual_qty, null, 2);
+                            qty_field.field.$input.attr('placeholder', `Available: ${formattedQty}`);
+                        }
+                    }
                     
                     validate_quantity(frm, row);
+                } else {
+                    // Set a default placeholder when no quantity is found
+                    let grid_row = frm.fields_dict.stock_items.grid.grid_rows_by_docname[cdn];
+                    if (grid_row) {
+                        let qty_field = grid_row.columns.qty;
+                        if (qty_field && qty_field.field) {
+                            qty_field.field.$input.attr('placeholder', 'Available: 0');
+                        }
+                    }
+                    frappe.model.set_value(cdt, cdn, 'available_qty', 0);
                 }
             }
         });
@@ -120,16 +85,23 @@ function update_available_qty(frm, cdt, cdn) {
 }
 
 function validate_quantity(frm, row) {
-    if (row.qty > row.available_qty) {
-        $(frm.fields_dict.stock_items.grid.grid_rows[row.idx - 1].columns
-            .qty.field.input).css('color', 'red');
+    if (!row || row.idx === undefined) return;
+    
+    const grid_row = frm.fields_dict.stock_items.grid.grid_rows[row.idx - 1];
+    if (!grid_row) return;
+    
+    const qty_field = grid_row.columns.qty;
+    if (!qty_field || !qty_field.field) return;
+    
+    if (row.qty > (row.available_qty || 0)) {
+        qty_field.field.$input.css('color', 'red');
     } else {
-        $(frm.fields_dict.stock_items.grid.grid_rows[row.idx - 1].columns
-            .qty.field.input).css('color', '');
+        qty_field.field.$input.css('color', '');
     }
 }
 
 function calculate_amount(frm, row) {
+    if (!row) return;
     row.amount = (row.qty || 0) * (row.basic_rate || 0);
     row.basic_amount = row.amount;
 }
