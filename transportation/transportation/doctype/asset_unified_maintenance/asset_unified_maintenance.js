@@ -39,6 +39,53 @@ frappe.ui.form.on('Stock Entry Detail', {
     }
 });
 
+// Main form events including target warehouse handling
+frappe.ui.form.on('Asset Unified Maintenance', {
+    refresh: function(frm) {
+        // Hide target warehouse field
+        frm.set_df_property('t_warehouse', 'hidden', 1);
+        
+        // Clear any existing value
+        frm.set_value('t_warehouse', '');
+        
+        // Make target warehouse non-mandatory
+        frm.set_df_property('t_warehouse', 'reqd', 0);
+        
+        update_field_labels(frm);
+    },
+    
+    asset: function(frm) {
+        if (frm.doc.asset) {
+            frappe.call({
+                method: 'get_last_maintenance_dates',
+                doc: frm.doc,
+                callback: function(r) {
+                    if (r.message) {
+                        frm.set_value('last_service_date', r.message.last_service_date);
+                        frm.set_value('last_repair_date', r.message.last_repair_date);
+                        frm.refresh_fields(['last_service_date', 'last_repair_date']);
+                    }
+                }
+            });
+        }
+    },
+    
+    maintenance_type: function(frm) {
+        update_field_labels(frm);
+    },
+    
+    execution_type: function(frm) {
+        if (frm.doc.execution_type === 'Internal') {
+            frm.set_value('vendor', '');
+            frm.set_value('purchase_invoice', '');
+        } else {
+            frm.clear_table('stock_items');
+            frm.set_value('assigned_employee', '');
+        }
+        frm.refresh_fields();
+    }
+});
+
 function update_available_qty(frm, cdt, cdn) {
     let row = locals[cdt][cdn];
     if (row.item_code && row.s_warehouse) {
@@ -104,4 +151,16 @@ function calculate_amount(frm, row) {
     if (!row) return;
     row.amount = (row.qty || 0) * (row.basic_rate || 0);
     row.basic_amount = row.amount;
+}
+
+function update_field_labels(frm) {
+    const type = frm.doc.maintenance_type;
+    const label_prefix = type || 'Maintenance';
+    
+    frm.set_df_property('maintenance_status', 'label',
+        `${label_prefix} Status`);
+    frm.set_df_property('begin_date', 'label',
+        `${label_prefix} Begin Date`);
+    frm.set_df_property('complete_date', 'label',
+        `${label_prefix} Complete Date`);
 }
