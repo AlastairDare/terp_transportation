@@ -39,19 +39,25 @@ frappe.ui.form.on('Stock Entry Detail', {
     }
 });
 
-// Main form events including target warehouse handling
+// Main form events
 frappe.ui.form.on('Asset Unified Maintenance', {
     refresh: function(frm) {
-        // Hide target warehouse field
-        frm.set_df_property('t_warehouse', 'hidden', 1);
-        
-        // Clear any existing value
-        frm.set_value('t_warehouse', '');
-        
-        // Make target warehouse non-mandatory
-        frm.set_df_property('t_warehouse', 'reqd', 0);
+        // Hide target warehouse field in the grid
+        frm.fields_dict.stock_items.grid.update_docfield_property(
+            't_warehouse', 'hidden', 1
+        );
         
         update_field_labels(frm);
+    },
+    
+    onload: function(frm) {
+        // Also set up the grid's initial state
+        frm.fields_dict.stock_items.grid.update_docfield_property(
+            't_warehouse', 'hidden', 1
+        );
+        frm.fields_dict.stock_items.grid.update_docfield_property(
+            't_warehouse', 'reqd', 0
+        );
     },
     
     asset: function(frm) {
