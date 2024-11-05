@@ -1,63 +1,29 @@
-frappe.ui.form.on('Stock Entry Detail', {
-    s_warehouse: function(frm, cdt, cdn) {
-        update_available_qty(frm, cdt, cdn);
-    },
-    
-    item_code: function(frm, cdt, cdn) {
-        let row = locals[cdt][cdn];
-        if (row.item_code && row.s_warehouse) {
-            // Get item details
-            frappe.call({
-                method: 'frappe.client.get_value',
-                args: {
-                    doctype: 'Item',
-                    filters: { name: row.item_code },
-                    fieldname: ['item_name', 'valuation_rate']
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        frappe.model.set_value(cdt, cdn, 'item_name', r.message.item_name);
-                        frappe.model.set_value(cdt, cdn, 'basic_rate', r.message.valuation_rate);
-                        update_available_qty(frm, cdt, cdn);
-                    }
+frappe.ui.form.on('Asset Unified Maintenance', {
+    refresh: function(frm) {
+        // Hide target warehouse in the grid
+        frm.fields_dict.stock_items.grid.update_docfield_property(
+            't_warehouse', 
+            'hidden',
+            1
+        );
+        
+        // Also make it non-mandatory and clear any existing value
+        frm.fields_dict.stock_items.grid.update_docfield_property(
+            't_warehouse',
+            'reqd',
+            0
+        );
+        
+        // Clear existing t_warehouse values if any
+        if(frm.doc.stock_items) {
+            frm.doc.stock_items.forEach(function(item) {
+                if(item.t_warehouse) {
+                    frappe.model.set_value(item.doctype, item.name, 't_warehouse', '');
                 }
             });
         }
-    },
-    
-    qty: function(frm, cdt, cdn) {
-        let row = locals[cdt][cdn];
-        validate_quantity(frm, row);
-        calculate_amount(frm, row);
-        frm.refresh_field('stock_items');
-    },
-    
-    basic_rate: function(frm, cdt, cdn) {
-        let row = locals[cdt][cdn];
-        calculate_amount(frm, row);
-        frm.refresh_field('stock_items');
-    }
-});
-
-// Main form events
-frappe.ui.form.on('Asset Unified Maintenance', {
-    refresh: function(frm) {
-        // Hide target warehouse field in the grid
-        frm.fields_dict.stock_items.grid.update_docfield_property(
-            't_warehouse', 'hidden', 1
-        );
         
         update_field_labels(frm);
-    },
-    
-    onload: function(frm) {
-        // Also set up the grid's initial state
-        frm.fields_dict.stock_items.grid.update_docfield_property(
-            't_warehouse', 'hidden', 1
-        );
-        frm.fields_dict.stock_items.grid.update_docfield_property(
-            't_warehouse', 'reqd', 0
-        );
     },
     
     asset: function(frm) {
@@ -92,30 +58,105 @@ frappe.ui.form.on('Asset Unified Maintenance', {
     }
 });
 
+frappe.ui.form.on('Stock Entry Detail', {
+    s_warehouse: function(frm, cdt, cdn) {
+        update_available_qty(frm, cdt, cdn);
+    },
+    
+    item_code: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (row.item_code && row.s_warehouse) {
+            // Get item details including UOM and conversion factors
+            frappe.call({
+                method: 'frappe.client.get',
+                args: {
+                    doctype: 'Item',
+                    name: row.item_code
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        let item = r.message;
+                        frappe.model.set_value(cdt, cdn, 'item_name', item.item_name);
+                        frappe.model.set_value(cdt, cdn, 'uom', item.stock_uom);
+                        frappe.model.set_value(cdt, cdn, 'stock_uom', item.stock_uom);
+                        frappe.model.set_value(cdt, cdn, 'conversion_factor', 1);
+                        
+                        // Get stock quantity after setting UOM
+                        update_available_qty(frm, cdt, cdn);
+                    }
+                }
+            });
+        }
+    },
+    
+    uom: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (row.uom && row.item_code) {
+            get_uom_conversion_factor(frm, cdt, cdn);
+        }
+    },
+    
+    qty: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        validate_quantity(frm, row);
+        calculate_amount(frm, row);
+        frm.refresh_field('stock_items');
+    },
+    
+    basic_rate: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        calculate_amount(frm, row);
+        frm.refresh_field('stock_items');
+    }
+});
+
+function get_uom_conversion_factor(frm, cdt, cdn) {
+    let row = locals[cdt][cdn];
+    frappe.call({
+        method: 'erpnext.stock.get_item_details.get_uom_conv_factor',
+        args: {
+            uom: row.uom,
+            stock_uom: row.stock_uom
+        },
+        callback: function(r) {
+            if (r.message) {
+                frappe.model.set_value(cdt, cdn, 'conversion_factor', r.message);
+                update_available_qty(frm, cdt, cdn);
+            }
+        }
+    });
+}
+
 function update_available_qty(frm, cdt, cdn) {
     let row = locals[cdt][cdn];
     if (row.item_code && row.s_warehouse) {
         frappe.call({
-            method: 'frappe.client.get_value',
+            method: 'erpnext.stock.utils.get_stock_balance',
             args: {
-                doctype: 'Bin',
-                filters: {
-                    item_code: row.item_code,
-                    warehouse: row.s_warehouse
-                },
-                fieldname: ['actual_qty']
+                item_code: row.item_code,
+                warehouse: row.s_warehouse,
+                posting_date: frappe.datetime.get_today(),
+                posting_time: frappe.datetime.now_time()
             },
             callback: function(r) {
-                if (r.message && r.message.actual_qty !== undefined) {
+                if (r.message) {
+                    let stock_qty = r.message[0];
+                    
+                    // Convert stock quantity based on UOM
+                    let available_qty = stock_qty;
+                    if (row.conversion_factor) {
+                        available_qty = stock_qty / row.conversion_factor;
+                    }
+                    
                     // Store available quantity in a custom field
-                    frappe.model.set_value(cdt, cdn, 'available_qty', r.message.actual_qty);
+                    frappe.model.set_value(cdt, cdn, 'available_qty', available_qty);
                     
                     // Find the grid row and update placeholder
                     let grid_row = frm.fields_dict.stock_items.grid.grid_rows_by_docname[cdn];
                     if (grid_row) {
                         let qty_field = grid_row.columns.qty;
                         if (qty_field && qty_field.field) {
-                            const formattedQty = format_number(r.message.actual_qty, null, 2);
+                            const formattedQty = format_number(available_qty, null, 3);
                             qty_field.field.$input.attr('placeholder', `Available: ${formattedQty}`);
                         }
                     }
