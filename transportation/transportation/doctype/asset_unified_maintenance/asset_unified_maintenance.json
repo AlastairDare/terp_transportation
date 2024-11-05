@@ -129,8 +129,8 @@
             "depends_on": "eval:doc.execution_type=='Internal'",
             "fieldname": "stock_items",
             "fieldtype": "Table",
-            "label": "Stock Items Consumed",
-            "options": "Stock Entry Detail"
+            "label": "Stock Items",
+            "options": "Asset Maintenance Stock Item"
         },
         {
             "depends_on": "eval:doc.execution_type=='External'",
