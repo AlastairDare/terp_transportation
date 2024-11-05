@@ -162,17 +162,6 @@
             "fieldtype": "Currency",
             "label": "Total Cost",
             "read_only": 1
-        },
-        {
-            "fieldname": "issues_section",
-            "fieldtype": "Section Break",
-            "label": "Related Issues"
-        },
-        {
-            "fieldname": "maintenance_issues",
-            "fieldtype": "Table",
-            "label": "Maintenance Issues",
-            "options": "Maintenance Issue Detail"
         }
     ],
     "index_web_pages_for_search": 1,
