@@ -77,7 +77,6 @@ class AssetUnifiedMaintenance(Document):
         if self.execution_type == "Internal":
             total = 0
             if self.stock_items:
-                self.update_stock_rates()  # Update rates before calculating total
                 for item in self.stock_items:
                     total += flt(item.amount)
             self.total_cost = total

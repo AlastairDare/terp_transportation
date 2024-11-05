@@ -35,6 +35,56 @@ frappe.ui.form.on('Asset Unified Maintenance', {
     }
 });
 
+// Handle Stock Items child table
+frappe.ui.form.on('Asset Maintenance Stock Item', {
+    stock_items_add: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        frappe.model.set_value(cdt, cdn, 'warehouse', frm.doc.source_warehouse);
+    },
+    
+    item_code: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (row.item_code && row.warehouse) {
+            get_item_details(frm, row);
+        }
+    },
+    
+    warehouse: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (row.item_code && row.warehouse) {
+            get_item_details(frm, row);
+        }
+    },
+    
+    qty: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        calculate_amount(frm, row);
+    }
+});
+
+function get_item_details(frm, row) {
+    frappe.call({
+        method: 'get_valuation_rate',
+        doc: frm.doc,
+        args: {
+            'item_code': row.item_code,
+            'warehouse': row.warehouse
+        },
+        callback: function(r) {
+            if (r.message) {
+                frappe.model.set_value(row.doctype, row.name, 'rate', r.message);
+                calculate_amount(frm, row);
+            }
+        }
+    });
+}
+
+function calculate_amount(frm, row) {
+    let amount = flt(row.qty) * flt(row.rate);
+    frappe.model.set_value(row.doctype, row.name, 'amount', amount);
+    frm.refresh_field('stock_items');
+}
+
 function update_field_labels(frm) {
     const type = frm.doc.maintenance_type;
     const label_prefix = type || 'Maintenance';
@@ -45,52 +95,4 @@ function update_field_labels(frm) {
         `${label_prefix} Begin Date`);
     frm.set_df_property('complete_date', 'label',
         `${label_prefix} Complete Date`);
-}
-
-frappe.ui.form.on('Asset Maintenance Stock Item', {
-    item_code: function(frm, cdt, cdn) {
-        let row = locals[cdt][cdn];
-        if (row.item_code && row.warehouse) {
-            get_item_rate(frm, row);
-        }
-    },
-    
-    warehouse: function(frm, cdt, cdn) {
-        let row = locals[cdt][cdn];
-        if (row.item_code && row.warehouse) {
-            get_item_rate(frm, row);
-        }
-    },
-    
-    qty: function(frm, cdt, cdn) {
-        let row = locals[cdt][cdn];
-        calculate_amount(row);
-        frm.refresh_field('stock_items');
-    }
-});
-
-function get_item_rate(frm, row) {
-    frappe.call({
-        method: 'frappe.client.get_value',
-        args: {
-            doctype: 'Bin',
-            filters: {
-                'item_code': row.item_code,
-                'warehouse': row.warehouse
-            },
-            fieldname: ['valuation_rate']
-        },
-        callback: function(r) {
-            if (r.message && r.message.valuation_rate) {
-                frappe.model.set_value(row.doctype, row.name, 'rate', r.message.valuation_rate);
-                calculate_amount(row);
-                frm.refresh_field('stock_items');
-            }
-        }
-    });
-}
-
-function calculate_amount(row) {
-    let amount = flt(row.qty) * flt(row.rate);
-    frappe.model.set_value(row.doctype, row.name, 'amount', amount);
 }
