@@ -4,4 +4,3 @@ import '../../transportation/doctype/trailer/trailer.js';
 import '../../transportation/doctype/transportation_asset/transportation_asset.js';
 import '../../transportation/doctype/issues/issues.js';
 import '../../transportation/doctype/asset_unified_maintenance/asset_unified_maintenance.js';
-import '../../transportation/doctype/maintenance_issue_detail/maintenance_issue_detail.js';
