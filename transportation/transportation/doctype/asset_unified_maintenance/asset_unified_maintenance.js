@@ -1,28 +1,5 @@
 frappe.ui.form.on('Asset Unified Maintenance', {
     refresh: function(frm) {
-        // Hide target warehouse in the grid
-        frm.fields_dict.stock_items.grid.update_docfield_property(
-            't_warehouse', 
-            'hidden',
-            1
-        );
-        
-        // Also make it non-mandatory and clear any existing value
-        frm.fields_dict.stock_items.grid.update_docfield_property(
-            't_warehouse',
-            'reqd',
-            0
-        );
-        
-        // Clear existing t_warehouse values if any
-        if(frm.doc.stock_items) {
-            frm.doc.stock_items.forEach(function(item) {
-                if(item.t_warehouse) {
-                    frappe.model.set_value(item.doctype, item.name, 't_warehouse', '');
-                }
-            });
-        }
-        
         update_field_labels(frm);
     },
     
@@ -80,8 +57,6 @@ frappe.ui.form.on('Stock Entry Detail', {
                         frappe.model.set_value(cdt, cdn, 'uom', item.stock_uom);
                         frappe.model.set_value(cdt, cdn, 'stock_uom', item.stock_uom);
                         frappe.model.set_value(cdt, cdn, 'conversion_factor', 1);
-                        
-                        // Get stock quantity after setting UOM
                         update_available_qty(frm, cdt, cdn);
                     }
                 }
@@ -98,7 +73,6 @@ frappe.ui.form.on('Stock Entry Detail', {
     
     qty: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
-        validate_quantity(frm, row);
         calculate_amount(frm, row);
         frm.refresh_field('stock_items');
     },
@@ -141,56 +115,16 @@ function update_available_qty(frm, cdt, cdn) {
             callback: function(r) {
                 if (r.message) {
                     let stock_qty = r.message[0];
-                    
-                    // Convert stock quantity based on UOM
                     let available_qty = stock_qty;
                     if (row.conversion_factor) {
                         available_qty = stock_qty / row.conversion_factor;
                     }
-                    
-                    // Store available quantity in a custom field
                     frappe.model.set_value(cdt, cdn, 'available_qty', available_qty);
-                    
-                    // Find the grid row and update placeholder
-                    let grid_row = frm.fields_dict.stock_items.grid.grid_rows_by_docname[cdn];
-                    if (grid_row) {
-                        let qty_field = grid_row.columns.qty;
-                        if (qty_field && qty_field.field) {
-                            const formattedQty = format_number(available_qty, null, 3);
-                            qty_field.field.$input.attr('placeholder', `Available: ${formattedQty}`);
-                        }
-                    }
-                    
-                    validate_quantity(frm, row);
                 } else {
-                    // Set a default placeholder when no quantity is found
-                    let grid_row = frm.fields_dict.stock_items.grid.grid_rows_by_docname[cdn];
-                    if (grid_row) {
-                        let qty_field = grid_row.columns.qty;
-                        if (qty_field && qty_field.field) {
-                            qty_field.field.$input.attr('placeholder', 'Available: 0');
-                        }
-                    }
                     frappe.model.set_value(cdt, cdn, 'available_qty', 0);
                 }
             }
         });
-    }
-}
-
-function validate_quantity(frm, row) {
-    if (!row || row.idx === undefined) return;
-    
-    const grid_row = frm.fields_dict.stock_items.grid.grid_rows[row.idx - 1];
-    if (!grid_row) return;
-    
-    const qty_field = grid_row.columns.qty;
-    if (!qty_field || !qty_field.field) return;
-    
-    if (row.qty > (row.available_qty || 0)) {
-        qty_field.field.$input.css('color', 'red');
-    } else {
-        qty_field.field.$input.css('color', '');
     }
 }
 
