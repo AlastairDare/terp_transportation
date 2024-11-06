@@ -69,6 +69,14 @@ doc_events = {
     }
 }
 
+has_permission = {
+	"Asset Unified Maintenance": "transportation.transportation.doctype.asset_unified_maintenance.asset_unified_maintenance.has_permission"
+}
+
+whitelisted_methods = {
+	"transportation.transportation.doctype.asset_unified_maintenance.asset_unified_maintenance.get_last_maintenance_dates": True
+}
+
 dependencies = [
     {
         "package": "opencv-python-headless",

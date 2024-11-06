@@ -1,6 +1,13 @@
 frappe.ui.form.on('Asset Unified Maintenance', {
     refresh: function(frm) {
         update_field_labels(frm);
+        
+        // Set default company if not set
+        if (!frm.doc.company) {
+            frm.set_value('company', frappe.defaults.get_user_default('Company'));
+        }
+        
+        // Always update warranty display
         update_warranty_display(frm);
         
         if(frm.doc.docstatus === 1) {
@@ -12,6 +19,14 @@ frappe.ui.form.on('Asset Unified Maintenance', {
                 frappe.set_route('List', 'Stock Entry');
             }, __("View"));
         }
+    },
+    
+    onload: function(frm) {
+        // Set default company if not set
+        if (!frm.doc.company) {
+            frm.set_value('company', frappe.defaults.get_user_default('Company'));
+        }
+        update_warranty_display(frm);
     },
     
     asset: function(frm) {
@@ -48,36 +63,28 @@ frappe.ui.form.on('Asset Unified Maintenance', {
             frm.set_value('assigned_employee', '');
         }
         frm.refresh_fields();
-    },
-
-    calculate_basic_amount: function(frm, item) {
-        item.basic_amount = flt(flt(item.transfer_qty) * flt(item.basic_rate),
-            precision("basic_amount", item));
-
-        frm.events.calculate_amount(frm, item);
-    },
-
-    calculate_amount: function(frm, item) {
-        item.amount = flt(item.basic_amount);
-        frm.refresh_field('items');
     }
 });
 
 // Function to update warranty display
 function update_warranty_display(frm) {
-    // Hide the original checkbox field
-    frm.set_df_property('warranty_status', 'hidden', 1);
-    
-    // Create or update the HTML field for warranty display
-    let warranty_html = frm.doc.warranty_status ? 
-        '<div class="alert alert-success">Asset is in Warranty</div>' : 
-        '<div class="alert alert-warning">Asset out of Warranty</div>';
-    
-    if (!frm.warranty_display) {
-        frm.warranty_display = frm.add_custom_html('<div class="warranty-status-display">' + warranty_html + '</div>');
+    // Always show warranty status text
+    let warranty_html = '';
+    if (frm.doc.warranty_status) {
+        warranty_html = '<div class="alert alert-success">Asset is in Warranty</div>';
     } else {
-        $(frm.warranty_display).html(warranty_html);
+        warranty_html = '<div class="alert alert-warning">Asset out of Warranty</div>';
     }
+    
+    // Remove existing display if any
+    $('.warranty-status-display').remove();
+    
+    // Add new display after the warranty_status field
+    $(frm.fields_dict.warranty_status.wrapper)
+        .append('<div class="warranty-status-display">' + warranty_html + '</div>');
+    
+    // Hide the checkbox
+    frm.set_df_property('warranty_status', 'hidden', 1);
 }
 
 // Add handlers for the items table
@@ -92,6 +99,12 @@ frappe.ui.form.on('Stock Entry Detail', {
     
     item_code: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
+        if (!frm.doc.company) {
+            frm.set_value('company', frappe.defaults.get_user_default('Company'));
+            frappe.throw(__('Please set the Company first'));
+            return;
+        }
+        
         if (row.item_code) {
             frappe.call({
                 method: 'erpnext.stock.get_item_details.get_item_details',
@@ -127,38 +140,6 @@ frappe.ui.form.on('Stock Entry Detail', {
         frappe.model.set_value(cdt, cdn, 'transfer_qty', 
             flt(row.qty) * flt(row.conversion_factor));
         frm.events.set_basic_rate(frm, cdt, cdn);
-    },
-
-    set_basic_rate: function(frm, cdt, cdn) {
-        const item = locals[cdt][cdn];
-        item.transfer_qty = flt(item.qty) * flt(item.conversion_factor);
-
-        const args = {
-            item_code: item.item_code,
-            posting_date: frappe.datetime.nowdate(),
-            posting_time: frappe.datetime.now_time(),
-            warehouse: cstr(item.s_warehouse) || cstr(item.t_warehouse),
-            serial_no: item.serial_no,
-            batch_no: item.batch_no,
-            company: frm.doc.company,
-            qty: item.s_warehouse ? -1 * flt(item.transfer_qty) : flt(item.transfer_qty),
-            voucher_type: frm.doc.doctype,
-            voucher_no: item.name,
-            allow_zero_valuation: 1,
-        };
-
-        if (item.item_code || item.serial_no) {
-            frappe.call({
-                method: "erpnext.stock.utils.get_incoming_rate",
-                args: {
-                    args: args
-                },
-                callback: function(r) {
-                    frappe.model.set_value(cdt, cdn, 'basic_rate', r.message || 0.0);
-                    frm.events.calculate_basic_amount(frm, item);
-                }
-            });
-        }
     }
 });
 
