@@ -91,19 +91,18 @@ frappe.ui.form.on('Stock Entry Detail', {
     
     item_code: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
-        if (!frm.doc.company) {
-            frm.set_value('company', frappe.defaults.get_user_default('Company'));
-        }
-        
         if (row.item_code) {
-            frappe.call({
-                method: 'erpnext.stock.get_item_details.get_item_details',
-                type: "POST",
+            if (!row.s_warehouse) {
+                row.s_warehouse = frappe.defaults.get_default('stock_warehouse');
+            }
+            
+            return frappe.call({
+                method: "erpnext.stock.get_item_details.get_item_details",
                 args: {
                     args: {
                         item_code: row.item_code,
-                        company: frm.doc.company,
-                        warehouse: row.s_warehouse || frappe.defaults.get_default('stock_warehouse'),
+                        company: frm.doc.company || frappe.defaults.get_user_default('Company'),
+                        warehouse: row.s_warehouse,
                         doctype: frm.doctype,
                         buying_price_list: frappe.defaults.get_default('buying_price_list'),
                         currency: frappe.defaults.get_default('Currency'),
@@ -114,9 +113,7 @@ frappe.ui.form.on('Stock Entry Detail', {
                 },
                 callback: function(r) {
                     if(r.message) {
-                        $.each(r.message, function(k, v) {
-                            if(!row[k]) row[k] = v;
-                        });
+                        frappe.model.set_value(cdt, cdn, r.message);
                         frm.refresh_field('items');
                     }
                 }

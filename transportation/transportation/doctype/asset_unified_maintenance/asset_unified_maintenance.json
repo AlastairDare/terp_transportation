@@ -40,6 +40,14 @@
             "hidden": 0
         },
         {
+            "fetch_from": "asset.warranty_expiration",
+            "fieldname": "warranty_expiration",
+            "fieldtype": "Date",
+            "label": "Warranty Expiration Date",
+            "read_only": 1,
+            "hidden": 1
+        },
+        {
             "fieldname": "last_dates_col",
             "fieldtype": "Column Break"
         },
