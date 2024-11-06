@@ -1,13 +1,6 @@
 frappe.ui.form.on('Asset Unified Maintenance', {
     refresh: function(frm) {
         update_field_labels(frm);
-        
-        // Set default company if not set
-        if (!frm.doc.company) {
-            frm.set_value('company', frappe.defaults.get_user_default('Company'));
-        }
-        
-        // Always update warranty display
         update_warranty_display(frm);
         
         if(frm.doc.docstatus === 1) {
@@ -22,7 +15,6 @@ frappe.ui.form.on('Asset Unified Maintenance', {
     },
     
     onload: function(frm) {
-        // Set default company if not set
         if (!frm.doc.company) {
             frm.set_value('company', frappe.defaults.get_user_default('Company'));
         }
@@ -66,25 +58,24 @@ frappe.ui.form.on('Asset Unified Maintenance', {
     }
 });
 
-// Function to update warranty display
 function update_warranty_display(frm) {
-    // Always show warranty status text
+    // Hide the original checkbox field
+    frm.set_df_property('warranty_status', 'hidden', 1);
+    
     let warranty_html = '';
     if (frm.doc.warranty_status) {
-        warranty_html = '<div class="alert alert-success">Asset is in Warranty</div>';
+        warranty_html = `
+            <div class="alert alert-success">
+                Asset is in Warranty
+                ${frm.doc.warranty_expiration ? 
+                    `<br>Expires on: ${frappe.format(frm.doc.warranty_expiration, {fieldtype: 'Date'})}` 
+                    : ''}
+            </div>`;
     } else {
-        warranty_html = '<div class="alert alert-warning">Asset out of Warranty</div>';
+        warranty_html = `<div class="alert alert-warning">Asset out of Warranty</div>`;
     }
     
-    // Remove existing display if any
-    $('.warranty-status-display').remove();
-    
-    // Add new display after the warranty_status field
-    $(frm.fields_dict.warranty_status.wrapper)
-        .append('<div class="warranty-status-display">' + warranty_html + '</div>');
-    
-    // Hide the checkbox
-    frm.set_df_property('warranty_status', 'hidden', 1);
+    $(frm.fields_dict.warranty_display.wrapper).html(warranty_html);
 }
 
 // Add handlers for the items table
@@ -101,8 +92,6 @@ frappe.ui.form.on('Stock Entry Detail', {
         let row = locals[cdt][cdn];
         if (!frm.doc.company) {
             frm.set_value('company', frappe.defaults.get_user_default('Company'));
-            frappe.throw(__('Please set the Company first'));
-            return;
         }
         
         if (row.item_code) {
@@ -128,7 +117,6 @@ frappe.ui.form.on('Stock Entry Detail', {
                             if(!row[k]) row[k] = v;
                         });
                         frm.refresh_field('items');
-                        frm.events.set_basic_rate(frm, cdt, cdn);
                     }
                 }
             });
@@ -139,7 +127,6 @@ frappe.ui.form.on('Stock Entry Detail', {
         let row = locals[cdt][cdn];
         frappe.model.set_value(cdt, cdn, 'transfer_qty', 
             flt(row.qty) * flt(row.conversion_factor));
-        frm.events.set_basic_rate(frm, cdt, cdn);
     }
 });
 

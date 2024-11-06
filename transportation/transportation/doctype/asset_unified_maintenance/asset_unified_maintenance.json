@@ -31,7 +31,20 @@
             "fieldname": "warranty_status",
             "fieldtype": "Check",
             "label": "In Warranty",
-            "read_only": 1
+            "hidden": 1
+        },
+        {
+            "fieldname": "company",
+            "fieldtype": "Link",
+            "label": "Company",
+            "options": "Company",
+            "reqd": 1
+        },
+        {
+            "fieldname": "warranty_display",
+            "fieldtype": "HTML",
+            "label": "Warranty Status Display",
+            "hidden": 0
         },
         {
             "fetch_from": "asset.warranty_expiration",
