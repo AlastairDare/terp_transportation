@@ -58,6 +58,7 @@ frappe.ui.form.on('Asset Unified Maintenance', {
     }
 });
 
+// Function to update warranty display
 function update_warranty_display(frm) {
     // Hide the original checkbox field
     frm.set_df_property('warranty_status', 'hidden', 1);
