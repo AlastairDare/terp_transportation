@@ -3,14 +3,6 @@ frappe.ui.form.on('Asset Unified Maintenance', {
         update_field_labels(frm);
         update_warranty_display(frm);
         
-        // Set default values for stock entry fields
-        if(!frm.doc.__islocal) {
-            frm.doc.stock_entry_type = "Material Issue";
-            frm.doc.purpose = "Material Issue";
-            frm.refresh_field('stock_entry_type');
-            frm.refresh_field('purpose');
-        }
-        
         if(frm.doc.docstatus === 1) {
             frm.add_custom_button(__('Stock Entry'), function() {
                 frappe.route_options = {
@@ -82,28 +74,21 @@ frappe.ui.form.on('Asset Unified Maintenance', {
             frm.set_value('assigned_employee', '');
         }
         frm.refresh_fields();
-    },
-
-    items_add: function(frm, cdt, cdn) {
-        let row = locals[cdt][cdn];
-        frappe.model.set_value(cdt, cdn, 'doctype', 'Stock Entry');
-        frappe.model.set_value(cdt, cdn, 'parent_doctype', 'Stock Entry');
-        
-        // Set default warehouse if not set
-        if (!row.s_warehouse) {
-            frappe.db.get_single_value('Stock Settings', 'default_warehouse')
-                .then(default_warehouse => {
-                    frappe.model.set_value(cdt, cdn, 's_warehouse', default_warehouse);
-                });
-        }
     }
 });
 
 frappe.ui.form.on('Stock Entry Detail', {
     items_add: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
+        
+        // Set default warehouse if not set
         if (!row.s_warehouse) {
-            row.s_warehouse = frappe.defaults.get_default('stock_warehouse');
+            frappe.db.get_single_value('Stock Settings', 'default_warehouse')
+                .then(default_warehouse => {
+                    if (default_warehouse) {
+                        frappe.model.set_value(cdt, cdn, 's_warehouse', default_warehouse);
+                    }
+                });
         }
         
         // Set required conversion factor
@@ -131,24 +116,37 @@ frappe.ui.form.on('Stock Entry Detail', {
                         price_list: frappe.defaults.get_default('buying_price_list'),
                         price_list_currency: frappe.defaults.get_default('Currency'),
                         plc_conversion_rate: 1,
+                        name: frm.doc.name,
+                        qty: row.qty || 1,
                         stock_qty: row.transfer_qty,
-                        conversion_factor: row.conversion_factor || 1,
-                        uom: row.uom,
                         serial_no: row.serial_no,
-                        batch_no: row.batch_no
+                        batch_no: row.batch_no,
+                        conversion_factor: row.conversion_factor || 1,
+                        uom: row.uom
                     }
                 },
                 callback: function(r) {
                     if(r.message) {
+                        // Set values from response
                         for (let key in r.message) {
-                            frappe.model.set_value(cdt, cdn, key, r.message[key]);
+                            if (key !== 'name') {  // Don't overwrite the name field
+                                frappe.model.set_value(cdt, cdn, key, r.message[key]);
+                            }
                         }
-                        if (r.message.actual_qty !== undefined) {
-                            frappe.model.set_value(cdt, cdn, 'actual_qty', r.message.actual_qty);
-                        }
+                        
+                        // Update amount
                         if (row.qty && r.message.basic_rate) {
-                            frappe.model.set_value(cdt, cdn, 'amount', flt(r.message.basic_rate * row.qty));
+                            frappe.model.set_value(cdt, cdn, 'amount', 
+                                flt(row.qty) * flt(r.message.basic_rate));
                         }
+                        
+                        // Set transfer qty if not set
+                        if (!row.transfer_qty && row.qty && row.conversion_factor) {
+                            frappe.model.set_value(cdt, cdn, 'transfer_qty',
+                                flt(row.qty) * flt(row.conversion_factor));
+                        }
+                        
+                        frm.refresh_field('items');
                     }
                 }
             });
@@ -157,12 +155,18 @@ frappe.ui.form.on('Stock Entry Detail', {
     
     qty: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
+        
+        // Update transfer qty
         frappe.model.set_value(cdt, cdn, 'transfer_qty', 
             flt(row.qty) * flt(row.conversion_factor));
+        
+        // Update amount
         if (row.basic_rate) {
             frappe.model.set_value(cdt, cdn, 'amount', 
                 flt(row.qty) * flt(row.basic_rate));
         }
+        
+        frm.refresh_field('items');
     },
     
     uom: function(frm, cdt, cdn) {
@@ -177,7 +181,12 @@ frappe.ui.form.on('Stock Entry Detail', {
                 },
                 callback: function(r) {
                     if(r.message) {
-                        frappe.model.set_value(cdt, cdn, r.message);
+                        // Set values from response
+                        for (let key in r.message) {
+                            frappe.model.set_value(cdt, cdn, key, r.message[key]);
+                        }
+                        
+                        frm.refresh_field('items');
                     }
                 }
             });
@@ -188,6 +197,14 @@ frappe.ui.form.on('Stock Entry Detail', {
         let row = locals[cdt][cdn];
         if (row.item_code && row.s_warehouse) {
             frm.script_manager.trigger('item_code', cdt, cdn);
+        }
+    },
+    
+    basic_rate: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (row.qty) {
+            frappe.model.set_value(cdt, cdn, 'amount', 
+                flt(row.qty) * flt(row.basic_rate));
         }
     }
 });
