@@ -1,30 +1,21 @@
 import frappe
 from frappe import _
-from frappe.utils import getdate, flt, cint
+from frappe.utils import getdate, flt, cstr
 from frappe.model.document import Document
 
 class AssetUnifiedMaintenance(Document):
     def validate(self):
         self.validate_dates()
-        self.validate_items()
+        
+    def on_update(self):
+        if self.maintenance_status == "Complete" and hasattr(self, 'get_doc_before_save'):
+            previous = self.get_doc_before_save()
+            if previous and previous.maintenance_status != "Complete":
+                self.create_stock_entry()
     
     def validate_dates(self):
         if self.complete_date and getdate(self.complete_date) < getdate(self.begin_date):
             frappe.throw(_("Complete Date cannot be before Begin Date"))
-    
-    def validate_items(self):
-        if self.execution_type == "Internal" and not self.items:
-            frappe.throw(_("Items are required for internal maintenance"))
-        
-        for item in self.items:
-            if not item.s_warehouse:
-                item.s_warehouse = frappe.db.get_single_value(
-                    "Stock Settings", "default_warehouse"
-                )
-    
-    def on_submit(self):
-        if self.execution_type == "Internal" and self.maintenance_status == "Complete":
-            self.create_stock_entry()
     
     def create_stock_entry(self):
         if not self.items:
@@ -37,7 +28,12 @@ class AssetUnifiedMaintenance(Document):
         stock_entry.reference_doctype = self.doctype
         stock_entry.reference_name = self.name
         
+        default_warehouse = frappe.db.get_single_value("Stock Settings", "default_warehouse")
+        
         for item in self.items:
+            if not item.s_warehouse:
+                item.s_warehouse = default_warehouse
+                
             stock_entry.append("items", {
                 "item_code": item.item_code,
                 "qty": item.qty,
@@ -45,17 +41,22 @@ class AssetUnifiedMaintenance(Document):
                 "stock_uom": item.stock_uom,
                 "conversion_factor": item.conversion_factor,
                 "s_warehouse": item.s_warehouse,
-                "cost_center": item.cost_center or frappe.db.get_value("Company", self.company, "cost_center"),
-                "project": self.project
+                "basic_rate": item.basic_rate,
+                "basic_amount": item.basic_amount,
+                "amount": item.amount,
+                "cost_center": item.cost_center or frappe.db.get_value("Company", self.company, "cost_center")
             })
         
-        stock_entry.insert()
-        stock_entry.submit()
-        
-        frappe.msgprint(_("Stock Entry {0} created").format(
-            frappe.get_desk_link("Stock Entry", stock_entry.name)
-        ))
-    
+        try:
+            stock_entry.insert()
+            stock_entry.submit()
+            frappe.msgprint(_("Stock Entry {0} created and submitted").format(
+                frappe.get_desk_link("Stock Entry", stock_entry.name)
+            ))
+        except Exception as e:
+            frappe.msgprint(_("Error creating Stock Entry: {0}").format(str(e)))
+            raise e
+
     def get_last_maintenance_dates(self):
         last_dates = {
             "last_service_date": None,
