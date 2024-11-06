@@ -1,6 +1,7 @@
 frappe.ui.form.on('Asset Unified Maintenance', {
     refresh: function(frm) {
         update_field_labels(frm);
+        update_warranty_display(frm);
         
         if(frm.doc.docstatus === 1) {
             frm.add_custom_button(__('Stock Entry'), function() {
@@ -26,7 +27,12 @@ frappe.ui.form.on('Asset Unified Maintenance', {
                     }
                 }
             });
+            update_warranty_display(frm);
         }
+    },
+    
+    warranty_status: function(frm) {
+        update_warranty_display(frm);
     },
     
     maintenance_type: function(frm) {
@@ -57,6 +63,23 @@ frappe.ui.form.on('Asset Unified Maintenance', {
     }
 });
 
+// Function to update warranty display
+function update_warranty_display(frm) {
+    // Hide the original checkbox field
+    frm.set_df_property('warranty_status', 'hidden', 1);
+    
+    // Create or update the HTML field for warranty display
+    let warranty_html = frm.doc.warranty_status ? 
+        '<div class="alert alert-success">Asset is in Warranty</div>' : 
+        '<div class="alert alert-warning">Asset out of Warranty</div>';
+    
+    if (!frm.warranty_display) {
+        frm.warranty_display = frm.add_custom_html('<div class="warranty-status-display">' + warranty_html + '</div>');
+    } else {
+        $(frm.warranty_display).html(warranty_html);
+    }
+}
+
 // Add handlers for the items table
 frappe.ui.form.on('Stock Entry Detail', {
     items_add: function(frm, cdt, cdn) {
@@ -72,16 +95,19 @@ frappe.ui.form.on('Stock Entry Detail', {
         if (row.item_code) {
             frappe.call({
                 method: 'erpnext.stock.get_item_details.get_item_details',
+                type: "POST",
                 args: {
-                    item_code: row.item_code,
-                    company: frm.doc.company,
-                    warehouse: row.s_warehouse,
-                    doctype: frm.doctype,
-                    buying_price_list: frappe.defaults.get_default('buying_price_list'),
-                    currency: frappe.defaults.get_default('Currency'),
-                    name: frm.doc.name,
-                    qty: row.qty || 1,
-                    child_docname: row.name
+                    args: {
+                        item_code: row.item_code,
+                        company: frm.doc.company,
+                        warehouse: row.s_warehouse || frappe.defaults.get_default('stock_warehouse'),
+                        doctype: frm.doctype,
+                        buying_price_list: frappe.defaults.get_default('buying_price_list'),
+                        currency: frappe.defaults.get_default('Currency'),
+                        name: frm.doc.name,
+                        qty: row.qty || 1,
+                        child_docname: row.name
+                    }
                 },
                 callback: function(r) {
                     if(r.message) {
