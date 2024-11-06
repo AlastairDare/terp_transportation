@@ -98,7 +98,49 @@ class AssetUnifiedMaintenance(Document):
 
     @frappe.whitelist()
     def get_last_maintenance_dates(self):
-        # ... [keep existing code] ...
+        last_dates = {
+            "last_service_date": None,
+            "last_repair_date": None
+        }
+        
+        if not self.asset:
+            return last_dates
+        
+        # Get last service date
+        last_service = frappe.get_list(
+            "Asset Unified Maintenance",
+            filters={
+                "asset": self.asset,
+                "maintenance_type": "Service",
+                "maintenance_status": "Complete",
+                "name": ["!=", self.name]
+            },
+            fields=["complete_date"],
+            order_by="complete_date desc",
+            limit=1
+        )
+        
+        if last_service:
+            last_dates["last_service_date"] = last_service[0].complete_date
+        
+        # Get last repair date
+        last_repair = frappe.get_list(
+            "Asset Unified Maintenance",
+            filters={
+                "asset": self.asset,
+                "maintenance_type": "Repair",
+                "maintenance_status": "Complete",
+                "name": ["!=", self.name]
+            },
+            fields=["complete_date"],
+            order_by="complete_date desc",
+            limit=1
+        )
+        
+        if last_repair:
+            last_dates["last_repair_date"] = last_repair[0].complete_date
+        
+        return last_dates
 
     def create_stock_entry(self):
         if not self.items:
