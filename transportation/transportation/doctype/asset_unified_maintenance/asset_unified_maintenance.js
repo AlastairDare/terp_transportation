@@ -41,8 +41,9 @@ frappe.ui.form.on('Asset Unified Maintenance', {
             frm.fields_dict.issues.grid.update_docfield_property('issue_description', 'columns', 6);
         }
 
-        // Update issues grid
-        update_issues_grid(frm);
+        if (frm.doc.asset) {
+            update_issues_grid(frm);
+        }
     },
     
     onload: function(frm) {
@@ -70,7 +71,11 @@ frappe.ui.form.on('Asset Unified Maintenance', {
             // Clear and refresh issues grid when asset changes
             frm.clear_table('issues');
             frm.refresh_field('issues');
-            update_issues_grid(frm);
+            
+            // Use setTimeout to ensure proper timing for grid update
+            setTimeout(() => {
+                update_issues_grid(frm);
+            }, 300);
         }
     },
     
