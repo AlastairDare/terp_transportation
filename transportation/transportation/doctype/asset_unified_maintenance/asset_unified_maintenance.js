@@ -1,4 +1,27 @@
 frappe.ui.form.on('Asset Unified Maintenance', {
+    setup: function(frm) {
+        // Customize grid columns
+        frm.set_query('issues', function() {
+            return {
+                filters: {
+                    'asset': frm.doc.asset,
+                    'issue_status': ['in', ['Unresolved', 'Assigned For Fix']]
+                }
+            };
+        });
+        
+        // Set up the grid columns
+        frm.fields_dict['issues'].grid.visible_columns = [
+            'issue_severity',
+            'date_reported',
+            'reported_by',
+            'issue_description'
+        ];
+
+        // Adjust grid display
+        frm.fields_dict['issues'].grid.hide_name_column = true;
+    },
+
     refresh: function(frm) {
         update_field_labels(frm);
         update_warranty_display(frm);
@@ -19,16 +42,6 @@ frappe.ui.form.on('Asset Unified Maintenance', {
                 filters: {
                     'stock_entry_type': 'Material Issue',
                     'docstatus': 1
-                }
-            };
-        });
-
-        // Set query for issues table
-        frm.set_query('issues', function() {
-            return {
-                filters: {
-                    'asset': frm.doc.asset,
-                    'issue_status': ['in', ['Unresolved', 'Assigned For Fix']]
                 }
             };
         });
@@ -190,14 +203,27 @@ function update_issues_grid(frm) {
         args: {
             doctype: 'Issues',
             filters: filters,
-            fields: ['*']
+            fields: [
+                'name', 
+                'issue_severity', 
+                'date_reported', 
+                'reported_by', 
+                'issue_description',
+                'issue_status'
+            ]
         },
         callback: function(r) {
             frm.clear_table('issues');
             if (r.message) {
                 r.message.forEach(function(issue) {
                     let row = frm.add_child('issues');
-                    Object.assign(row, issue);
+                    // Copy only the fields we want to show
+                    row.name = issue.name;
+                    row.issue_severity = issue.issue_severity;
+                    row.date_reported = issue.date_reported;
+                    row.reported_by = issue.reported_by;
+                    row.issue_description = issue.issue_description;
+                    row.issue_status = issue.issue_status;
                 });
             }
             frm.refresh_field('issues');

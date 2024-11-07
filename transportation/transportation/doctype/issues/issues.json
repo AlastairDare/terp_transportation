@@ -21,6 +21,14 @@
             "description": "Select a transportation asset"
         },
         {
+            "fetch_from": "asset.license_plate",
+            "fieldname": "license_plate",
+            "fieldtype": "Data",
+            "label": "License Plate",
+            "hidden": 1,
+            "read_only": 1
+        },
+        {
             "fieldname": "issue_severity",
             "fieldtype": "Select",
             "label": "Issue Severity",

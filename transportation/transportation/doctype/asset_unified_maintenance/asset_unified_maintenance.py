@@ -27,6 +27,7 @@ class AssetUnifiedMaintenance(Document):
 
     def validate_and_update_issues(self):
         if self.issues:
+            asset_doc = frappe.get_doc('Transportation Asset', self.asset)
             for issue in self.issues:
                 if issue.name:  # Check if it's a valid issue reference
                     # Verify issue belongs to the selected asset
@@ -35,11 +36,13 @@ class AssetUnifiedMaintenance(Document):
                         frappe.throw(_("Issue {0} does not belong to the selected asset {1}").format(
                             issue.name, self.asset))
                     
-                    # Update issue status and link
-                    frappe.db.set_value('Issues', issue.name, {
+                    # Update issue status, link, and ensure license plate is set
+                    update_dict = {
                         'issue_status': 'Assigned For Fix',
-                        'issue_assigned_to_maintenance_job': self.name
-                    }, update_modified=False)
+                        'issue_assigned_to_maintenance_job': self.name,
+                        'license_plate': asset_doc.license_plate  # Ensure license plate is updated
+                    }
+                    frappe.db.set_value('Issues', issue.name, update_dict, update_modified=False)
 
     @frappe.whitelist()
     def get_stock_entry_value(self):
