@@ -12,7 +12,7 @@ frappe.ui.form.on('Asset Unified Maintenance', {
                 frappe.set_route('List', 'Stock Entry');
             }, __("View"));
         }
-    
+
         // Set query for stock entry to only show Material Issue type
         frm.set_query('stock_entry', function() {
             return {
@@ -22,7 +22,7 @@ frappe.ui.form.on('Asset Unified Maintenance', {
                 }
             };
         });
-    
+
         // Set query for issues table
         frm.set_query('issue', 'issues', function() {
             return {
@@ -33,7 +33,7 @@ frappe.ui.form.on('Asset Unified Maintenance', {
                 }
             };
         });
-    
+
         // Handle all grid-related configurations
         if(frm.fields_dict.issues && frm.fields_dict.issues.grid) {
             // Set column widths
@@ -42,17 +42,21 @@ frappe.ui.form.on('Asset Unified Maintenance', {
             frm.fields_dict.issues.grid.update_docfield_property('issue_severity', 'columns', 2);
             frm.fields_dict.issues.grid.update_docfield_property('date_reported', 'columns', 2);
             frm.fields_dict.issues.grid.update_docfield_property('issue_description', 'columns', 5);
-    
+
             // Hide idx and checkbox columns
             frm.fields_dict.issues.grid.wrapper.find('.grid-row-check').hide();
             frm.fields_dict.issues.grid.wrapper.find('.row-index').hide();
             
-            // Make assign checkbox clickable in grid
-            frm.fields_dict.issues.grid.wrapper.on('click', '.editable-check', function(e) {
-                e.stopPropagation();
+            // Add formatter for issue description to strip HTML
+            frm.fields_dict.issues.grid.update_docfield_property('issue_description', 'formatter', function(value) {
+                if (!value) return '';
+                // Create a temporary div to handle HTML entities properly
+                let temp = document.createElement('div');
+                temp.innerHTML = value;
+                return temp.textContent || temp.innerText || '';
             });
         }
-    
+
         if (frm.doc.asset) {
             update_issues_grid(frm);
         }
@@ -139,15 +143,8 @@ frappe.ui.form.on('Asset Unified Maintenance', {
     }
 });
 
+// Child table handlers
 frappe.ui.form.on('Asset Maintenance Issue', {
-    issues_add: function(frm, cdt, cdn) {
-        let row = locals[cdt][cdn];
-        if(row) {
-            row.assign = 0;
-            frm.refresh_field('issues');
-        }
-    },
-    
     issue: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
         if(row.issue) {
@@ -169,10 +166,6 @@ frappe.ui.form.on('Asset Maintenance Issue', {
                 }
             );
         }
-    },
-
-    assign: function(frm, cdt, cdn) {
-        frm.dirty();
     }
 });
 
@@ -235,16 +228,6 @@ function update_issues_grid(frm) {
         filters['issue_assigned_to_maintenance_job'] = ['in', ['', null, frm.doc.name]];
     }
 
-    // Store existing assignments before refresh
-    let existingAssignments = {};
-    if (frm.doc.issues) {
-        frm.doc.issues.forEach(row => {
-            if (row.issue) {
-                existingAssignments[row.issue] = row.assign;
-            }
-        });
-    }
-
     frappe.call({
         method: 'frappe.client.get_list',
         args: {
@@ -262,13 +245,7 @@ function update_issues_grid(frm) {
                     row.issue_severity = issue.issue_severity;
                     row.date_reported = issue.date_reported;
                     row.issue_description = issue.issue_description;
-                    
-                    // Set assign based on previous assignment or current maintenance link
-                    if (issue.name in existingAssignments) {
-                        row.assign = existingAssignments[issue.name];
-                    } else {
-                        row.assign = (issue.issue_assigned_to_maintenance_job === frm.doc.name) ? 1 : 0;
-                    }
+                    row.assign = (issue.issue_assigned_to_maintenance_job === frm.doc.name) ? 1 : 0;
                 });
             }
             frm.refresh_field('issues');
