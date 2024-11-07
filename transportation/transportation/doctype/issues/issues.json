@@ -79,7 +79,7 @@
         },
         {
             "fieldname": "issue_description",
-            "fieldtype": "Text Editor",
+            "fieldtype": "Data",
             "label": "Issue Description",
             "reqd": 1
         },
