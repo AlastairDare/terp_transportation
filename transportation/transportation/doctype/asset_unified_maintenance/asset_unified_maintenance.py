@@ -43,7 +43,7 @@ class AssetUnifiedMaintenance(Document):
     def validate(self):
         self.validate_dates()
         self.validate_and_update_total_cost()
-        self.validate_and_update_issues()
+        self.handle_issue_updates()
         if not self.company:
             self.company = frappe.defaults.get_user_default("Company")
         
@@ -64,10 +64,30 @@ class AssetUnifiedMaintenance(Document):
         else:
             self.total_cost = 0
 
-    def validate_and_update_issues(self):
-        if not self.issues:
-            return
+    def handle_issue_updates(self):
+        if not self.is_new():
+            # Get previously linked issues for this maintenance record
+            prev_issues = frappe.get_all('Issues', 
+                filters={'issue_assigned_to_maintenance_job': self.name},
+                fields=['name'])
+            prev_issue_names = {issue.name for issue in prev_issues}
             
+            # Get current issues from child table
+            current_issue_names = {issue.issue for issue in self.issues if issue.issue}
+            
+            # Handle deselected issues (ones that were previously linked but not in current selection)
+            deselected_issues = prev_issue_names - current_issue_names
+            if deselected_issues:
+                # Update deselected issues to Unresolved and remove maintenance link
+                frappe.db.sql("""
+                    UPDATE `tabIssues`
+                    SET 
+                        issue_status = 'Unresolved',
+                        issue_assigned_to_maintenance_job = ''
+                    WHERE name IN %s
+                """, (tuple(deselected_issues),))
+        
+        # Handle currently selected issues
         for issue_link in self.issues:
             if not issue_link.issue:
                 continue
@@ -92,7 +112,7 @@ class AssetUnifiedMaintenance(Document):
                 update_values['issue_assigned_to_maintenance_job'] = self.name
             elif self.maintenance_status == 'Cancelled':
                 update_values['issue_status'] = 'Unresolved'
-                update_values['issue_assigned_to_maintenance_job'] = ''  # Disassociate the maintenance job
+                update_values['issue_assigned_to_maintenance_job'] = ''
                 
             # Update the issue
             frappe.db.set_value('Issues', issue_link.issue, update_values, update_modified=False)

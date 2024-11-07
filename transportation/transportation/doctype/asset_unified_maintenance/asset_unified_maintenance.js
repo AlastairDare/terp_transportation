@@ -28,7 +28,8 @@ frappe.ui.form.on('Asset Unified Maintenance', {
             return {
                 filters: {
                     'asset': frm.doc.asset,
-                    'issue_status': ['in', ['Unresolved', 'Assigned For Fix']]
+                    'issue_status': ['in', ['Unresolved', 'Assigned For Fix']],
+                    'issue_assigned_to_maintenance_job': ['in', ['', null, frm.doc.name]]
                 }
             };
         });
@@ -129,17 +130,30 @@ frappe.ui.form.on('Asset Unified Maintenance', {
 
 // Child table handlers
 frappe.ui.form.on('Asset Maintenance Issue', {
+    issues_add: function(frm, cdt, cdn) {
+        // When a new row is added, make sure it's marked as selected
+        let row = locals[cdt][cdn];
+        if(row) {
+            row.selected = 1;
+            frm.refresh_field('issues');
+        }
+    },
+    
     issue: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
         if(row.issue) {
             frappe.db.get_value('Issues', row.issue, 
-                ['issue_severity', 'date_reported', 'issue_description'], 
+                ['issue_severity', 'date_reported', 'issue_description', 'issue_assigned_to_maintenance_job'], 
                 function(r) {
                     if(r) {
+                        // If issue is already assigned to this maintenance record, mark it as selected
+                        row.selected = (r.issue_assigned_to_maintenance_job === frm.doc.name) ? 1 : 0;
+                        
                         frappe.model.set_value(cdt, cdn, {
                             'issue_severity': r.issue_severity,
                             'date_reported': r.date_reported,
-                            'issue_description': r.issue_description
+                            'issue_description': r.issue_description,
+                            'selected': row.selected
                         });
                         frm.refresh_field('issues');
                     }
@@ -213,18 +227,34 @@ function update_issues_grid(frm) {
         args: {
             doctype: 'Issues',
             filters: filters,
-            fields: ['name', 'issue_severity', 'date_reported', 'issue_description']
+            fields: ['name', 'issue_severity', 'date_reported', 'issue_description', 'issue_assigned_to_maintenance_job']
         },
         callback: function(r) {
+            let existingIssues = {};
+            
+            // Store existing selected issues before clearing
+            if (frm.doc.issues) {
+                frm.doc.issues.forEach(row => {
+                    if (row.issue) {
+                        existingIssues[row.issue] = true;
+                    }
+                });
+            }
+            
             frm.clear_table('issues');
+            
             if (r.message) {
                 r.message.forEach(function(issue) {
                     let row = frm.add_child('issues');
                     row.issue = issue.name;
-                    // Explicitly set values
                     row.issue_severity = issue.issue_severity;
                     row.date_reported = issue.date_reported;
                     row.issue_description = issue.issue_description;
+                    
+                    // Set selected status based on whether it was previously selected
+                    // or if it's assigned to this maintenance record
+                    row.selected = (existingIssues[issue.name] || 
+                                  issue.issue_assigned_to_maintenance_job === frm.doc.name) ? 1 : 0;
                 });
             }
             frm.refresh_field('issues');
