@@ -5,6 +5,7 @@
     "doctype": "DocType",
     "engine": "InnoDB",
     "cannot_select": 1,
+    "editable_grid": 1,
     "field_order": [
         "assign",
         "issue",
