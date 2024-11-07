@@ -1,7 +1,7 @@
 frappe.ui.form.on('Asset Unified Maintenance', {
     setup: function(frm) {
-        // Customize grid columns
-        frm.set_query('issues', function() {
+        // Set query for issues table
+        frm.set_query('issue', 'issues', function() {
             return {
                 filters: {
                     'asset': frm.doc.asset,
@@ -9,17 +9,6 @@ frappe.ui.form.on('Asset Unified Maintenance', {
                 }
             };
         });
-        
-        // Set up the grid columns
-        frm.fields_dict['issues'].grid.visible_columns = [
-            'issue_severity',
-            'date_reported',
-            'reported_by',
-            'issue_description'
-        ];
-
-        // Adjust grid display
-        frm.fields_dict['issues'].grid.hide_name_column = true;
     },
 
     refresh: function(frm) {
@@ -124,18 +113,6 @@ frappe.ui.form.on('Asset Unified Maintenance', {
 
     show_only_assigned_issues: function(frm) {
         update_issues_grid(frm);
-    },
-
-    validate: function(frm) {
-        // Update issue status for selected issues
-        if (frm.doc.issues && frm.doc.issues.length > 0) {
-            frm.doc.issues.forEach(function(issue) {
-                frappe.db.set_value('Issues', issue.name, {
-                    'issue_status': 'Assigned For Fix',
-                    'issue_assigned_to_maintenance_job': frm.doc.name
-                });
-            });
-        }
     }
 });
 
@@ -203,27 +180,15 @@ function update_issues_grid(frm) {
         args: {
             doctype: 'Issues',
             filters: filters,
-            fields: [
-                'name', 
-                'issue_severity', 
-                'date_reported', 
-                'reported_by', 
-                'issue_description',
-                'issue_status'
-            ]
+            fields: ['name', 'issue_severity', 'date_reported', 'reported_by', 'issue_description']
         },
         callback: function(r) {
             frm.clear_table('issues');
             if (r.message) {
                 r.message.forEach(function(issue) {
                     let row = frm.add_child('issues');
-                    // Copy only the fields we want to show
-                    row.name = issue.name;
-                    row.issue_severity = issue.issue_severity;
-                    row.date_reported = issue.date_reported;
-                    row.reported_by = issue.reported_by;
-                    row.issue_description = issue.issue_description;
-                    row.issue_status = issue.issue_status;
+                    row.issue = issue.name;
+                    // Other fields will be fetched automatically through fetch_from
                 });
             }
             frm.refresh_field('issues');

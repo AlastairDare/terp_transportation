@@ -198,30 +198,8 @@
             "fieldname": "issues",
             "fieldtype": "Table",
             "label": "Issues",
-            "options": "Issues",
-            "reqd": 0,
-            "fields": [
-                {
-                    "fieldname": "name",
-                    "columns": 2
-                },
-                {
-                    "fieldname": "issue_severity",
-                    "columns": 2
-                },
-                {
-                    "fieldname": "date_reported",
-                    "columns": 2
-                },
-                {
-                    "fieldname": "reported_by",
-                    "columns": 2
-                },
-                {
-                    "fieldname": "issue_description",
-                    "columns": 4
-                }
-            ]
+            "options": "Asset Maintenance Issue",
+            "reqd": 0
         }
     ],
     "index_web_pages_for_search": 1,
