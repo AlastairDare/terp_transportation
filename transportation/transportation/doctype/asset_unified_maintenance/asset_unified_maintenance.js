@@ -1,24 +1,4 @@
 frappe.ui.form.on('Asset Unified Maintenance', {
-    setup: function(frm) {
-        // Set query for issues table
-        frm.set_query('issue', 'issues', function() {
-            return {
-                filters: {
-                    'asset': frm.doc.asset,
-                    'issue_status': ['in', ['Unresolved', 'Assigned For Fix']]
-                }
-            };
-        });
-
-        // Set up the grid columns and their widths
-        frm.fields_dict['issues'].grid.visible_columns = [
-            {fieldname: 'issue', width: 150},
-            {fieldname: 'issue_severity', width: 150},
-            {fieldname: 'date_reported', width: 120},
-            {fieldname: 'issue_description', width: 300}
-        ];
-    },
-
     refresh: function(frm) {
         update_field_labels(frm);
         update_warranty_display(frm);
@@ -43,7 +23,25 @@ frappe.ui.form.on('Asset Unified Maintenance', {
             };
         });
 
-        // Update issues grid based on show_only_assigned checkbox
+        // Set query for issues table
+        frm.set_query('issue', 'issues', function() {
+            return {
+                filters: {
+                    'asset': frm.doc.asset,
+                    'issue_status': ['in', ['Unresolved', 'Assigned For Fix']]
+                }
+            };
+        });
+
+        // Set grid columns after refresh
+        if(frm.fields_dict.issues && frm.fields_dict.issues.grid) {
+            frm.fields_dict.issues.grid.update_docfield_property('issue', 'columns', 2);
+            frm.fields_dict.issues.grid.update_docfield_property('issue_severity', 'columns', 2);
+            frm.fields_dict.issues.grid.update_docfield_property('date_reported', 'columns', 2);
+            frm.fields_dict.issues.grid.update_docfield_property('issue_description', 'columns', 6);
+        }
+
+        // Update issues grid
         update_issues_grid(frm);
     },
     
@@ -124,7 +122,7 @@ frappe.ui.form.on('Asset Unified Maintenance', {
     }
 });
 
-// Add handlers for the child table
+// Child table handlers
 frappe.ui.form.on('Asset Maintenance Issue', {
     issue: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
@@ -218,7 +216,10 @@ function update_issues_grid(frm) {
                 r.message.forEach(function(issue) {
                     let row = frm.add_child('issues');
                     row.issue = issue.name;
-                    // Other fields will be fetched automatically through fetch_from
+                    // Explicitly set values
+                    row.issue_severity = issue.issue_severity;
+                    row.date_reported = issue.date_reported;
+                    row.issue_description = issue.issue_description;
                 });
             }
             frm.refresh_field('issues');
