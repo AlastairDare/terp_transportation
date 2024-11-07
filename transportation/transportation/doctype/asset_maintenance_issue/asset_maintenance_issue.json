@@ -51,7 +51,7 @@
         {
             "fetch_from": "issue.issue_description",
             "fieldname": "issue_description",
-            "fieldtype": "Text",
+            "fieldtype": "Small Text",
             "in_list_view": 1,
             "label": "Issue Description",
             "read_only": 1
