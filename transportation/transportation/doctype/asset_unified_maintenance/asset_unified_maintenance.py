@@ -3,42 +3,43 @@ from frappe import _
 from frappe.utils import getdate, flt, now, get_datetime
 from frappe.model.document import Document
 
-class AssetUnifiedMaintenance(Document):
-    def has_permission(self, ptype='read', user=None, debug=False):
-        """
-        Custom permission check for Asset Unified Maintenance
-        Args:
-            ptype: Permission type (read, write, create, delete, submit, cancel, amend)
-            user: User for which to check permission
-            debug: Enable debug logs
-        Returns:
-            bool: True if user has permission
-        """
-        if not user:
-            user = frappe.session.user
-            
-        # System Manager can do anything
-        if "System Manager" in frappe.get_roles(user):
-            return True
-            
-        # For now, use standard permission system
+# Module level permission functions
+def has_permission(doc, ptype="read", user=None, debug=False):
+    """
+    Custom permission check for Asset Unified Maintenance
+    Args:
+        doc: Document to check permissions for
+        ptype: Permission type (read, write, create, delete, submit, cancel, amend)
+        user: User for which to check permission
+        debug: Enable debug logs
+    Returns:
+        bool: True if user has permission
+    """
+    if not user:
+        user = frappe.session.user
+        
+    # System Manager can do anything
+    if "System Manager" in frappe.get_roles(user):
         return True
+        
+    # For now, use standard permission system
+    return True
 
-    def get_permission_query_conditions(self, user=None):
-        """
-        Returns query conditions based on user permissions
-        Args:
-            user: User for which to get query conditions
-        Returns:
-            str: SQL conditions string
-        """
-        if not user:
-            user = frappe.session.user
-            
-        # You can add company or other field-level permissions here
-        # Example: return f"(`tabAsset Unified Maintenance`.`company` = '{frappe.db.escape(company)}')"
-        return ""
+def get_permission_query_conditions(user=None):
+    """
+    Returns query conditions based on user permissions
+    Args:
+        user: User for which to get query conditions
+    Returns:
+        str: SQL conditions string
+    """
+    if not user:
+        user = frappe.session.user
+        
+    # You can add company or other field-level permissions here
+    return ""
 
+class AssetUnifiedMaintenance(Document):
     def validate(self):
         self.validate_dates()
         self.validate_and_update_total_cost()
