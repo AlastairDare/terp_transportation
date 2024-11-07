@@ -4,13 +4,23 @@
     "creation": "2024-11-04 12:00:00.000000",
     "doctype": "DocType",
     "engine": "InnoDB",
+    "cannot_select": 1,
     "field_order": [
+        "assign",
         "issue",
         "issue_severity",
         "date_reported",
         "issue_description"
     ],
     "fields": [
+        {
+            "default": "0",
+            "fieldname": "assign",
+            "fieldtype": "Check",
+            "in_list_view": 1,
+            "label": "Assign",
+            "reqd": 0
+        },
         {
             "fieldname": "issue",
             "fieldtype": "Link",

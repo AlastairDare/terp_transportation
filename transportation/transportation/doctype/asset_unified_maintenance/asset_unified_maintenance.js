@@ -36,10 +36,11 @@ frappe.ui.form.on('Asset Unified Maintenance', {
 
         // Set grid columns after refresh
         if(frm.fields_dict.issues && frm.fields_dict.issues.grid) {
+            frm.fields_dict.issues.grid.update_docfield_property('assign', 'columns', 1);
             frm.fields_dict.issues.grid.update_docfield_property('issue', 'columns', 2);
             frm.fields_dict.issues.grid.update_docfield_property('issue_severity', 'columns', 2);
             frm.fields_dict.issues.grid.update_docfield_property('date_reported', 'columns', 2);
-            frm.fields_dict.issues.grid.update_docfield_property('issue_description', 'columns', 6);
+            frm.fields_dict.issues.grid.update_docfield_property('issue_description', 'columns', 5);
         }
 
         if (frm.doc.asset) {
@@ -128,13 +129,11 @@ frappe.ui.form.on('Asset Unified Maintenance', {
     }
 });
 
-// Child table handlers
 frappe.ui.form.on('Asset Maintenance Issue', {
     issues_add: function(frm, cdt, cdn) {
-        // When a new row is added, make sure it's marked as selected
         let row = locals[cdt][cdn];
         if(row) {
-            row.selected = 1;
+            row.assign = 0;
             frm.refresh_field('issues');
         }
     },
@@ -146,20 +145,24 @@ frappe.ui.form.on('Asset Maintenance Issue', {
                 ['issue_severity', 'date_reported', 'issue_description', 'issue_assigned_to_maintenance_job'], 
                 function(r) {
                     if(r) {
-                        // If issue is already assigned to this maintenance record, mark it as selected
-                        row.selected = (r.issue_assigned_to_maintenance_job === frm.doc.name) ? 1 : 0;
+                        // Set assign checkbox based on whether issue is already assigned to this maintenance
+                        row.assign = (r.issue_assigned_to_maintenance_job === frm.doc.name) ? 1 : 0;
                         
                         frappe.model.set_value(cdt, cdn, {
                             'issue_severity': r.issue_severity,
                             'date_reported': r.date_reported,
                             'issue_description': r.issue_description,
-                            'selected': row.selected
+                            'assign': row.assign
                         });
                         frm.refresh_field('issues');
                     }
                 }
             );
         }
+    },
+
+    assign: function(frm, cdt, cdn) {
+        frm.dirty();
     }
 });
 
@@ -222,6 +225,16 @@ function update_issues_grid(frm) {
         filters['issue_assigned_to_maintenance_job'] = ['in', ['', null, frm.doc.name]];
     }
 
+    // Store existing assignments before refresh
+    let existingAssignments = {};
+    if (frm.doc.issues) {
+        frm.doc.issues.forEach(row => {
+            if (row.issue) {
+                existingAssignments[row.issue] = row.assign;
+            }
+        });
+    }
+
     frappe.call({
         method: 'frappe.client.get_list',
         args: {
@@ -230,17 +243,6 @@ function update_issues_grid(frm) {
             fields: ['name', 'issue_severity', 'date_reported', 'issue_description', 'issue_assigned_to_maintenance_job']
         },
         callback: function(r) {
-            let existingIssues = {};
-            
-            // Store existing selected issues before clearing
-            if (frm.doc.issues) {
-                frm.doc.issues.forEach(row => {
-                    if (row.issue) {
-                        existingIssues[row.issue] = true;
-                    }
-                });
-            }
-            
             frm.clear_table('issues');
             
             if (r.message) {
@@ -251,10 +253,12 @@ function update_issues_grid(frm) {
                     row.date_reported = issue.date_reported;
                     row.issue_description = issue.issue_description;
                     
-                    // Set selected status based on whether it was previously selected
-                    // or if it's assigned to this maintenance record
-                    row.selected = (existingIssues[issue.name] || 
-                                  issue.issue_assigned_to_maintenance_job === frm.doc.name) ? 1 : 0;
+                    // Set assign based on previous assignment or current maintenance link
+                    if (issue.name in existingAssignments) {
+                        row.assign = existingAssignments[issue.name];
+                    } else {
+                        row.assign = (issue.issue_assigned_to_maintenance_job === frm.doc.name) ? 1 : 0;
+                    }
                 });
             }
             frm.refresh_field('issues');
