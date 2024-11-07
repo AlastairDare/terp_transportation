@@ -25,56 +25,57 @@
             "idx": 2
         },
         {
-            "fieldname": "vehicle",
+            "fieldname": "driver",
             "fieldtype": "Link",
-            "label": "Vehicle",
-            "options": "Vehicle",
-            "in_list_view": 1,
-            "reqd": 0,
-            "idx": 3
+            "label": "Driver",
+            "options": "Employee"
         },
         {
-            "fieldname": "truck_number",
-            "fieldtype": "Data",
-            "label": "Truck Number",
-            "fetch_from": "vehicle.truck_number",
-            "read_only": 1,
+            "fieldname": "driver_name",
+            "label": "Driver Name",
+            "fieldtype": "Read Only",
+            "fetch_from": "driver.employee_name",
+            "idx": 9
+        },
+        {
+            "fieldname": "col_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "truck",
+            "fieldtype": "Link",
+            "label": "Truck",
+            "options": "Transportation Asset",
             "in_list_view": 1,
             "reqd": 0,
-            "idx": 4
+            "get_query": "your_module.your_doctype.your_doctype.get_truck_query",
+            "idx": 3
         },
         {
             "fieldname": "trailer_1",
             "fieldtype": "Link",
-            "label": "Trailer 1",
-            "options": "Trailer",
+            "label": "Primary Trailer",
+            "options": "Transportation Asset",
+            "fetch_from": "truck.primary_trailer",
+            "get_query": "your_module.your_doctype.your_doctype.get_trailer_query",
             "reqd": 0,
             "idx": 5
         },
         {
             "fieldname": "trailer_2",
             "fieldtype": "Link",
-            "label": "Trailer 2",
-            "options": "Trailer",
-            "fetch_from": "trailer_1.paired_trailer",
+            "label": "Secondary Trailer",
+            "options": "Transportation Asset",
+            "fetch_from": "truck.secondary_trailer",
+            "get_query": "your_module.your_doctype.your_doctype.get_trailer_query",
             "reqd": 0,
             "idx": 6
         },
         {
-            "fieldname": "employee",
-            "label": "Driver",
-            "fieldtype": "Link",
-            "options": "Employee",
-            "description": "Select the driver for the trip",
-            "reqd": 1,
-            "idx": 8
-        },
-        {
-            "fieldname": "driver_name",
-            "label": "Driver Name",
-            "fieldtype": "Read Only",
-            "fetch_from": "employee.employee_name",
-            "idx": 9
+            "fieldname": "mass_details_section",
+            "fieldtype": "Section Break",
+            "label": "Mass Detail",
+            "collapsible": 1
         },
         {
             "fieldname": "first_mass",
@@ -101,11 +102,10 @@
             "idx": 12
         },
         {
-            "fieldname": "is_return_trip",
-            "label": "Is Return Trip",
-            "fieldtype": "Check",
-            "default": 1,
-            "idx": 14
+            "fieldname": "connected_documents_section",
+            "fieldtype": "Section Break",
+            "label": "Connected Documents",
+            "collapsible": 1
         },
         {
             "fieldname": "weighbill_number",
@@ -123,12 +123,20 @@
             "idx": 16
         },
         {
+            "fieldname": "odometer_and_distance_section",
+            "fieldtype": "Section Break",
+            "label": "Odometer & Distance",
+            "collapsible": 1
+        },
+        {
             "fieldname": "odo_start",
             "fieldtype": "Int",
             "label": "Odometer Start (KM)",
-            "description": "The initial reading on the odometer of the vehicle when beginning a trip",
+            "description": "The initial reading on the odometer of the vehicle when beginning a trip. Will auto-populate from last trip's end reading.",
             "reqd": 0,
-            "idx": 17
+            "idx": 17,
+            "allow_on_submit": 0,
+            "fetch_if_empty": 1
         },
         {
             "fieldname": "odo_end",
@@ -147,10 +155,15 @@
             "idx": 19
         },
         {
+            "fieldname": "time_log_section",
+            "fieldtype": "Section Break",
+            "label": "Time Logs",
+            "collapsible": 1
+        },
+        {
             "fieldname": "time_start",
             "fieldtype": "Time",
             "label": "Start Time",
-            "description": "The time the trip began at",
             "reqd": 0,
             "idx": 20
         },
@@ -158,9 +171,14 @@
             "fieldname": "time_end",
             "fieldtype": "Time",
             "label": "End Time",
-            "description": "The time the trip ended at",
             "reqd": 0,
             "idx": 21
+        },
+        {
+            "fieldname": "stop_detail_section",
+            "fieldtype": "Section Break",
+            "label": "Stop Detail",
+            "collapsible": 1
         },
         {
             "fieldname": "drop_details_odo",
