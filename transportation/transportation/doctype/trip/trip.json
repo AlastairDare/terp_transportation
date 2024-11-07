@@ -7,22 +7,38 @@
     "engine": "InnoDB",
     "fields": [
         {
+            "fieldname": "trip_information_section",
+            "fieldtype": "Section Break",
+            "label": "Trip Information"
+        },
+        {
             "fieldname": "status",
             "fieldtype": "Select",
             "label": "Status",
-            "options": "Draft\nPlanned\nIn Progress\nCompleted\nError\nAwaiting Approval\nApproved",
+            "options": "Draft\nAwaiting Approval\nComplete\nError",
             "default": "Draft",
             "reqd": 1,
-            "in_list_view": 1,
-            "idx": 1
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "approver",
+            "fieldtype": "Link",
+            "label": "Approver",
+            "options": "User",
+            "read_only": 1
+        },
+        {
+            "fieldname": "trip_assignment_section",
+            "fieldtype": "Section Break",
+            "label": "Trip Assignment Details",
+            "collapsible": 1
         },
         {
             "fieldname": "date",
             "fieldtype": "Date",
             "label": "Trip Date",
             "in_list_view": 1,
-            "reqd": 0,
-            "idx": 2
+            "reqd": 0
         },
         {
             "fieldname": "driver",
@@ -34,8 +50,7 @@
             "fieldname": "driver_name",
             "label": "Driver Name",
             "fieldtype": "Read Only",
-            "fetch_from": "driver.employee_name",
-            "idx": 9
+            "fetch_from": "driver.employee_name"
         },
         {
             "fieldname": "col_break_1",
@@ -48,8 +63,7 @@
             "options": "Transportation Asset",
             "in_list_view": 1,
             "reqd": 0,
-            "get_query": "your_module.your_doctype.your_doctype.get_truck_query",
-            "idx": 3
+            "get_query": "your_module.your_doctype.your_doctype.get_truck_query"
         },
         {
             "fieldname": "trailer_1",
@@ -58,8 +72,7 @@
             "options": "Transportation Asset",
             "fetch_from": "truck.primary_trailer",
             "get_query": "your_module.your_doctype.your_doctype.get_trailer_query",
-            "reqd": 0,
-            "idx": 5
+            "reqd": 0
         },
         {
             "fieldname": "trailer_2",
@@ -68,8 +81,7 @@
             "options": "Transportation Asset",
             "fetch_from": "truck.secondary_trailer",
             "get_query": "your_module.your_doctype.your_doctype.get_trailer_query",
-            "reqd": 0,
-            "idx": 6
+            "reqd": 0
         },
         {
             "fieldname": "mass_details_section",
@@ -82,24 +94,21 @@
             "fieldtype": "Int",
             "label": "First Mass (KG)",
             "description": "Mass of the vehicle without cargo",
-            "reqd": 0,
-            "idx": 10
+            "reqd": 0
         },
         {
             "fieldname": "second_mass",
             "fieldtype": "Int",
             "label": "Second Mass (KG)",
             "description": "Mass of the vehicle including cargo",
-            "reqd": 0,
-            "idx": 11
+            "reqd": 0
         },
         {
             "fieldname": "net_mass",
             "fieldtype": "Int",
             "label": "Net Mass (KG)",
             "description": "Mass of just the cargo",
-            "reqd": 0,
-            "idx": 12
+            "reqd": 0
         },
         {
             "fieldname": "connected_documents_section",
@@ -111,16 +120,14 @@
             "fieldname": "weighbill_number",
             "fieldtype": "Data",
             "label": "Weighbill Number",
-            "reqd": 0,
-            "idx": 15
+            "reqd": 0
         },
         {
             "fieldname": "delivery_note_number",
             "fieldtype": "Data",
             "label": "Delivery Note Number",
             "in_list_view": 1,
-            "reqd": 0,
-            "idx": 16
+            "reqd": 0
         },
         {
             "fieldname": "odometer_and_distance_section",
@@ -134,7 +141,6 @@
             "label": "Odometer Start (KM)",
             "description": "The initial reading on the odometer of the vehicle when beginning a trip. Will auto-populate from last trip's end reading.",
             "reqd": 0,
-            "idx": 17,
             "allow_on_submit": 0,
             "fetch_if_empty": 1
         },
@@ -143,16 +149,14 @@
             "fieldtype": "Int",
             "label": "Odometer End (KM)",
             "description": "The final reading on the odometer of the vehicle when finishing a trip",
-            "reqd": 0,
-            "idx": 18
+            "reqd": 0
         },
         {
             "fieldname": "total_distance",
             "fieldtype": "Int",
             "label": "Total Distance",
             "description": "The total distance travelled on the trip including all stops and the journey home if it is a return trip",
-            "reqd": 0,
-            "idx": 19
+            "reqd": 0
         },
         {
             "fieldname": "time_log_section",
@@ -164,15 +168,13 @@
             "fieldname": "time_start",
             "fieldtype": "Time",
             "label": "Start Time",
-            "reqd": 0,
-            "idx": 20
+            "reqd": 0
         },
         {
             "fieldname": "time_end",
             "fieldtype": "Time",
             "label": "End Time",
-            "reqd": 0,
-            "idx": 21
+            "reqd": 0
         },
         {
             "fieldname": "stop_detail_section",
@@ -185,8 +187,7 @@
             "fieldtype": "Table",
             "label": "Drop Details Odometer",
             "options": "Drop Details",
-            "reqd": 0,
-            "idx": 22
+            "reqd": 0
         }
     ],
     "index_web_pages_for_search": 0,

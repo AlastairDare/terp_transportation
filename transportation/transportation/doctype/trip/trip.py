@@ -1,9 +1,10 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.model.document import Document
 from typing import Any
 
-class YourDocType(Document):
+class Trip(Document):
     def get_truck_query(self, doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict) -> list:
         """Filter Transportation Assets to show only Trucks.
         
@@ -74,6 +75,10 @@ class YourDocType(Document):
         """Validate Trip document before saving."""
         if not self.odo_start and self.truck:
             self.set_initial_odometer()
+        
+        # Set approver when status changes to Complete
+        if self.has_value_changed('status') and self.status == "Complete":
+            self.approver = frappe.session.user
     
     def set_initial_odometer(self):
         """Set the initial odometer reading from the most recent trip for the same truck."""
