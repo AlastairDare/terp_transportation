@@ -81,11 +81,21 @@ class AssetUnifiedMaintenance(Document):
                 frappe.throw(_("Issue {0} does not belong to the selected asset {1}").format(
                     issue_link.issue, self.asset))
                 
-            # Update issue status and link
-            frappe.db.set_value('Issues', issue_link.issue, {
-                'issue_status': 'Assigned For Fix',
-                'issue_assigned_to_maintenance_job': self.name
-            }, update_modified=False)
+            # Update issue status based on maintenance status
+            update_values = {}
+            
+            if self.maintenance_status in ['Planned', 'In Progress']:
+                update_values['issue_status'] = 'Assigned For Fix'
+                update_values['issue_assigned_to_maintenance_job'] = self.name
+            elif self.maintenance_status == 'Complete':
+                update_values['issue_status'] = 'Resolved'
+                update_values['issue_assigned_to_maintenance_job'] = self.name
+            elif self.maintenance_status == 'Cancelled':
+                update_values['issue_status'] = 'Unresolved'
+                update_values['issue_assigned_to_maintenance_job'] = ''  # Disassociate the maintenance job
+                
+            # Update the issue
+            frappe.db.set_value('Issues', issue_link.issue, update_values, update_modified=False)
 
     @frappe.whitelist()
     def get_stock_entry_value(self):
