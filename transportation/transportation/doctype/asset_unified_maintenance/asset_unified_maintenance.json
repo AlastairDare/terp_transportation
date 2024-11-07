@@ -182,6 +182,24 @@
             "fieldtype": "Currency",
             "label": "Total Cost",
             "read_only": 1
+        },
+        {
+            "fieldname": "issues_section",
+            "fieldtype": "Section Break",
+            "label": "Issues"
+        },
+        {
+            "fieldname": "show_only_assigned_issues",
+            "fieldtype": "Check",
+            "label": "Show Only Assigned Issues",
+            "default": 0
+        },
+        {
+            "fieldname": "issues",
+            "fieldtype": "Table",
+            "label": "Issues",
+            "options": "Issues",
+            "reqd": 0
         }
     ],
     "index_web_pages_for_search": 1,

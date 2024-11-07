@@ -22,6 +22,19 @@ frappe.ui.form.on('Asset Unified Maintenance', {
                 }
             };
         });
+
+        // Set query for issues table
+        frm.set_query('issues', function() {
+            return {
+                filters: {
+                    'asset': frm.doc.asset,
+                    'issue_status': ['in', ['Unresolved', 'Assigned For Fix']]
+                }
+            };
+        });
+
+        // Update issues grid based on show_only_assigned checkbox
+        update_issues_grid(frm);
     },
     
     onload: function(frm) {
@@ -45,6 +58,11 @@ frappe.ui.form.on('Asset Unified Maintenance', {
                 }
             });
             update_warranty_display(frm);
+
+            // Clear and refresh issues grid when asset changes
+            frm.clear_table('issues');
+            frm.refresh_field('issues');
+            update_issues_grid(frm);
         }
     },
     
@@ -88,6 +106,22 @@ frappe.ui.form.on('Asset Unified Maintenance', {
     purchase_invoice: function(frm) {
         if (frm.doc.execution_type === 'External') {
             update_total_cost_from_invoice(frm);
+        }
+    },
+
+    show_only_assigned_issues: function(frm) {
+        update_issues_grid(frm);
+    },
+
+    validate: function(frm) {
+        // Update issue status for selected issues
+        if (frm.doc.issues && frm.doc.issues.length > 0) {
+            frm.doc.issues.forEach(function(issue) {
+                frappe.db.set_value('Issues', issue.name, {
+                    'issue_status': 'Assigned For Fix',
+                    'issue_assigned_to_maintenance_job': frm.doc.name
+                });
+            });
         }
     }
 });
@@ -135,4 +169,38 @@ function update_field_labels(frm) {
         `${label_prefix} Begin Date`);
     frm.set_df_property('complete_date', 'label',
         `${label_prefix} Complete Date`);
+}
+
+function update_issues_grid(frm) {
+    if (!frm.doc.asset) return;
+
+    let filters = {
+        'asset': frm.doc.asset,
+    };
+
+    if (frm.doc.show_only_assigned_issues) {
+        filters['issue_assigned_to_maintenance_job'] = frm.doc.name;
+    } else {
+        filters['issue_status'] = ['in', ['Unresolved', 'Assigned For Fix']];
+        filters['issue_assigned_to_maintenance_job'] = ['in', ['', null, frm.doc.name]];
+    }
+
+    frappe.call({
+        method: 'frappe.client.get_list',
+        args: {
+            doctype: 'Issues',
+            filters: filters,
+            fields: ['*']
+        },
+        callback: function(r) {
+            frm.clear_table('issues');
+            if (r.message) {
+                r.message.forEach(function(issue) {
+                    let row = frm.add_child('issues');
+                    Object.assign(row, issue);
+                });
+            }
+            frm.refresh_field('issues');
+        }
+    });
 }

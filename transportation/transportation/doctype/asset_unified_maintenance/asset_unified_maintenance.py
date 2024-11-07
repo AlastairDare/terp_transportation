@@ -7,6 +7,7 @@ class AssetUnifiedMaintenance(Document):
     def validate(self):
         self.validate_dates()
         self.validate_and_update_total_cost()
+        self.validate_and_update_issues()
         if not self.company:
             self.company = frappe.defaults.get_user_default("Company")
         
@@ -23,6 +24,22 @@ class AssetUnifiedMaintenance(Document):
             self.total_cost = flt(pi.grand_total)
         else:
             self.total_cost = 0
+
+    def validate_and_update_issues(self):
+        if self.issues:
+            for issue in self.issues:
+                if issue.name:  # Check if it's a valid issue reference
+                    # Verify issue belongs to the selected asset
+                    issue_doc = frappe.get_doc('Issues', issue.name)
+                    if issue_doc.asset != self.asset:
+                        frappe.throw(_("Issue {0} does not belong to the selected asset {1}").format(
+                            issue.name, self.asset))
+                    
+                    # Update issue status and link
+                    frappe.db.set_value('Issues', issue.name, {
+                        'issue_status': 'Assigned For Fix',
+                        'issue_assigned_to_maintenance_job': self.name
+                    }, update_modified=False)
 
     @frappe.whitelist()
     def get_stock_entry_value(self):
@@ -80,5 +97,18 @@ class AssetUnifiedMaintenance(Document):
             last_dates["last_repair_date"] = last_repair[0].complete_date
         
         return last_dates
-    # Add empty line below this comment
-    
+
+    def on_trash(self):
+        # Clear maintenance job reference from linked issues
+        issues = frappe.get_all('Issues', 
+            filters={'issue_assigned_to_maintenance_job': self.name},
+            fields=['name', 'issue_status']
+        )
+        
+        for issue in issues:
+            # Only reset status if it was "Assigned For Fix"
+            new_status = 'Unresolved' if issue.issue_status == 'Assigned For Fix' else issue.issue_status
+            frappe.db.set_value('Issues', issue.name, {
+                'issue_status': new_status,
+                'issue_assigned_to_maintenance_job': ''
+            }, update_modified=False)
