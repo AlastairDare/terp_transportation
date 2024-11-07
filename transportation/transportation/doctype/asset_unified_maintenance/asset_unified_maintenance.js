@@ -12,7 +12,7 @@ frappe.ui.form.on('Asset Unified Maintenance', {
                 frappe.set_route('List', 'Stock Entry');
             }, __("View"));
         }
-
+    
         // Set query for stock entry to only show Material Issue type
         frm.set_query('stock_entry', function() {
             return {
@@ -22,7 +22,7 @@ frappe.ui.form.on('Asset Unified Maintenance', {
                 }
             };
         });
-
+    
         // Set query for issues table
         frm.set_query('issue', 'issues', function() {
             return {
@@ -33,16 +33,26 @@ frappe.ui.form.on('Asset Unified Maintenance', {
                 }
             };
         });
-
-        // Set grid columns after refresh
+    
+        // Handle all grid-related configurations
         if(frm.fields_dict.issues && frm.fields_dict.issues.grid) {
+            // Set column widths
             frm.fields_dict.issues.grid.update_docfield_property('assign', 'columns', 1);
             frm.fields_dict.issues.grid.update_docfield_property('issue', 'columns', 2);
             frm.fields_dict.issues.grid.update_docfield_property('issue_severity', 'columns', 2);
             frm.fields_dict.issues.grid.update_docfield_property('date_reported', 'columns', 2);
             frm.fields_dict.issues.grid.update_docfield_property('issue_description', 'columns', 5);
+    
+            // Hide idx and checkbox columns
+            frm.fields_dict.issues.grid.wrapper.find('.grid-row-check').hide();
+            frm.fields_dict.issues.grid.wrapper.find('.row-index').hide();
+            
+            // Make assign checkbox clickable in grid
+            frm.fields_dict.issues.grid.wrapper.on('click', '.editable-check', function(e) {
+                e.stopPropagation();
+            });
         }
-
+    
         if (frm.doc.asset) {
             update_issues_grid(frm);
         }
