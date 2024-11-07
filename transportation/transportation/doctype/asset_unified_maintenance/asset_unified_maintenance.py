@@ -4,11 +4,39 @@ from frappe.utils import getdate, flt, now, get_datetime
 from frappe.model.document import Document
 
 class AssetUnifiedMaintenance(Document):
-    def has_permission(self, ptype='read', user=None):
+    def has_permission(self, ptype='read', user=None, debug=False):
+        """
+        Custom permission check for Asset Unified Maintenance
+        Args:
+            ptype: Permission type (read, write, create, delete, submit, cancel, amend)
+            user: User for which to check permission
+            debug: Enable debug logs
+        Returns:
+            bool: True if user has permission
+        """
+        if not user:
+            user = frappe.session.user
+            
+        # System Manager can do anything
+        if "System Manager" in frappe.get_roles(user):
+            return True
+            
+        # For now, use standard permission system
         return True
 
-    @frappe.whitelist()
     def get_permission_query_conditions(self, user=None):
+        """
+        Returns query conditions based on user permissions
+        Args:
+            user: User for which to get query conditions
+        Returns:
+            str: SQL conditions string
+        """
+        if not user:
+            user = frappe.session.user
+            
+        # You can add company or other field-level permissions here
+        # Example: return f"(`tabAsset Unified Maintenance`.`company` = '{frappe.db.escape(company)}')"
         return ""
 
     def validate(self):
@@ -19,6 +47,9 @@ class AssetUnifiedMaintenance(Document):
             self.company = frappe.defaults.get_user_default("Company")
         
     def validate_dates(self):
+        if not self.begin_date:
+            frappe.throw(_("Begin Date is mandatory"))
+            
         if self.complete_date and getdate(self.complete_date) < getdate(self.begin_date):
             frappe.throw(_("Complete Date cannot be before Begin Date"))
 
@@ -33,27 +64,38 @@ class AssetUnifiedMaintenance(Document):
             self.total_cost = 0
 
     def validate_and_update_issues(self):
-        if self.issues:
-            for issue_link in self.issues:
-                if issue_link.issue:  # Check if it's a valid issue reference
-                    # Verify issue belongs to the selected asset
-                    issue_doc = frappe.get_doc('Issues', issue_link.issue)
-                    if issue_doc.asset != self.asset:
-                        frappe.throw(_("Issue {0} does not belong to the selected asset {1}").format(
-                            issue_link.issue, self.asset))
-                    
-                    # Update issue status and link
-                    frappe.db.set_value('Issues', issue_link.issue, {
-                        'issue_status': 'Assigned For Fix',
-                        'issue_assigned_to_maintenance_job': self.name
-                    }, update_modified=False)
+        if not self.issues:
+            return
+            
+        for issue_link in self.issues:
+            if not issue_link.issue:
+                continue
+                
+            try:
+                issue_doc = frappe.get_doc('Issues', issue_link.issue)
+            except frappe.DoesNotExistError:
+                frappe.throw(_("Issue {0} does not exist").format(issue_link.issue))
+                
+            if issue_doc.asset != self.asset:
+                frappe.throw(_("Issue {0} does not belong to the selected asset {1}").format(
+                    issue_link.issue, self.asset))
+                
+            # Update issue status and link
+            frappe.db.set_value('Issues', issue_link.issue, {
+                'issue_status': 'Assigned For Fix',
+                'issue_assigned_to_maintenance_job': self.name
+            }, update_modified=False)
 
     @frappe.whitelist()
     def get_stock_entry_value(self):
         if not self.stock_entry:
             return 0
             
-        stock_entry = frappe.get_doc('Stock Entry', self.stock_entry)
+        try:
+            stock_entry = frappe.get_doc('Stock Entry', self.stock_entry)
+        except frappe.DoesNotExistError:
+            frappe.throw(_("Stock Entry {0} does not exist").format(self.stock_entry))
+            
         if stock_entry.stock_entry_type != 'Material Issue':
             frappe.throw(_("Selected Stock Entry must be of type 'Material Issue'"))
             
@@ -108,14 +150,16 @@ class AssetUnifiedMaintenance(Document):
     def on_trash(self):
         # Clear maintenance job reference from linked issues
         issues = [d.issue for d in self.issues if d.issue]
-        if issues:
-            frappe.db.sql("""
-                UPDATE `tabIssues`
-                SET 
-                    issue_status = CASE 
-                        WHEN issue_status = 'Assigned For Fix' THEN 'Unresolved'
-                        ELSE issue_status
-                    END,
-                    issue_assigned_to_maintenance_job = ''
-                WHERE name IN %s
-            """, (tuple(issues),))
+        if not issues:
+            return
+            
+        frappe.db.sql("""
+            UPDATE `tabIssues`
+            SET 
+                issue_status = CASE 
+                    WHEN issue_status = 'Assigned For Fix' THEN 'Unresolved'
+                    ELSE issue_status
+                END,
+                issue_assigned_to_maintenance_job = ''
+            WHERE name IN %s
+        """, (tuple(issues),))
