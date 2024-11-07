@@ -47,13 +47,11 @@ frappe.ui.form.on('Asset Unified Maintenance', {
             frm.fields_dict.issues.grid.wrapper.find('.grid-row-check').hide();
             frm.fields_dict.issues.grid.wrapper.find('.row-index').hide();
             
-            // Add formatter for issue description to strip HTML
+            // Formatter specifically for Quill editor content
             frm.fields_dict.issues.grid.update_docfield_property('issue_description', 'formatter', function(value) {
                 if (!value) return '';
-                // Create a temporary div to handle HTML entities properly
-                let temp = document.createElement('div');
-                temp.innerHTML = value;
-                return temp.textContent || temp.innerText || '';
+                const match = value.match(/<p>(.*?)<\/p>/);
+                return match ? match[1] : value;
             });
         }
 
