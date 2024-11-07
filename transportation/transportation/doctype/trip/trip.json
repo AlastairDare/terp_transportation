@@ -18,8 +18,8 @@
         },
         {
             "fieldname": "date",
-            "fieldtype": "Trip Date",
-            "label": "Date",
+            "fieldtype": "Date",
+            "label": "Trip Date",
             "in_list_view": 1,
             "reqd": 0,
             "idx": 2
