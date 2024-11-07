@@ -4,6 +4,12 @@ from frappe.utils import getdate, flt, now, get_datetime
 from frappe.model.document import Document
 
 class AssetUnifiedMaintenance(Document):
+    def has_permission(self):
+        return True
+
+    @staticmethod
+    def has_permission_for_doctype():
+        return True
     def validate(self):
         self.validate_dates()
         self.validate_and_update_total_cost()

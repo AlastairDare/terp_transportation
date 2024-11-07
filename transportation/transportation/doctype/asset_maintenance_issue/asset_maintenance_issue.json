@@ -8,7 +8,6 @@
         "issue",
         "issue_severity",
         "date_reported",
-        "reported_by",
         "issue_description"
     ],
     "fields": [
@@ -37,18 +36,9 @@
             "read_only": 1
         },
         {
-            "fetch_from": "issue.reported_by",
-            "fieldname": "reported_by",
-            "fieldtype": "Link",
-            "in_list_view": 1,
-            "label": "Reported By",
-            "options": "Employee",
-            "read_only": 1
-        },
-        {
             "fetch_from": "issue.issue_description",
             "fieldname": "issue_description",
-            "fieldtype": "Small Text",
+            "fieldtype": "Text",
             "in_list_view": 1,
             "label": "Issue Description",
             "read_only": 1

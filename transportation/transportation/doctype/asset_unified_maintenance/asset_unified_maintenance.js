@@ -9,6 +9,14 @@ frappe.ui.form.on('Asset Unified Maintenance', {
                 }
             };
         });
+
+        // Set up the grid columns and their widths
+        frm.fields_dict['issues'].grid.visible_columns = [
+            {fieldname: 'issue', width: 150},
+            {fieldname: 'issue_severity', width: 150},
+            {fieldname: 'date_reported', width: 120},
+            {fieldname: 'issue_description', width: 300}
+        ];
     },
 
     refresh: function(frm) {
@@ -116,6 +124,28 @@ frappe.ui.form.on('Asset Unified Maintenance', {
     }
 });
 
+// Add handlers for the child table
+frappe.ui.form.on('Asset Maintenance Issue', {
+    issue: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if(row.issue) {
+            frappe.db.get_value('Issues', row.issue, 
+                ['issue_severity', 'date_reported', 'issue_description'], 
+                function(r) {
+                    if(r) {
+                        frappe.model.set_value(cdt, cdn, {
+                            'issue_severity': r.issue_severity,
+                            'date_reported': r.date_reported,
+                            'issue_description': r.issue_description
+                        });
+                        frm.refresh_field('issues');
+                    }
+                }
+            );
+        }
+    }
+});
+
 function update_total_cost_from_invoice(frm) {
     if (frm.doc.purchase_invoice) {
         frappe.db.get_value('Purchase Invoice', frm.doc.purchase_invoice, 'grand_total', (r) => {
@@ -180,7 +210,7 @@ function update_issues_grid(frm) {
         args: {
             doctype: 'Issues',
             filters: filters,
-            fields: ['name', 'issue_severity', 'date_reported', 'reported_by', 'issue_description']
+            fields: ['name', 'issue_severity', 'date_reported', 'issue_description']
         },
         callback: function(r) {
             frm.clear_table('issues');
