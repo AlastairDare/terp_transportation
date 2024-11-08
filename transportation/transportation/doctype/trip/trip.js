@@ -1,27 +1,7 @@
 frappe.ui.form.on('Trip', {
     refresh: function(frm) {
-        // Add custom buttons or refresh logic if needed
-    },
-
-    after_save: function(frm) {
-        // Handle different status scenarios
-        if (frm.doc.status === "Complete") {
-            if (frm.doc.service_item_created) {
-                // Show success message for newly created item
-                let message = `'Service Item' created with ID: ${frm.doc.service_item_code}. Use this Item to reference this trip in billing documents`;
-                show_copy_popup(message, frm.doc.service_item_code);
-            } else if (frm.doc.service_item_exists) {
-                // Show message for existing item
-                let message = `'Service Item' with ID ${frm.doc.service_item_code} already exists. Saving updates to Trip Record without creating a new 'Service Item'.`;
-                show_copy_popup(message, frm.doc.service_item_code);
-            }
-        } else {
-            // Show message for non-complete status
-            frappe.show_alert({
-                message: __("No 'Service Item' has been created for this Trip. Change state to 'Complete' to generate a 'Service Item'."),
-                indicator: 'blue'
-            }, 10);
-        }
+        // Show/hide approver field based on status
+        frm.toggle_display('approver', frm.doc.status === "Complete");
     },
 
     onload: function(frm) {
@@ -88,15 +68,35 @@ frappe.ui.form.on('Trip', {
 
     status: function(frm) {
         // Handle status changes
+        if (frm.doc.status === "Complete" && frm.doc.__previous_status === "Awaiting Approval") {
+            frm.set_value('approver', frappe.session.user);
+            frm.toggle_display('approver', true);
+            
+            // Save the form after setting the approver
+            frm.save();
+        } else if (frm.doc.status !== "Complete") {
+            frm.toggle_display('approver', false);
+        }
+    },
+
+    after_save: function(frm) {
+        // Handle different status scenarios
         if (frm.doc.status === "Complete") {
-            let previous_status = frm.doc.__previous_status || frm.doc.status;
-            if (previous_status !== "Complete") {
-                frm.set_value('approver', frappe.session.user);
-                frappe.show_alert({
-                    message: __('Trip marked as Complete by {0}', [frappe.session.user_fullname]),
-                    indicator: 'green'
-                }, 5);
+            if (frm.doc.service_item_created) {
+                // Show success message for newly created item
+                let message = `'Service Item' created with ID: ${frm.doc.service_item_code}. Use this Item to reference this trip in billing documents`;
+                show_copy_popup(message, frm.doc.service_item_code);
+            } else if (frm.doc.service_item_exists) {
+                // Show message for existing item
+                let message = `'Service Item' with ID ${frm.doc.service_item_code} already exists. Saving updates to Trip Record without creating a new 'Service Item'.`;
+                show_copy_popup(message, frm.doc.service_item_code);
             }
+        } else {
+            // Show message for non-complete status
+            frappe.show_alert({
+                message: __("No 'Service Item' has been created for this Trip. Change state to 'Complete' to generate a 'Service Item'."),
+                indicator: 'blue'
+            }, 10);
         }
     },
 
@@ -126,10 +126,10 @@ function show_copy_popup(message, code_to_copy) {
                 fieldname: 'message_html',
                 fieldtype: 'HTML',
                 options: `
-                    <div class="message-content">
+                    <div class="message-content" style="margin-bottom: 15px;">
                         <p>${message}</p>
-                        <div class="copy-section">
-                            <code>${code_to_copy}</code>
+                        <div class="copy-section" style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+                            <code style="background: #f0f0f0; padding: 5px; border-radius: 4px;">${code_to_copy}</code>
                             <button class="btn btn-xs btn-default copy-btn">
                                 Copy ID
                             </button>
@@ -137,7 +137,11 @@ function show_copy_popup(message, code_to_copy) {
                     </div>
                 `
             }
-        ]
+        ],
+        primary_action_label: 'Close',
+        primary_action(values) {
+            d.hide();
+        }
     });
 
     d.show();

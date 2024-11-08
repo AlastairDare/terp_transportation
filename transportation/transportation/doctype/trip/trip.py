@@ -5,6 +5,64 @@ from frappe.model.document import Document
 from typing import Any, Dict, Optional
 
 class Trip(Document):
+    def validate(self):
+        """Validate Trip document before saving."""
+        # Handle approver setting
+        if self.has_value_changed('status'):
+            if self.status == "Complete" and self._doc_before_save.status == "Awaiting Approval":
+                self.approver = frappe.session.user
+
+        # Validate odometer readings
+        if self.odo_start and self.odo_end:
+            if self.odo_end < self.odo_start:
+                frappe.throw(_("End odometer reading cannot be less than start reading"))
+            self.total_distance = self.odo_end - self.odo_start
+
+        # Validate date
+        if not self.date:
+            frappe.throw(_("Trip Date is required"))
+
+        # Validate mass readings if provided
+        if self.second_mass and self.first_mass:
+            if self.second_mass < self.first_mass:
+                frappe.throw(_("Second mass cannot be less than first mass"))
+            self.net_mass = self.second_mass - self.first_mass
+            
+        # Handle Item creation/validation when status is Complete
+        if self.status == "Complete":
+            self.create_service_item()
+
+    def create_service_item(self):
+        """Create or validate service item."""
+        try:
+            existing_item = frappe.db.exists("Item", self.name)
+            
+            if not existing_item:
+                item = frappe.get_doc({
+                    "doctype": "Item",
+                    "item_code": self.name,
+                    "item_name": f"Trip Service - {self.name}",
+                    "item_group": "Services",
+                    "stock_uom": "Each",
+                    "is_stock_item": 0,
+                    "is_fixed_asset": 0,
+                    "description": f"Service Item for Trip {self.name}"
+                })
+                item.insert()
+                frappe.db.commit()
+                
+                # Set flags for frontend
+                self.service_item_created = True
+                self.service_item_code = self.name
+            else:
+                # Set flags for frontend
+                self.service_item_exists = True
+                self.service_item_code = self.name
+                
+        except Exception as e:
+            frappe.log_error(f"Error creating service item: {str(e)}")
+            frappe.throw(_("Error creating service item. Please check error log."))
+
     def get_truck_query(self, doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict) -> list:
         """Filter Transportation Assets to show only Trucks."""
         return frappe.db.sql("""
@@ -46,73 +104,10 @@ class Trip(Document):
             'start': start,
             'page_len': page_len
         })
-    
-    def validate(self):
-        """Validate Trip document before saving."""
-        # Handle approver setting
-        if self.has_value_changed('status') and self.status == "Complete":
-            self.approver = frappe.session.user
-
-        # Validate odometer readings
-        if self.odo_start and self.odo_end:
-            if self.odo_end < self.odo_start:
-                frappe.throw(_("End odometer reading cannot be less than start reading"))
-            self.total_distance = self.odo_end - self.odo_start
-
-        # Validate date
-        if not self.date:
-            frappe.throw(_("Trip Date is required"))
-
-        # Validate mass readings if provided
-        if self.second_mass and self.first_mass:
-            if self.second_mass < self.first_mass:
-                frappe.throw(_("Second mass cannot be less than first mass"))
-            self.net_mass = self.second_mass - self.first_mass
-
-        if self.status == "Complete":
-            self.handle_service_item()
-
-def handle_service_item(self):
-        """Handle the creation or validation of service item."""
-        if not self.name:
-            return
-            
-        # Check if service item already exists
-        existing_item = frappe.db.exists("Item", self.name)
-        
-        if not existing_item and self.status == "Complete":
-            # Create new service item
-            item = frappe.get_doc({
-                "doctype": "Item",
-                "item_code": self.name,  # Use exact Trip ID
-                "item_name": f"Trip Service - {self.name}",
-                "item_group": "Services",
-                "stock_uom": "Each",
-                "is_stock_item": 0,
-                "is_fixed_asset": 0,
-                "description": f"Service Item for Trip {self.name}"
-            })
-            item.insert()
-            
-            # Set flag for client-side handling
-            self.service_item_created = True
-            self.service_item_code = self.name
-        else:
-            # Set flag for existing item
-            self.service_item_exists = True
-            self.service_item_code = self.name
 
 @frappe.whitelist()
 def get_last_odometer_reading(truck: str, current_doc: Optional[str] = None) -> Dict:
-    """Get the last odometer reading for a truck.
-    
-    Args:
-        truck: The truck ID to look up
-        current_doc: The current document name to exclude from the search
-        
-    Returns:
-        Dict containing the last odometer reading and trip information
-    """
+    """Get the last odometer reading for a truck."""
     if not truck:
         return {
             "odo_end": 0,
