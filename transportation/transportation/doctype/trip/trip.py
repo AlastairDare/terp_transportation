@@ -7,10 +7,9 @@ from typing import Any, Dict, Optional
 class Trip(Document):
     def validate(self):
         """Validate Trip document before saving."""
-        # Handle approver setting
-        if self.has_value_changed('status'):
-            if self.status == "Complete" and self._doc_before_save.status == "Awaiting Approval":
-                self.approver = frappe.session.user
+        # Handle approver setting - keeping your original working code
+        if self.has_value_changed('status') and self.status == "Complete":
+            self.approver = frappe.session.user
 
         # Validate odometer readings
         if self.odo_start and self.odo_end:
@@ -28,26 +27,28 @@ class Trip(Document):
                 frappe.throw(_("Second mass cannot be less than first mass"))
             self.net_mass = self.second_mass - self.first_mass
 
-    def on_change(self):
-        """Handle status change actions"""
-        if self.has_value_changed('status') and self.status == "Complete":
+    def after_save(self):
+        """Handle item creation after document is saved"""
+        if self.status == "Complete":
             self.create_service_item()
 
     def create_service_item(self):
         """Create service item if it doesn't exist"""
         try:
             # Check if item exists
-            if frappe.db.exists("Item", {"item_code": self.name}):
+            existing_item = frappe.db.exists("Item", self.name)
+            
+            if existing_item:
                 frappe.msgprint(
-                    msg=f"Service Item with ID {self.name} already exists. Saving updates to Trip Record without creating a new Service Item.",
-                    title='Existing Service Item',
-                    raise_exception=False
+                    msg=f"'Service Item' with ID {self.name} already exists. Saving updates to Trip Record without creating a new 'Service Item'.",
+                    title='Service Item Exists',
+                    indicator='blue'
                 )
                 return
 
             # Create new item
-            item = frappe.new_doc("Item")
-            item.update({
+            item = frappe.get_doc({
+                "doctype": "Item",
                 "item_code": self.name,
                 "item_name": f"Trip Service - {self.name}",
                 "item_group": "Services",
@@ -61,7 +62,7 @@ class Trip(Document):
 
             # Show success message
             frappe.msgprint(
-                msg='Service Item created with ID: {}. Use this Item to reference this trip in billing documents'.format(self.name),
+                msg=f"'Service Item' created with ID: {self.name}. Use this Item to reference this trip in billing documents",
                 title='Service Item Created',
                 indicator='green'
             )
