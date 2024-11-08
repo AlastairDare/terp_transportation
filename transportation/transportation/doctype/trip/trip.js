@@ -1,32 +1,125 @@
 frappe.ui.form.on('Trip', {
     refresh: function(frm) {
-        updateApproverVisibility(frm);
-        setupCustomQueries(frm);
+        frm.toggle_display('approver', frm.doc.status === "Complete");
+        console.log("Refresh triggered - Status:", frm.doc.status);
     },
 
     onload: function(frm) {
-        setupCustomQueries(frm);
+        // Set custom queries for truck and trailer fields
+        frm.set_query('truck', function() {
+            return {
+                filters: {
+                    'transportation_asset_type': 'Truck'
+                }
+            };
+        });
+
+        frm.set_query('trailer_1', function() {
+            return {
+                filters: {
+                    'transportation_asset_type': 'Trailer'
+                }
+            };
+        });
+
+        frm.set_query('trailer_2', function() {
+            return {
+                filters: {
+                    'transportation_asset_type': 'Trailer'
+                }
+            };
+        });
     },
 
     truck: function(frm) {
-        handleTruckChange(frm);
+        // Clear related fields if truck is cleared
+        if (!frm.doc.truck) {
+            frm.set_value('trailer_1', '');
+            frm.set_value('trailer_2', '');
+            frm.set_value('odo_start', '');
+            return;
+        }
+        
+        // Get the last odometer reading
+        frappe.call({
+            method: 'transportation.transportation.doctype.trip.trip.get_last_odometer_reading',
+            args: {
+                'truck': frm.doc.truck,
+                'current_doc': frm.doc.name || null
+            },
+            callback: function(r) {
+                if (r.message && r.message.odo_end) {
+                    frm.set_value('odo_start', r.message.odo_end);
+                    frappe.show_alert({
+                        message: __('Odometer start set to {0} from trip {1}', 
+                            [r.message.odo_end, r.message.trip_name]),
+                        indicator: 'green'
+                    });
+                } else {
+                    frm.set_value('odo_start', 0);
+                    frappe.show_alert({
+                        message: __('No previous trip found for this truck. Starting Odometer reading must be manually populated.'),
+                        indicator: 'blue'
+                    });
+                }
+            }
+        });
     },
 
     validate: function(frm) {
-        validateRequiredFields(frm);
+        // Validate required fields before saving
+        if (frm.doc.status === "Complete") {
+            if (!frm.doc.truck) {
+                frappe.throw(__("Truck is required for completing a trip"));
+            }
+            if (!frm.doc.date) {
+                frappe.throw(__("Trip Date is required for completing a trip"));
+            }
+        }
     },
 
     before_save: function(frm) {
+        // Perform any necessary calculations or validations before saving
         calculateTotalDistance(frm);
         calculateNetMass(frm);
     },
 
     after_save: function(frm) {
-        handleServiceItemNotification(frm);
+        if (frm.doc.status === "Complete") {
+            // Check if item exists
+            frappe.call({
+                method: 'frappe.client.get_value',
+                args: {
+                    doctype: 'Item',
+                    filters: { name: frm.doc.name },
+                    fieldname: ['name']
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        frappe.show_alert({
+                            message: __('Service Item {0} already exists', [frm.doc.name]),
+                            indicator: 'blue'
+                        });
+                    }
+                }
+            });
+        } else {
+            frappe.show_alert({
+                message: __("Change status to 'Complete' to generate a Service Item."),
+                indicator: 'blue'
+            });
+        }
     },
 
     status: function(frm) {
-        handleStatusChange(frm);
+        // Handle status change
+        console.log("Status changed to:", frm.doc.status);
+        if (frm.doc.status === "Complete" && frm.doc.__previous_status === "Awaiting Approval") {
+            frm.set_value('approver', frappe.session.user);
+            frm.toggle_display('approver', true);
+        } else if (frm.doc.status !== "Complete") {
+            frm.toggle_display('approver', false);
+        }
     },
 
     odo_end: function(frm) {
@@ -54,82 +147,7 @@ frappe.ui.form.on('Trip', {
     }
 });
 
-// Core functionality handlers
-function updateApproverVisibility(frm) {
-    frm.toggle_display('approver', frm.doc.status === "Complete");
-}
-
-function setupCustomQueries(frm) {
-    frm.set_query('truck', function() {
-        return {
-            filters: {
-                'transportation_asset_type': 'Truck'
-            }
-        };
-    });
-
-    frm.set_query('trailer_1', function() {
-        return {
-            filters: {
-                'transportation_asset_type': 'Trailer'
-            }
-        };
-    });
-
-    frm.set_query('trailer_2', function() {
-        return {
-            filters: {
-                'transportation_asset_type': 'Trailer'
-            }
-        };
-    });
-}
-
-function handleTruckChange(frm) {
-    if (!frm.doc.truck) {
-        clearTruckRelatedFields(frm);
-        return;
-    }
-    
-    updateOdometerReading(frm);
-}
-
-function handleStatusChange(frm) {
-    if (frm.doc.status === "Complete") {
-        updateApproverVisibility(frm);
-    }
-}
-
-function handleServiceItemNotification(frm) {
-    if (frm.doc.status === "Complete") {
-        if (frm.doc.service_item_created) {
-            showServiceItemPopup(
-                `Service Item created with ID: ${frm.doc.service_item_code}. Use this Item to reference this trip in billing documents`,
-                frm.doc.service_item_code,
-                'green'
-            );
-        } else if (frm.doc.service_item_exists) {
-            showServiceItemPopup(
-                `Service Item with ID ${frm.doc.service_item_code} already exists. Saving updates to Trip Record without creating a new Service Item.`,
-                frm.doc.service_item_code,
-                'blue'
-            );
-        }
-    }
-}
-
-// Validation and calculation functions
-function validateRequiredFields(frm) {
-    if (frm.doc.status === "Complete") {
-        if (!frm.doc.truck) {
-            frappe.throw(__("Truck is required for completing a trip"));
-        }
-        if (!frm.doc.date) {
-            frappe.throw(__("Trip Date is required for completing a trip"));
-        }
-    }
-}
-
+// Helper functions
 function calculateTotalDistance(frm) {
     if (frm.doc.odo_start && frm.doc.odo_end) {
         let total = frm.doc.odo_end - frm.doc.odo_start;
@@ -176,55 +194,11 @@ function validateTimes(frm) {
     }
 }
 
-// Helper functions
-function clearTruckRelatedFields(frm) {
-    frm.set_value('trailer_1', '');
-    frm.set_value('trailer_2', '');
-    frm.set_value('odo_start', '');
-}
-
-function updateOdometerReading(frm) {
-    frappe.call({
-        method: 'transportation.transportation.doctype.trip.trip.get_last_odometer_reading',
-        args: {
-            'truck': frm.doc.truck,
-            'current_doc': frm.doc.name || null
-        },
-        callback: function(r) {
-            if (r.message && r.message.odo_end) {
-                frm.set_value('odo_start', r.message.odo_end);
-                frappe.show_alert({
-                    message: __('Odometer start set to {0} from trip {1}', 
-                        [r.message.odo_end, r.message.trip_name]),
-                    indicator: 'green'
-                });
-            } else {
-                frm.set_value('odo_start', 0);
-                frappe.show_alert({
-                    message: __('No previous trip found for this truck. Starting Odometer reading must be manually populated.'),
-                    indicator: 'blue'
-                });
-            }
-        }
-    });
-}
-
-function showServiceItemPopup(message, code, indicator) {
-    let d = frappe.msgprint({
-        message: `
-            <div>
-                <p>${message}</p>
-                <div style="margin-top: 10px;">
-                    <button class="btn btn-xs btn-default" 
-                            onclick="frappe.ui.form.handle_copy_to_clipboard('${code}')">
-                        Copy Item Code
-                    </button>
-                </div>
-            </div>
-        `,
-        indicator: indicator,
-        title: __('Service Item Information')
-    });
+// Console logging for debugging
+function logStatusChange(frm) {
+    console.log("Status:", frm.doc.status);
+    console.log("Previous Status:", frm.doc.__previous_status);
+    console.log("Approver:", frm.doc.approver);
 }
 
 // Custom formatter for time values

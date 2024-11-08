@@ -7,61 +7,43 @@ from typing import Any, Dict, Optional
 class Trip(Document):
     def validate(self):
         """Validate Trip document before saving."""
-        self._validate_odometer()
-        self._validate_date()
-        self._validate_mass()
-        
-    def _validate_odometer(self):
-        """Validate odometer readings."""
+        # Handle approver setting
+        if self.has_value_changed('status'):
+            if self.status == "Complete" and self._doc_before_save.status == "Awaiting Approval":
+                self.approver = frappe.session.user
+
+        # Validate odometer readings
         if self.odo_start and self.odo_end:
             if self.odo_end < self.odo_start:
                 frappe.throw(_("End odometer reading cannot be less than start reading"))
             self.total_distance = self.odo_end - self.odo_start
 
-    def _validate_date(self):
-        """Validate trip date."""
+        # Validate date
         if not self.date:
             frappe.throw(_("Trip Date is required"))
 
-    def _validate_mass(self):
-        """Validate mass readings."""
+        # Validate mass readings if provided
         if self.second_mass and self.first_mass:
             if self.second_mass < self.first_mass:
                 frappe.throw(_("Second mass cannot be less than first mass"))
             self.net_mass = self.second_mass - self.first_mass
 
     def before_save(self):
-        """Before save hook to handle status changes and item creation."""
-        self._handle_status_change()
+        """Before save hook to handle item creation"""
         if self.status == "Complete":
-            self._handle_service_item()
+            self.handle_service_item()
 
-    def _handle_status_change(self):
-        """Handle status change and approver assignment."""
-        if (self.has_value_changed('status') and 
-            self.status == "Complete" and 
-            self._doc_before_save and 
-            self._doc_before_save.status == "Awaiting Approval"):
-            
-            self.approver = frappe.session.user
-
-    def _handle_service_item(self):
-        """Create service item if it doesn't exist."""
+    def handle_service_item(self):
+        """Create service item if it doesn't exist"""
         try:
-            # Reset flags
-            self.service_item_created = 0
-            self.service_item_exists = 0
-            self.service_item_code = None
-            
-            # Check if item exists
-            existing_item = frappe.db.exists("Item", self.name)
-            
-            if existing_item:
-                self.service_item_exists = 1
-                self.service_item_code = self.name
+            if frappe.db.exists("Item", self.name):
+                frappe.msgprint(
+                    msg=_("Service Item {0} already exists").format(self.name),
+                    title=_("Service Item Status"),
+                    indicator="blue"
+                )
                 return
-            
-            # Create new item
+
             item = frappe.get_doc({
                 "doctype": "Item",
                 "item_code": self.name,
@@ -75,14 +57,20 @@ class Trip(Document):
             
             item.insert(ignore_permissions=True)
             
-            # Set flags for frontend
-            self.service_item_created = 1
-            self.service_item_code = self.name
-            
-            # Log success
+            # Show success message with copy button
             frappe.msgprint(
-                _("Service Item created successfully with code: {0}").format(self.name),
-                alert=True,
+                msg=f"""
+                    <div>
+                        <p>{_("Service Item created successfully: {0}").format(self.name)}</p>
+                        <div style="margin-top: 10px;">
+                            <button class="btn btn-xs btn-default" 
+                                    onclick="frappe.ui.form.handle_copy_to_clipboard('{self.name}')">
+                                Copy Item Code
+                            </button>
+                        </div>
+                    </div>
+                """,
+                title=_("Service Item Created"),
                 indicator="green"
             )
 
@@ -91,11 +79,9 @@ class Trip(Document):
                 message=f"Error creating service item for trip {self.name}: {str(e)}",
                 title="Service Item Creation Error"
             )
-            frappe.throw(
-                _("Failed to create service item. Error: {0}").format(str(e))
-            )
+            frappe.throw(_("Failed to create service item. Error: {0}").format(str(e)))
 
-    def get_truck_query(self, doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict) -> list:
+    def get_truck_query(self, doctype, txt, searchfield, start, page_len, filters):
         """Filter Transportation Assets to show only Trucks."""
         return frappe.db.sql("""
             SELECT name 
@@ -116,7 +102,7 @@ class Trip(Document):
             'page_len': page_len
         })
     
-    def get_trailer_query(self, doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict) -> list:
+    def get_trailer_query(self, doctype, txt, searchfield, start, page_len, filters):
         """Filter Transportation Assets to show only Trailers."""
         return frappe.db.sql("""
             SELECT name 

@@ -66,6 +66,10 @@ doc_events = {
     },
     "Transportation Asset": {
         "validate": "transportation.transportation.doctype.transportation_asset.transportation_asset.validate"
+    },
+    "Trip": {
+        "validate": "transportation.transportation.doctype.trip.trip.Trip.validate",
+        "before_save": "transportation.transportation.doctype.trip.trip.Trip.before_save",
     }
 }
 
