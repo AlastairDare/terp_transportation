@@ -270,7 +270,7 @@ function setupFixedAssetFilter(frm) {
     
     frm.set_query('fixed_asset', () => {
         return {
-            query: "your_app.your_app.doctype.transportation_asset.transportation_asset.get_available_fixed_assets",
+            query: "transportation.transportation.doctype.transportation_asset.transportation_asset.get_available_fixed_assets",
             filters: {
                 'asset_category': assetCategory,
                 'transportation_asset_type': assetType
