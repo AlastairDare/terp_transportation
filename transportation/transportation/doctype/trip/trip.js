@@ -93,7 +93,15 @@ frappe.ui.form.on('Trip', {
     },
 
     after_save: function(frm) {
-        if (frm.doc.status !== "Complete") {
+        if (frm.doc.status === "Complete") {
+            if (frm.doc.service_item_created) {
+                let message = `'Service Item' created with ID: ${frm.doc.service_item_code}. Use this Item to reference this trip in billing documents`;
+                show_service_item_popup(message, frm.doc.service_item_code);
+            } else if (frm.doc.service_item_exists) {
+                let message = `'Service Item' with ID ${frm.doc.service_item_code} already exists. Saving updates to Trip Record without creating a new 'Service Item'.`;
+                show_service_item_popup(message, frm.doc.service_item_code);
+            }
+        } else {
             frappe.msgprint({
                 title: __('Service Item Status'),
                 indicator: 'blue',
@@ -127,26 +135,25 @@ frappe.ui.form.on('Trip', {
     }
 });
 
-// Register client action for copying item code
-frappe.ui.form.on("Trip", "copy_item_code", function(frm, cdt, cdn, args) {
-    if (args && args.item_code) {
-        navigator.clipboard.writeText(args.item_code)
-            .then(() => {
-                frappe.show_alert({
-                    message: __('Item code copied to clipboard'),
-                    indicator: 'green'
-                }, 3);
-            })
-            .catch(() => {
-                frappe.show_alert({
-                    message: __('Failed to copy to clipboard'),
-                    indicator: 'red'
-                }, 3);
-            });
-    }
-});
+// Helper function for service item popup
+function show_service_item_popup(message, code) {
+    let d = frappe.msgprint({
+        message: `
+            <div>
+                <p>${message}</p>
+                <div style="margin-top: 10px;">
+                    <button class="btn btn-xs btn-default" onclick="frappe.ui.form.handle_copy_to_clipboard('${code}')">
+                        Copy Item Code
+                    </button>
+                </div>
+            </div>
+        `,
+        indicator: 'green',
+        title: __('Service Item Information')
+    });
+}
 
-// Helper functions
+// Helper functions for calculations
 function calculateTotalDistance(frm) {
     if (frm.doc.odo_start && frm.doc.odo_end) {
         let total = frm.doc.odo_end - frm.doc.odo_start;

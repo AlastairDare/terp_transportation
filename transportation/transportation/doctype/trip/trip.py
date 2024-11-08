@@ -7,12 +7,9 @@ from typing import Any, Dict, Optional
 class Trip(Document):
     def validate(self):
         """Validate Trip document before saving."""
-        frappe.throw(f"Validate called - Status: {self.status}")  # Debug line
-        
         # Handle approver setting
         if self.has_value_changed('status'):
-            frappe.throw(f"Status changed from {self._doc_before_save.status if self._doc_before_save else 'None'} to {self.status}")  # Debug line
-            if self.status == "Complete":
+            if self.status == "Complete" and self._doc_before_save.status == "Awaiting Approval":
                 self.approver = frappe.session.user
 
         # Validate odometer readings
@@ -31,53 +28,44 @@ class Trip(Document):
                 frappe.throw(_("Second mass cannot be less than first mass"))
             self.net_mass = self.second_mass - self.first_mass
 
-        # Handle Item creation when status is Complete
+    def before_save(self):
+        """Before save hook to handle item creation"""
         if self.status == "Complete":
-            self.create_service_item()
+            self.handle_service_item()
 
-    def create_service_item(self):
+    def handle_service_item(self):
         """Create service item if it doesn't exist"""
-        frappe.throw(f"Create service item called for trip {self.name}")  # Debug line
-        
-        if not self.name:
-            frappe.throw("No trip name available yet")  # Debug line
-            return
-            
         try:
             # Check if item exists
             existing_item = frappe.db.exists("Item", self.name)
             
             if existing_item:
-                frappe.msgprint(
-                    msg=f"'Service Item' with ID {self.name} already exists. Saving updates to Trip Record without creating a new 'Service Item'.",
-                    title='Service Item Exists',
-                    indicator='blue'
-                )
-                return
-
-            # Create new item
-            item = frappe.get_doc({
-                "doctype": "Item",
-                "item_code": self.name,
-                "item_name": f"Trip Service - {self.name}",
-                "item_group": "Services",
-                "stock_uom": "Each",
-                "is_stock_item": 0,
-                "is_fixed_asset": 0,
-                "description": f"Service Item for Trip {self.name}"
-            })
-            
-            item.insert(ignore_permissions=True)
-            frappe.db.commit()
-            
-            frappe.msgprint(
-                msg=f"'Service Item' created with ID: {self.name}. Use this Item to reference this trip in billing documents",
-                title='Service Item Created',
-                indicator='green'
-            )
+                # Set flags for frontend
+                self.service_item_exists = True
+                self.service_item_code = self.name
+            else:
+                # Create new item
+                item = frappe.get_doc({
+                    "doctype": "Item",
+                    "item_code": self.name,
+                    "item_name": f"Trip Service - {self.name}",
+                    "item_group": "Services",
+                    "stock_uom": "Each",
+                    "is_stock_item": 0,
+                    "is_fixed_asset": 0,
+                    "description": f"Service Item for Trip {self.name}"
+                })
+                
+                item.insert(ignore_permissions=True)
+                frappe.db.commit()
+                
+                # Set flags for frontend
+                self.service_item_created = True
+                self.service_item_code = self.name
 
         except Exception as e:
-            frappe.throw(f"Error creating service item: {str(e)}")
+            frappe.log_error(f"Error creating service item for trip {self.name}: {str(e)}")
+            frappe.throw(_("Error creating service item. Please check error log."))
 
     def get_truck_query(self, doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict) -> list:
         """Filter Transportation Assets to show only Trucks."""
