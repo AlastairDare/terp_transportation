@@ -28,60 +28,47 @@ class Trip(Document):
                 frappe.throw(_("Second mass cannot be less than first mass"))
             self.net_mass = self.second_mass - self.first_mass
 
-    def on_update(self):
-        """Called after document is saved"""
-        if self.status == "Complete":
-            self.handle_service_item()
+    def on_change(self):
+        """Handle status change actions"""
+        if self.has_value_changed('status') and self.status == "Complete":
+            self.create_service_item()
 
-    def handle_service_item(self):
+    def create_service_item(self):
         """Create service item if it doesn't exist"""
-        existing_item = frappe.db.exists("Item", {"item_code": self.name})
-        
-        if not existing_item:
-            try:
-                # Create new service item
-                item = frappe.get_doc({
-                    "doctype": "Item",
-                    "item_code": self.name,
-                    "item_name": f"Trip Service - {self.name}",
-                    "item_group": "Services",
-                    "stock_uom": "Each",
-                    "is_stock_item": 0,
-                    "is_fixed_asset": 0,
-                    "description": f"Service Item for Trip {self.name}"
-                })
-                item.insert()
-                frappe.db.commit()
-                
-                # Set message for frontend
+        try:
+            # Check if item exists
+            if frappe.db.exists("Item", {"item_code": self.name}):
                 frappe.msgprint(
-                    msg=f"'Service Item' created with ID: {self.name}. Use this Item to reference this trip in billing documents",
-                    title='Service Item Created',
-                    indicator='green',
-                    primary_action={
-                        'label': 'Copy Item Code',
-                        'client_action': 'copy_item_code',
-                        'args': {
-                            'item_code': self.name
-                        }
-                    }
+                    msg=f"Service Item with ID {self.name} already exists. Saving updates to Trip Record without creating a new Service Item.",
+                    title='Existing Service Item',
+                    raise_exception=False
                 )
-            except Exception as e:
-                frappe.log_error(f"Failed to create service item: {str(e)}")
-                frappe.throw(_("Failed to create service item. Please check error log."))
-        else:
+                return
+
+            # Create new item
+            item = frappe.new_doc("Item")
+            item.update({
+                "item_code": self.name,
+                "item_name": f"Trip Service - {self.name}",
+                "item_group": "Services",
+                "stock_uom": "Each",
+                "is_stock_item": 0,
+                "is_fixed_asset": 0,
+                "description": f"Service Item for Trip {self.name}"
+            })
+            item.insert(ignore_permissions=True)
+            frappe.db.commit()
+
+            # Show success message
             frappe.msgprint(
-                msg=f"'Service Item' with ID {self.name} already exists. Saving updates to Trip Record without creating a new 'Service Item'.",
-                title='Service Item Exists',
-                indicator='blue',
-                primary_action={
-                    'label': 'Copy Item Code',
-                    'client_action': 'copy_item_code',
-                    'args': {
-                        'item_code': self.name
-                    }
-                }
+                msg='Service Item created with ID: {}. Use this Item to reference this trip in billing documents'.format(self.name),
+                title='Service Item Created',
+                indicator='green'
             )
+
+        except Exception as e:
+            frappe.log_error(f"Error creating service item for trip {self.name}: {str(e)}")
+            frappe.throw(_("Error creating service item. Please check error log."))
 
     def get_truck_query(self, doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict) -> list:
         """Filter Transportation Assets to show only Trucks."""
