@@ -5,123 +5,124 @@ from frappe.model.document import Document
 from typing import Any, Dict, Optional
 
 class Trip(Document):
-    def validate(self):
-        """Validate Trip document before saving."""
-        # Handle approver setting
-        if self.has_value_changed('status'):
-            if self.status == "Complete" and self._doc_before_save.status == "Awaiting Approval":
-                self.approver = frappe.session.user
+    pass
 
-        # Validate odometer readings
-        if self.odo_start and self.odo_end:
-            if self.odo_end < self.odo_start:
-                frappe.throw(_("End odometer reading cannot be less than start reading"))
-            self.total_distance = self.odo_end - self.odo_start
+def validate(doc, method):
+    """Validate Trip document before saving."""
+    # Handle approver setting
+    if doc.has_value_changed('status'):
+        if doc.status == "Complete" and doc._doc_before_save.status == "Awaiting Approval":
+            doc.approver = frappe.session.user
 
-        # Validate date
-        if not self.date:
-            frappe.throw(_("Trip Date is required"))
+    # Validate odometer readings
+    if doc.odo_start and doc.odo_end:
+        if doc.odo_end < doc.odo_start:
+            frappe.throw(_("End odometer reading cannot be less than start reading"))
+        doc.total_distance = doc.odo_end - doc.odo_start
 
-        # Validate mass readings if provided
-        if self.second_mass and self.first_mass:
-            if self.second_mass < self.first_mass:
-                frappe.throw(_("Second mass cannot be less than first mass"))
-            self.net_mass = self.second_mass - self.first_mass
+    # Validate date
+    if not doc.date:
+        frappe.throw(_("Trip Date is required"))
 
-    def before_save(self):
-        """Before save hook to handle item creation"""
-        if self.status == "Complete":
-            self.handle_service_item()
+    # Validate mass readings if provided
+    if doc.second_mass and doc.first_mass:
+        if doc.second_mass < doc.first_mass:
+            frappe.throw(_("Second mass cannot be less than first mass"))
+        doc.net_mass = doc.second_mass - doc.first_mass
 
-    def handle_service_item(self):
-        """Create service item if it doesn't exist"""
-        try:
-            if frappe.db.exists("Item", self.name):
-                frappe.msgprint(
-                    msg=_("Service Item {0} already exists").format(self.name),
-                    title=_("Service Item Status"),
-                    indicator="blue"
-                )
-                return
+def before_save(doc, method):
+    """Before save hook to handle item creation"""
+    if doc.status == "Complete":
+        handle_service_item(doc)
 
-            item = frappe.get_doc({
-                "doctype": "Item",
-                "item_code": self.name,
-                "item_name": f"Trip Service - {self.name}",
-                "item_group": "Services",
-                "stock_uom": "Each",
-                "is_stock_item": 0,
-                "is_fixed_asset": 0,
-                "description": f"Service Item for Trip {self.name}"
-            })
-            
-            item.insert(ignore_permissions=True)
-            
-            # Show success message with copy button
+def handle_service_item(doc):
+    """Create service item if it doesn't exist"""
+    try:
+        if frappe.db.exists("Item", doc.name):
             frappe.msgprint(
-                msg=f"""
-                    <div>
-                        <p>{_("Service Item created successfully: {0}").format(self.name)}</p>
-                        <div style="margin-top: 10px;">
-                            <button class="btn btn-xs btn-default" 
-                                    onclick="frappe.ui.form.handle_copy_to_clipboard('{self.name}')">
-                                Copy Item Code
-                            </button>
-                        </div>
+                msg=_("Service Item {0} already exists").format(doc.name),
+                title=_("Service Item Status"),
+                indicator="blue"
+            )
+            return
+
+        item = frappe.get_doc({
+            "doctype": "Item",
+            "item_code": doc.name,
+            "item_name": f"Trip Service - {doc.name}",
+            "item_group": "Services",
+            "stock_uom": "Each",
+            "is_stock_item": 0,
+            "is_fixed_asset": 0,
+            "description": f"Service Item for Trip {doc.name}"
+        })
+        
+        item.insert(ignore_permissions=True)
+        
+        frappe.msgprint(
+            msg=f"""
+                <div>
+                    <p>{_("Service Item created successfully: {0}").format(doc.name)}</p>
+                    <div style="margin-top: 10px;">
+                        <button class="btn btn-xs btn-default" 
+                                onclick="frappe.ui.form.handle_copy_to_clipboard('{doc.name}')">
+                            Copy Item Code
+                        </button>
                     </div>
-                """,
-                title=_("Service Item Created"),
-                indicator="green"
-            )
+                </div>
+            """,
+            title=_("Service Item Created"),
+            indicator="green"
+        )
 
-        except Exception as e:
-            frappe.log_error(
-                message=f"Error creating service item for trip {self.name}: {str(e)}",
-                title="Service Item Creation Error"
-            )
-            frappe.throw(_("Failed to create service item. Error: {0}").format(str(e)))
+    except Exception as e:
+        frappe.log_error(
+            message=f"Error creating service item for trip {doc.name}: {str(e)}",
+            title="Service Item Creation Error"
+        )
+        frappe.throw(_("Failed to create service item. Error: {0}").format(str(e)))
 
-    def get_truck_query(self, doctype, txt, searchfield, start, page_len, filters):
-        """Filter Transportation Assets to show only Trucks."""
-        return frappe.db.sql("""
-            SELECT name 
-            FROM `tabTransportation Asset`
-            WHERE transportation_asset_type = 'Truck'
-            AND ({key} LIKE %(txt)s
-                OR name LIKE %(txt)s)
-            ORDER BY
-                IF(LOCATE(%(_txt)s, name), LOCATE(%(_txt)s, name), 99999),
-                name
-            LIMIT %(start)s, %(page_len)s
-        """.format(**{
-            'key': searchfield
-        }), {
-            'txt': "%%%s%%" % txt,
-            '_txt': txt.replace("%", ""),
-            'start': start,
-            'page_len': page_len
-        })
-    
-    def get_trailer_query(self, doctype, txt, searchfield, start, page_len, filters):
-        """Filter Transportation Assets to show only Trailers."""
-        return frappe.db.sql("""
-            SELECT name 
-            FROM `tabTransportation Asset`
-            WHERE transportation_asset_type = 'Trailer'
-            AND ({key} LIKE %(txt)s
-                OR name LIKE %(txt)s)
-            ORDER BY
-                IF(LOCATE(%(_txt)s, name), LOCATE(%(_txt)s, name), 99999),
-                name
-            LIMIT %(start)s, %(page_len)s
-        """.format(**{
-            'key': searchfield
-        }), {
-            'txt': "%%%s%%" % txt,
-            '_txt': txt.replace("%", ""),
-            'start': start,
-            'page_len': page_len
-        })
+def get_truck_query(doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict) -> list:
+    """Filter Transportation Assets to show only Trucks."""
+    return frappe.db.sql("""
+        SELECT name 
+        FROM `tabTransportation Asset`
+        WHERE transportation_asset_type = 'Truck'
+        AND ({key} LIKE %(txt)s
+            OR name LIKE %(txt)s)
+        ORDER BY
+            IF(LOCATE(%(_txt)s, name), LOCATE(%(_txt)s, name), 99999),
+            name
+        LIMIT %(start)s, %(page_len)s
+    """.format(**{
+        'key': searchfield
+    }), {
+        'txt': "%%%s%%" % txt,
+        '_txt': txt.replace("%", ""),
+        'start': start,
+        'page_len': page_len
+    })
+
+def get_trailer_query(doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict) -> list:
+    """Filter Transportation Assets to show only Trailers."""
+    return frappe.db.sql("""
+        SELECT name 
+        FROM `tabTransportation Asset`
+        WHERE transportation_asset_type = 'Trailer'
+        AND ({key} LIKE %(txt)s
+            OR name LIKE %(txt)s)
+        ORDER BY
+            IF(LOCATE(%(_txt)s, name), LOCATE(%(_txt)s, name), 99999),
+            name
+        LIMIT %(start)s, %(page_len)s
+    """.format(**{
+        'key': searchfield
+    }), {
+        'txt': "%%%s%%" % txt,
+        '_txt': txt.replace("%", ""),
+        'start': start,
+        'page_len': page_len
+    })
 
 @frappe.whitelist()
 def get_last_odometer_reading(truck: str, current_doc: Optional[str] = None) -> Dict:
@@ -161,10 +162,3 @@ def get_last_odometer_reading(truck: str, current_doc: Optional[str] = None) -> 
         "trip_name": None,
         "trip_date": None
     }
-
-# Expose class methods at module level
-def validate(doc, method):
-    doc.validate()
-
-def before_save(doc, method):
-    doc.before_save()
