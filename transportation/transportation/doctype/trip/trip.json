@@ -4,6 +4,7 @@
     "actions": [],
     "creation": "2024-10-22 12:00:00.000000",
     "doctype": "DocType",
+    "autoname": "format:TRIP-{license_plate}-{#######}",
     "engine": "InnoDB",
     "fields": [
         {
@@ -64,6 +65,14 @@
             "in_list_view": 1,
             "reqd": 0,
             "get_query": "your_module.your_doctype.your_doctype.get_truck_query"
+        },
+        {
+            "fetch_from": "truck.license_plate",
+            "fieldname": "license_plate",
+            "fieldtype": "Data",
+            "label": "License Plate",
+            "hidden": 1,
+            "read_only": 1
         },
         {
             "fieldname": "trailer_1",

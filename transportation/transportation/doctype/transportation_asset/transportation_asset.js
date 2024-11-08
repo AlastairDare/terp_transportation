@@ -3,6 +3,7 @@ frappe.ui.form.on('Transportation Asset', {
         updateFieldLabels(frm);
         setupFieldFilters(frm);
         toggleSecondaryTrailer(frm);
+        setupFixedAssetFilter(frm);
     },
 
     transportation_asset_type: function(frm) {
@@ -10,6 +11,12 @@ frappe.ui.form.on('Transportation Asset', {
         setupFieldFilters(frm);
         clearTypeSpecificFields(frm);
         toggleSecondaryTrailer(frm);
+        setupFixedAssetFilter(frm); // Add this line
+        
+        // Clear fixed asset when type changes
+        if (frm.doc.fixed_asset) {
+            frm.set_value('fixed_asset', '');
+        }
     },
 
     primary_trailer: function(frm) {
@@ -253,4 +260,19 @@ function validateFutureDate(frm, fieldname) {
             frm.set_value(fieldname, '');
         }
     }
+}
+
+function setupFixedAssetFilter(frm) {
+    const assetType = frm.doc.transportation_asset_type;
+    if (!assetType) return;
+
+    const assetCategory = assetType === 'Truck' ? 'Trucks' : 'Trailers';
+    
+    frm.set_query('fixed_asset', () => {
+        return {
+            filters: {
+                'asset_category': assetCategory
+            }
+        };
+    });
 }

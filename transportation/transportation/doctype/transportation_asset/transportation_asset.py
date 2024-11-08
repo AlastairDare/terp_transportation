@@ -8,10 +8,30 @@ def validate(doc, method):
     # Update labels based on asset type
     update_dynamic_labels(doc)
     
+    # Validate fixed asset category
+    validate_fixed_asset_category(doc)
+    
     if doc.transportation_asset_type == "Trailer":
         validate_trailer(doc)
     elif doc.transportation_asset_type == "Truck":
         validate_truck(doc)
+
+def validate_fixed_asset_category(doc):
+    """Validate that the fixed asset belongs to the correct asset category"""
+    if not doc.fixed_asset:
+        return
+        
+    expected_category = "Trucks" if doc.transportation_asset_type == "Truck" else "Trailers"
+    asset_category = frappe.db.get_value("Asset", doc.fixed_asset, "asset_category")
+    
+    if asset_category != expected_category:
+        frappe.throw(
+            _("Fixed Asset {0} must belong to the {1} category for {2} type").format(
+                doc.fixed_asset,
+                expected_category,
+                doc.transportation_asset_type
+            )
+        )
 
 def validate_trailer(doc):
     """Validate trailer-specific rules"""
