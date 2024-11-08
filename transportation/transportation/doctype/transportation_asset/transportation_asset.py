@@ -123,3 +123,49 @@ def update_dynamic_labels(doc):
         doc.asset_name = doc.get("asset_name", "").replace("Asset", "Trailer")
         doc.asset_number = doc.get("asset_number", "").replace("Asset", "Trailer")
         doc.asset_mass = doc.get("asset_mass", "")
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_available_fixed_assets(doctype, txt, searchfield, start, page_len, filters):
+    # Get list of fixed assets already linked to transportation assets
+    linked_assets = frappe.get_all(
+        "Transportation Asset",
+        filters={
+            "transportation_asset_type": filters.get("transportation_asset_type"),
+            "docstatus": ["!=", 2]  # Not cancelled
+        },
+        pluck="fixed_asset"
+    )
+
+    # Build conditions
+    conditions = []
+    if txt:
+        conditions.append(f"(`tabAsset`.name LIKE '%{txt}%' OR `tabAsset`.asset_name LIKE '%{txt}%')")
+    
+    conditions.append(f"`tabAsset`.asset_category = '{filters.get('asset_category')}'")
+    
+    if linked_assets:
+        conditions.append(f"`tabAsset`.name NOT IN {tuple(linked_assets + [''])}")
+    
+    # Combine conditions
+    where_clause = " AND ".join(conditions)
+
+    # Return filtered results
+    return frappe.db.sql("""
+        SELECT 
+            `tabAsset`.name,
+            `tabAsset`.asset_name,
+            `tabAsset`.asset_category
+        FROM `tabAsset`
+        WHERE {where_clause}
+        ORDER BY
+            CASE WHEN `tabAsset`.name LIKE '%{txt}%' THEN 0 ELSE 1 END,
+            CASE WHEN `tabAsset`.asset_name LIKE '%{txt}%' THEN 0 ELSE 1 END,
+            `tabAsset`.name
+        LIMIT {start}, {page_len}
+    """.format(
+        where_clause=where_clause,
+        txt=frappe.db.escape(txt),
+        start=start,
+        page_len=page_len
+    ))

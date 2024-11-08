@@ -4,7 +4,7 @@
     "actions": [],
     "creation": "2024-10-22 12:00:00.000000",
     "doctype": "DocType",
-    "autoname": "format:TRIP-{license_plate}-{#######}",
+    "autoname": "format:TRIP-{license_plate}-{########}",
     "engine": "InnoDB",
     "fields": [
         {

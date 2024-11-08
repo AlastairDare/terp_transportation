@@ -1,7 +1,7 @@
 {
     "actions": [],
     "allow_rename": 0,
-    "autoname": "format:MAINT-{license_plate}-{#####}",
+    "autoname": "format:MAINT-{license_plate}-{########}",
     "creation": "2024-11-04 12:00:00.000000",
     "doctype": "DocType",
     "engine": "InnoDB",

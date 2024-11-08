@@ -57,7 +57,7 @@ frappe.ui.form.on('Trip', {
                 } else {
                     frm.set_value('odo_start', 0);
                     frappe.show_alert({
-                        message: __('No previous trip found for this truck. Starting from 0.'),
+                        message: __('No previous trip found for this truck. Starting Odometer reading must be manually populated.'),
                         indicator: 'blue'
                     });
                 }
