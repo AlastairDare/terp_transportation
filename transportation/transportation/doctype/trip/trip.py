@@ -9,9 +9,14 @@ class Trip(Document):
 
 def validate(doc, method):
     """Validate Trip document before saving."""
-    # Handle approver setting
-    if doc.has_value_changed('status'):
-        if doc.status == "Complete" and doc._doc_before_save.status == "Awaiting Approval":
+    # Handle approver setting based on whether it's a new doc or status change
+    if doc.status == "Complete":
+        if not doc.get("__islocal"):
+            # Existing document
+            if doc.has_value_changed('status') and doc._doc_before_save and doc._doc_before_save.status == "Awaiting Approval":
+                doc.approver = frappe.session.user
+        else:
+            # New document
             doc.approver = frappe.session.user
 
     # Validate odometer readings
@@ -33,7 +38,57 @@ def validate(doc, method):
 def before_save(doc, method):
     """Before save hook to handle item creation"""
     if doc.status == "Complete":
-        handle_service_item(doc)
+        try:
+            if frappe.db.exists("Item", doc.name):
+                frappe.msgprint(
+                    msg=_("Service Item {0} already exists").format(doc.name),
+                    title=_("Service Item Status"),
+                    indicator="blue"
+                )
+                return
+
+            item = frappe.get_doc({
+                "doctype": "Item",
+                "item_code": doc.name,
+                "item_name": f"{doc.name}",
+                "item_group": "Services",
+                "stock_uom": "Each",
+                "is_stock_item": 0,
+                "is_fixed_asset": 0,
+                "description": f"Service Item for Trip {doc.name}"
+            })
+            
+            item.insert(ignore_permissions=True)
+            
+            msg = f"""
+                <div>
+                    <p>{_("Service Item created successfully: {0}").format(doc.name)}</p>
+                    <div style="margin-top: 10px;">
+                        <button class="btn btn-xs btn-default" 
+                                onclick="frappe.utils.copy_to_clipboard('{doc.name}').then(() => {{
+                                    frappe.show_alert({{
+                                        message: '{_("Item code copied to clipboard")}',
+                                        indicator: 'green'
+                                    }});
+                                }})">
+                            Copy Item Code
+                        </button>
+                    </div>
+                </div>
+            """
+            
+            frappe.msgprint(
+                msg=msg,
+                title=_("Service Item Created"),
+                indicator="green"
+            )
+
+        except Exception as e:
+            frappe.log_error(
+                message=f"Error creating service item for trip {doc.name}: {str(e)}",
+                title="Service Item Creation Error"
+            )
+            frappe.throw(_("Failed to create service item. Error: {0}").format(str(e)))
 
 def handle_service_item(doc):
     """Create service item if it doesn't exist"""
@@ -49,7 +104,7 @@ def handle_service_item(doc):
         item = frappe.get_doc({
             "doctype": "Item",
             "item_code": doc.name,
-            "item_name": f"Trip Service - {doc.name}",
+            "item_name": f"{doc.name}",
             "item_group": "Services",
             "stock_uom": "Each",
             "is_stock_item": 0,
