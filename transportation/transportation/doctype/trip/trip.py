@@ -161,3 +161,10 @@ def get_last_odometer_reading(truck: str, current_doc: Optional[str] = None) -> 
         "trip_name": None,
         "trip_date": None
     }
+
+# Expose class methods at module level
+def validate(doc, method):
+    doc.validate()
+
+def before_save(doc, method):
+    doc.before_save()
