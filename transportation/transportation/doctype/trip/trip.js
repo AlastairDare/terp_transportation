@@ -3,6 +3,27 @@ frappe.ui.form.on('Trip', {
         // Add custom buttons or refresh logic if needed
     },
 
+    after_save: function(frm) {
+        // Handle different status scenarios
+        if (frm.doc.status === "Complete") {
+            if (frm.doc.service_item_created) {
+                // Show success message for newly created item
+                let message = `'Service Item' created with ID: ${frm.doc.service_item_code}. Use this Item to reference this trip in billing documents`;
+                show_copy_popup(message, frm.doc.service_item_code);
+            } else if (frm.doc.service_item_exists) {
+                // Show message for existing item
+                let message = `'Service Item' with ID ${frm.doc.service_item_code} already exists. Saving updates to Trip Record without creating a new 'Service Item'.`;
+                show_copy_popup(message, frm.doc.service_item_code);
+            }
+        } else {
+            // Show message for non-complete status
+            frappe.show_alert({
+                message: __("No 'Service Item' has been created for this Trip. Change state to 'Complete' to generate a 'Service Item'."),
+                indicator: 'blue'
+            }, 10);
+        }
+    },
+
     onload: function(frm) {
         // Set custom queries for truck and trailer fields
         frm.set_query('truck', function() {
@@ -96,7 +117,48 @@ frappe.ui.form.on('Trip', {
     }
 });
 
-// Helper functions
+// Helper function for copy popup
+function show_copy_popup(message, code_to_copy) {
+    let d = new frappe.ui.Dialog({
+        title: 'Service Item Information',
+        fields: [
+            {
+                fieldname: 'message_html',
+                fieldtype: 'HTML',
+                options: `
+                    <div class="message-content">
+                        <p>${message}</p>
+                        <div class="copy-section">
+                            <code>${code_to_copy}</code>
+                            <button class="btn btn-xs btn-default copy-btn">
+                                Copy ID
+                            </button>
+                        </div>
+                    </div>
+                `
+            }
+        ]
+    });
+
+    d.show();
+
+    // Handle copy button click
+    d.$wrapper.find('.copy-btn').on('click', function() {
+        navigator.clipboard.writeText(code_to_copy).then(function() {
+            frappe.show_alert({
+                message: __('ID copied to clipboard'),
+                indicator: 'green'
+            }, 3);
+        }).catch(function() {
+            frappe.show_alert({
+                message: __('Failed to copy to clipboard'),
+                indicator: 'red'
+            }, 3);
+        });
+    });
+}
+
+// Helper functions for calculations
 function calculateTotalDistance(frm) {
     if (frm.doc.odo_start && frm.doc.odo_end) {
         let total = frm.doc.odo_end - frm.doc.odo_start;
