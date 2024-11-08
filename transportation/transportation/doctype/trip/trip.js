@@ -41,7 +41,7 @@ frappe.ui.form.on('Trip', {
         
         // Get the last odometer reading
         frappe.call({
-            method: 'transportation.doctype.trip.trip.get_last_odometer_reading',
+            method: 'transportation.transportation.doctype.trip.trip.get_last_odometer_reading',
             args: {
                 'truck': frm.doc.truck,
                 'current_doc': frm.doc.name || null
