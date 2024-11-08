@@ -1,6 +1,5 @@
 frappe.ui.form.on('Trip', {
     refresh: function(frm) {
-        // Show/hide approver field based on status
         frm.toggle_display('approver', frm.doc.status === "Complete");
     },
 
@@ -66,37 +65,40 @@ frappe.ui.form.on('Trip', {
         });
     },
 
+    validate: function(frm) {
+        // Validate required fields before saving
+        if (frm.doc.status === "Complete") {
+            if (!frm.doc.truck) {
+                frappe.throw(__("Truck is required for completing a trip"));
+            }
+            if (!frm.doc.date) {
+                frappe.throw(__("Trip Date is required for completing a trip"));
+            }
+        }
+    },
+
+    before_save: function(frm) {
+        // Perform any necessary calculations or validations before saving
+        calculateTotalDistance(frm);
+        calculateNetMass(frm);
+    },
+
     status: function(frm) {
-        // Handle status changes
         if (frm.doc.status === "Complete" && frm.doc.__previous_status === "Awaiting Approval") {
             frm.set_value('approver', frappe.session.user);
             frm.toggle_display('approver', true);
-            
-            // Save the form after setting the approver
-            frm.save();
         } else if (frm.doc.status !== "Complete") {
             frm.toggle_display('approver', false);
         }
     },
 
     after_save: function(frm) {
-        // Handle different status scenarios
-        if (frm.doc.status === "Complete") {
-            if (frm.doc.service_item_created) {
-                // Show success message for newly created item
-                let message = `'Service Item' created with ID: ${frm.doc.service_item_code}. Use this Item to reference this trip in billing documents`;
-                show_copy_popup(message, frm.doc.service_item_code);
-            } else if (frm.doc.service_item_exists) {
-                // Show message for existing item
-                let message = `'Service Item' with ID ${frm.doc.service_item_code} already exists. Saving updates to Trip Record without creating a new 'Service Item'.`;
-                show_copy_popup(message, frm.doc.service_item_code);
-            }
-        } else {
-            // Show message for non-complete status
-            frappe.show_alert({
-                message: __("No 'Service Item' has been created for this Trip. Change state to 'Complete' to generate a 'Service Item'."),
-                indicator: 'blue'
-            }, 10);
+        if (frm.doc.status !== "Complete") {
+            frappe.msgprint({
+                title: __('Service Item Status'),
+                indicator: 'blue',
+                message: __("No 'Service Item' has been created for this Trip. Change state to 'Complete' to generate a 'Service Item'.")
+            });
         }
     },
 
@@ -114,55 +116,37 @@ frappe.ui.form.on('Trip', {
 
     first_mass: function(frm) {
         calculateNetMass(frm);
+    },
+
+    time_start: function(frm) {
+        validateTimes(frm);
+    },
+
+    time_end: function(frm) {
+        validateTimes(frm);
     }
 });
 
-// Helper function for copy popup
-function show_copy_popup(message, code_to_copy) {
-    let d = new frappe.ui.Dialog({
-        title: 'Service Item Information',
-        fields: [
-            {
-                fieldname: 'message_html',
-                fieldtype: 'HTML',
-                options: `
-                    <div class="message-content" style="margin-bottom: 15px;">
-                        <p>${message}</p>
-                        <div class="copy-section" style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
-                            <code style="background: #f0f0f0; padding: 5px; border-radius: 4px;">${code_to_copy}</code>
-                            <button class="btn btn-xs btn-default copy-btn">
-                                Copy ID
-                            </button>
-                        </div>
-                    </div>
-                `
-            }
-        ],
-        primary_action_label: 'Close',
-        primary_action(values) {
-            d.hide();
-        }
-    });
+// Register client action for copying item code
+frappe.ui.form.on("Trip", "copy_item_code", function(frm, cdt, cdn, args) {
+    if (args && args.item_code) {
+        navigator.clipboard.writeText(args.item_code)
+            .then(() => {
+                frappe.show_alert({
+                    message: __('Item code copied to clipboard'),
+                    indicator: 'green'
+                }, 3);
+            })
+            .catch(() => {
+                frappe.show_alert({
+                    message: __('Failed to copy to clipboard'),
+                    indicator: 'red'
+                }, 3);
+            });
+    }
+});
 
-    d.show();
-
-    // Handle copy button click
-    d.$wrapper.find('.copy-btn').on('click', function() {
-        navigator.clipboard.writeText(code_to_copy).then(function() {
-            frappe.show_alert({
-                message: __('ID copied to clipboard'),
-                indicator: 'green'
-            }, 3);
-        }).catch(function() {
-            frappe.show_alert({
-                message: __('Failed to copy to clipboard'),
-                indicator: 'red'
-            }, 3);
-        });
-    });
-}
-
-// Helper functions for calculations
+// Helper functions
 function calculateTotalDistance(frm) {
     if (frm.doc.odo_start && frm.doc.odo_end) {
         let total = frm.doc.odo_end - frm.doc.odo_start;
@@ -192,4 +176,25 @@ function calculateNetMass(frm) {
             frm.set_value('net_mass', '');
         }
     }
+}
+
+function validateTimes(frm) {
+    if (frm.doc.time_start && frm.doc.time_end) {
+        let startTime = moment(frm.doc.time_start, 'HH:mm:ss');
+        let endTime = moment(frm.doc.time_end, 'HH:mm:ss');
+        
+        if (endTime.isBefore(startTime)) {
+            frappe.show_alert({
+                message: __('End time cannot be before start time'),
+                indicator: 'red'
+            });
+            frm.set_value('time_end', '');
+        }
+    }
+}
+
+// Custom formatter for time values
+frappe.form.formatters['Time'] = function(value) {
+    if (!value) return '';
+    return moment(value, 'HH:mm:ss').format('HH:mm');
 }

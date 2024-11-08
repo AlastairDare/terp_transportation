@@ -27,17 +27,19 @@ class Trip(Document):
             if self.second_mass < self.first_mass:
                 frappe.throw(_("Second mass cannot be less than first mass"))
             self.net_mass = self.second_mass - self.first_mass
-            
-        # Handle Item creation/validation when status is Complete
-        if self.status == "Complete":
-            self.create_service_item()
 
-    def create_service_item(self):
-        """Create or validate service item."""
-        try:
-            existing_item = frappe.db.exists("Item", self.name)
-            
-            if not existing_item:
+    def on_update(self):
+        """Called after document is saved"""
+        if self.status == "Complete":
+            self.handle_service_item()
+
+    def handle_service_item(self):
+        """Create service item if it doesn't exist"""
+        existing_item = frappe.db.exists("Item", {"item_code": self.name})
+        
+        if not existing_item:
+            try:
+                # Create new service item
                 item = frappe.get_doc({
                     "doctype": "Item",
                     "item_code": self.name,
@@ -51,17 +53,35 @@ class Trip(Document):
                 item.insert()
                 frappe.db.commit()
                 
-                # Set flags for frontend
-                self.service_item_created = True
-                self.service_item_code = self.name
-            else:
-                # Set flags for frontend
-                self.service_item_exists = True
-                self.service_item_code = self.name
-                
-        except Exception as e:
-            frappe.log_error(f"Error creating service item: {str(e)}")
-            frappe.throw(_("Error creating service item. Please check error log."))
+                # Set message for frontend
+                frappe.msgprint(
+                    msg=f"'Service Item' created with ID: {self.name}. Use this Item to reference this trip in billing documents",
+                    title='Service Item Created',
+                    indicator='green',
+                    primary_action={
+                        'label': 'Copy Item Code',
+                        'client_action': 'copy_item_code',
+                        'args': {
+                            'item_code': self.name
+                        }
+                    }
+                )
+            except Exception as e:
+                frappe.log_error(f"Failed to create service item: {str(e)}")
+                frappe.throw(_("Failed to create service item. Please check error log."))
+        else:
+            frappe.msgprint(
+                msg=f"'Service Item' with ID {self.name} already exists. Saving updates to Trip Record without creating a new 'Service Item'.",
+                title='Service Item Exists',
+                indicator='blue',
+                primary_action={
+                    'label': 'Copy Item Code',
+                    'client_action': 'copy_item_code',
+                    'args': {
+                        'item_code': self.name
+                    }
+                }
+            )
 
     def get_truck_query(self, doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict) -> list:
         """Filter Transportation Assets to show only Trucks."""
