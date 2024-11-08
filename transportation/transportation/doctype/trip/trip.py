@@ -7,15 +7,13 @@ from typing import Any, Dict, Optional
 class Trip(Document):
     def validate(self):
         """Validate Trip document before saving."""
-        frappe.log_error(f"Validate called - Status: {self.status}")
+        frappe.throw(f"Validate called - Status: {self.status}")  # Debug line
         
         # Handle approver setting
         if self.has_value_changed('status'):
-            frappe.log_error(f"Status changed from {self._doc_before_save.status if self._doc_before_save else 'None'} to {self.status}")
+            frappe.throw(f"Status changed from {self._doc_before_save.status if self._doc_before_save else 'None'} to {self.status}")  # Debug line
             if self.status == "Complete":
                 self.approver = frappe.session.user
-                frappe.log_error("Setting approver and creating item")
-                self.create_service_item()
 
         # Validate odometer readings
         if self.odo_start and self.odo_end:
@@ -33,32 +31,31 @@ class Trip(Document):
                 frappe.throw(_("Second mass cannot be less than first mass"))
             self.net_mass = self.second_mass - self.first_mass
 
-    def after_save(self):
-        """Handle item creation after document is saved"""
+        # Handle Item creation when status is Complete
         if self.status == "Complete":
             self.create_service_item()
 
     def create_service_item(self):
         """Create service item if it doesn't exist"""
-        frappe.log_error(f"Create service item called for trip {self.name}")
+        frappe.throw(f"Create service item called for trip {self.name}")  # Debug line
         
         if not self.name:
-            frappe.log_error("No trip name available yet")
+            frappe.throw("No trip name available yet")  # Debug line
             return
             
         try:
             # Check if item exists
             existing_item = frappe.db.exists("Item", self.name)
-            frappe.log_error(f"Existing item check result: {existing_item}")
             
             if existing_item:
-                msg = f"'Service Item' with ID {self.name} already exists. Saving updates to Trip Record without creating a new 'Service Item'."
-                frappe.log_error(f"Existing item found: {msg}")
-                frappe.msgprint(_(msg))
+                frappe.msgprint(
+                    msg=f"'Service Item' with ID {self.name} already exists. Saving updates to Trip Record without creating a new 'Service Item'.",
+                    title='Service Item Exists',
+                    indicator='blue'
+                )
                 return
 
             # Create new item
-            frappe.log_error("Creating new item")
             item = frappe.get_doc({
                 "doctype": "Item",
                 "item_code": self.name,
@@ -70,18 +67,17 @@ class Trip(Document):
                 "description": f"Service Item for Trip {self.name}"
             })
             
-            item.flags.ignore_permissions = True
-            item.insert()
+            item.insert(ignore_permissions=True)
             frappe.db.commit()
             
-            msg = f"'Service Item' created with ID: {self.name}. Use this Item to reference this trip in billing documents"
-            frappe.log_error(f"Success: {msg}")
-            frappe.msgprint(_(msg), alert=True)
+            frappe.msgprint(
+                msg=f"'Service Item' created with ID: {self.name}. Use this Item to reference this trip in billing documents",
+                title='Service Item Created',
+                indicator='green'
+            )
 
         except Exception as e:
-            error_msg = f"Error creating service item for trip {self.name}: {str(e)}"
-            frappe.log_error(error_msg)
-            frappe.throw(_(error_msg))
+            frappe.throw(f"Error creating service item: {str(e)}")
 
     def get_truck_query(self, doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict) -> list:
         """Filter Transportation Assets to show only Trucks."""
