@@ -1,74 +1,145 @@
 {
-    "name": "Refuel",
+    "autoname": "format:FUEL-{license_plate}-{########}",
+    "creation": "2024-11-09 12:00:00.000000",
     "doctype": "DocType",
-    "module": "Transportation",
-    "custom": 1,
-    "autoname": "format:FUEL-{fixed_asset}-.YYYY.-.####",
+    "engine": "InnoDB",
+    "field_order": [
+        "refuel_information_section",
+        "transportation_asset",
+        "fuel_type",
+        "refuel_type",
+        "col_break_1",
+        "refuel_date",
+        "refuel_status",
+        "expense_link",
+        "external_internal_details_section",
+        "employee_responsible",
+        "material_issue",
+        "fuel_amount",
+        "fuel_rate",
+        "total_fuel_cost",
+        "refuel_receipt_section",
+        "fuel_receipt"
+    ],
     "fields": [
         {
-            "fieldname": "fixed_asset",
-            "label": "Fixed Asset",
+            "fieldname": "refuel_information_section",
+            "fieldtype": "Section Break",
+            "label": "Refuel Information"
+        },
+        {
+            "fieldname": "transportation_asset",
             "fieldtype": "Link",
-            "options": "Asset"
+            "label": "Truck",
+            "options": "Transportation Asset",
+            "reqd": 1
+        },
+        {
+            "fieldname": "fuel_type",
+            "fieldtype": "Select",
+            "label": "Fuel Type",
+            "options": "\nDiesel\nPetrol 93 Unleaded\nPetrol 95 Unleaded\nElectric",
+            "reqd": 1
+        },
+        {
+            "fieldname": "refuel_type",
+            "fieldtype": "Select",
+            "label": "Refuel Type",
+            "options": "Internal Refuel\nExternal Refuel",
+            "reqd": 1
+        },
+        {
+            "fieldname": "col_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "refuel_date",
+            "fieldtype": "Date",
+            "label": "Refuel Date",
+            "reqd": 1
+        },
+        {
+            "fieldname": "refuel_status",
+            "fieldtype": "Select",
+            "label": "Refuel Status",
+            "options": "Draft\nComplete",
+            "default": "Draft"
         },
         {
             "fieldname": "expense_link",
-            "label": "Expense Reference",
             "fieldtype": "Link",
+            "label": "Expense",
             "options": "Expense",
             "hidden": 1
         },
         {
-            "fieldname": "date",
-            "label": "Date",
-            "fieldtype": "Date"
+            "fieldname": "external_internal_details_section",
+            "fieldtype": "Section Break",
+            "label": "Refuel Details"
         },
         {
-            "fieldname": "location_vendor",
-            "label": "Location/Vendor",
-            "fieldtype": "Data"
+            "fieldname": "employee_responsible",
+            "fieldtype": "Link",
+            "label": "Employee Responsible",
+            "options": "Employee",
+            "reqd": 1
         },
         {
-            "fieldname": "fuel_type",
-            "label": "Fuel Type",
-            "fieldtype": "Select",
-            "options": "Diesel\n93 Unleaded\n95 Unleaded\nElectric"
-        },
-        {
-            "fieldname": "amount",
-            "label": "Amount (ZAR)",
-            "fieldtype": "Currency"
-        },
-        {
-            "fieldname": "price_per_litre",
-            "label": "Price per Litre (ZAR)",
-            "fieldtype": "Currency"
+            "fieldname": "material_issue",
+            "fieldtype": "Link",
+            "label": "Material Issue",
+            "options": "Stock Entry",
+            "depends_on": "eval:doc.refuel_type=='Internal Refuel'"
         },
         {
             "fieldname": "fuel_amount",
-            "label": "Fuel Amount (ℓ)",
-            "fieldtype": "Float"
+            "fieldtype": "Float",
+            "label": "Fuel Amount (litres)",
+            "depends_on": "eval:doc.refuel_type=='External Refuel'"
+        },
+        {
+            "fieldname": "fuel_rate",
+            "fieldtype": "Currency",
+            "label": "Fuel Rate",
+            "depends_on": "eval:doc.refuel_type=='External Refuel'"
+        },
+        {
+            "fieldname": "total_fuel_cost",
+            "fieldtype": "Currency",
+            "label": "Total Fuel Cost"
+        },
+        {
+            "fieldname": "refuel_receipt_section",
+            "fieldtype": "Section Break",
+            "label": "Refuel Receipt",
+            "depends_on": "eval:doc.refuel_type=='External Refuel'"
         },
         {
             "fieldname": "fuel_receipt",
-            "label": "Fuel Receipt",
-            "fieldtype": "Attach Image"
-        },
-        {
-            "fieldname": "status",
-            "label": "Status",
-            "fieldtype": "Select",
-            "options": "Draft\nSubmitted\nCancelled",
-            "default": "Draft"
+            "fieldtype": "Attach Image",
+            "label": "Fuel Receipt"
         }
     ],
+    "modified": "2024-11-09 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Fleet Management",
+    "name": "Refuel",
+    "owner": "Administrator",
     "permissions": [
         {
-            "role": "System Manager",
-            "read": 1,
-            "write": 1,
             "create": 1,
-            "delete": 1
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
         }
-    ]
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "track_changes": 1
 }

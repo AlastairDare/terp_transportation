@@ -64,7 +64,7 @@
             "options": "Transportation Asset",
             "in_list_view": 1,
             "reqd": 0,
-            "get_query": "your_module.your_doctype.your_doctype.get_truck_query"
+            "get_query": "transportation.trip.trip.get_truck_query"
         },
         {
             "fetch_from": "truck.license_plate",
@@ -80,7 +80,7 @@
             "label": "Primary Trailer",
             "options": "Transportation Asset",
             "fetch_from": "truck.primary_trailer",
-            "get_query": "your_module.your_doctype.your_doctype.get_trailer_query",
+            "get_query": "transportation.trip.trip.get_trailer_query",
             "reqd": 0
         },
         {
@@ -89,7 +89,7 @@
             "label": "Secondary Trailer",
             "options": "Transportation Asset",
             "fetch_from": "truck.secondary_trailer",
-            "get_query": "your_module.your_doctype.your_doctype.get_trailer_query",
+            "get_query": "transportation.trip.trip.get_trailer_query",
             "reqd": 0
         },
         {

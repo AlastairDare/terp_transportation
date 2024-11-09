@@ -4,3 +4,5 @@ import '../../transportation/doctype/trailer/trailer.js';
 import '../../transportation/doctype/transportation_asset/transportation_asset.js';
 import '../../transportation/doctype/asset_unified_maintenance/asset_unified_maintenance.js';
 import '../../transportation/doctype/trip/trip.js';
+import '../../transportation/doctype/expense/expense.js';
+import '../../transportation/doctype/refuel/refuel.js';
