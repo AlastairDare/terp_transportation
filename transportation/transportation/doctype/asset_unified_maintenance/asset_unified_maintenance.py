@@ -60,20 +60,24 @@ def create_or_update_expense(doc):
     # Format expense notes based on execution type and maintenance type
     if doc.execution_type == "Internal":
         if doc.maintenance_type == "Repair":
-            expense_notes = f"""Internal Repair. {frappe.format_value(doc.total_cost, {'fieldtype': 'Currency'})} of stock consumed by stock_entry ({doc.stock_entry}). Overseeing employee {doc.employee_name}"""
+            expense_notes = f"""Internal Repair. {frappe.format_value(doc.total_cost, {'fieldtype': 'Currency'})} of stock consumed by ({doc.stock_entry}). Overseeing employee {doc.employee_name}"""
         else:  # Service
-            expense_notes = f"""Internal Service. {frappe.format_value(doc.total_cost, {'fieldtype': 'Currency'})} of stock consumed by stock_entry ({doc.stock_entry}). Overseeing employee {doc.employee_name}"""
+            expense_notes = f"""Internal Service. {frappe.format_value(doc.total_cost, {'fieldtype': 'Currency'})} of stock consumed by ({doc.stock_entry}). Overseeing employee {doc.employee_name}"""
     else:  # External
         if doc.maintenance_type == "Repair":
             expense_notes = f"""External Repair. {frappe.format_value(doc.total_cost, {'fieldtype': 'Currency'})} at vendor ({doc.vendor}). Purchase Invoice {doc.purchase_invoice}"""
         else:  # Service
             expense_notes = f"""External Service. {frappe.format_value(doc.total_cost, {'fieldtype': 'Currency'})} at vendor ({doc.vendor}). Purchase Invoice {doc.purchase_invoice}"""
 
+    # Get the license plate
+    license_plate = frappe.db.get_value('Transportation Asset', doc.asset, 'license_plate')
+
     # Logic for existing expense
     if existing_expense:
         # Update existing expense
         expense = frappe.get_doc("Expense", existing_expense)
-        expense.asset = doc.asset
+        expense.transportation_asset = doc.asset  # Changed from asset to transportation_asset
+        expense.license_plate = license_plate  # Explicitly set license plate
         expense.expense_date = doc.complete_date
         expense.expense_cost = doc.total_cost
         expense.expense_notes = expense_notes
@@ -109,7 +113,8 @@ def create_or_update_expense(doc):
         # Create new expense document
         expense = frappe.get_doc({
             "doctype": "Expense",
-            "asset": doc.asset,
+            "transportation_asset": doc.asset,  # Changed from asset to transportation_asset
+            "license_plate": license_plate,  # Explicitly set license plate
             "expense_type": "Unified Maintenance",
             "maintenance_reference": doc.name,
             "expense_date": doc.complete_date,
