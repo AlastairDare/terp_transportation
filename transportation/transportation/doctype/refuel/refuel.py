@@ -39,6 +39,27 @@ def get_material_issue_cost(material_issue):
     return cost if cost else 0
 
 
+def handle_truck_query(doctype, txt, searchfield, start, page_len, filters):
+    return frappe.db.sql("""
+        SELECT name 
+        FROM `tabTransportation Asset`
+        WHERE transportation_asset_type = 'Truck'
+        AND ({key} LIKE %(txt)s
+            OR name LIKE %(txt)s)
+        ORDER BY
+            IF(LOCATE(%(_txt)s, name), LOCATE(%(_txt)s, name), 99999),
+            name
+        LIMIT %(start)s, %(page_len)s
+    """.format(**{
+        'key': searchfield
+    }), {
+        'txt': "%%%s%%" % txt,
+        '_txt': txt.replace("%", ""),
+        'start': start,
+        'page_len': page_len
+    })
+
+
 def before_save(doc, method):
     if doc.refuel_status == "Complete":
         create_or_update_expense(doc)
@@ -54,6 +75,7 @@ def create_or_update_expense(doc):
     else:
         expense_notes = f"""External Refuel. {frappe.format_value(doc.total_fuel_cost, {'fieldtype': 'Currency'})} of {doc.fuel_type} consumed. Overseeing employee {doc.employee_responsible}"""
 
+    # Logic for existing expense
     if existing_expense:
         # Update existing expense
         expense = frappe.get_doc("Expense", existing_expense)
@@ -63,7 +85,10 @@ def create_or_update_expense(doc):
         expense.expense_notes = expense_notes
         expense.save(ignore_permissions=True)
         
-        # Show update success message with copy button
+        # Update expense link in refuel document
+        doc.expense_link = expense.name
+        
+        # Only show update message
         message = f"""
         <div>
             <p>Expense log updated with ID: {expense.name}</p>
@@ -82,8 +107,10 @@ def create_or_update_expense(doc):
         frappe.msgprint(
             msg=message,
             title=_("Expense Updated"),
-            indicator="green"
+            indicator="blue"
         )
+        
+    # Logic for new expense
     else:
         # Create new expense document
         expense = frappe.get_doc({
@@ -98,7 +125,10 @@ def create_or_update_expense(doc):
         
         expense.insert(ignore_permissions=True)
         
-        # Show creation success message with copy button
+        # Update expense link in refuel document
+        doc.expense_link = expense.name
+        
+        # Only show creation message
         message = f"""
         <div>
             <p>New expense logged with ID: {expense.name}</p>
@@ -119,6 +149,3 @@ def create_or_update_expense(doc):
             title=_("Expense Created"),
             indicator="green"
         )
-    
-    # Update expense link in refuel document
-    doc.expense_link = expense.name
