@@ -1,27 +1,11 @@
 {
-    "autoname": "format:FUEL-{license_plate}-{########}",
-    "creation": "2024-11-09 12:00:00.000000",
+    "name": "Refuel",
     "doctype": "DocType",
+    "module": "Transportation",
     "engine": "InnoDB",
     "public":1,
-    "field_order": [
-        "refuel_information_section",
-        "transportation_asset",
-        "fuel_type",
-        "refuel_type",
-        "col_break_1",
-        "refuel_date",
-        "refuel_status",
-        "expense_link",
-        "external_internal_details_section",
-        "employee_responsible",
-        "material_issue",
-        "fuel_amount",
-        "fuel_rate",
-        "total_fuel_cost",
-        "refuel_receipt_section",
-        "fuel_receipt"
-    ],
+    "custom": 1,
+    "autoname": "format:FUEL-{license_plate}-{########}",
     "fields": [
         {
             "fieldname": "refuel_information_section",
@@ -123,8 +107,6 @@
     ],
     "modified": "2024-11-09 12:00:00.000000",
     "modified_by": "Administrator",
-    "module": "Transportation",
-    "name": "Refuel",
     "owner": "Administrator",
     "permissions": [
         {

@@ -2,6 +2,7 @@
     "name": "Expense",
     "doctype": "DocType",
     "module": "Transportation",
+    "engine": "InnoDB",
     "custom": 1,
     "public":1,
     "autoname": "format:EXP-{license_plate}-{########}",
