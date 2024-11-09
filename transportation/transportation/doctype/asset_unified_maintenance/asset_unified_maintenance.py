@@ -114,21 +114,6 @@ def handle_issue_updates(doc):
         # Update the issue
         frappe.db.set_value('Issues', issue_link.issue, update_values, update_modified=False)
 
-@frappe.whitelist()
-def get_stock_entry_value(doc):
-    if not doc.stock_entry:
-        return 0
-        
-    try:
-        stock_entry = frappe.get_doc('Stock Entry', doc.stock_entry)
-    except frappe.DoesNotExistError:
-        frappe.throw(_("Stock Entry {0} does not exist").format(doc.stock_entry))
-        
-    if stock_entry.stock_entry_type != 'Material Issue':
-        frappe.throw(_("Selected Stock Entry must be of type 'Material Issue'"))
-        
-    return flt(stock_entry.total_outgoing_value)
-
 def before_save(doc, method):
     """Before save hook for Asset Unified Maintenance"""
     if doc.maintenance_status == "Complete":
@@ -232,6 +217,21 @@ def create_or_update_expense(doc):
         )
 
 class AssetUnifiedMaintenance(Document):
+    @frappe.whitelist()
+    def get_stock_entry_value(self):
+        if not self.stock_entry:
+            return 0
+            
+        try:
+            stock_entry = frappe.get_doc('Stock Entry', self.stock_entry)
+        except frappe.DoesNotExistError:
+            frappe.throw(_("Stock Entry {0} does not exist").format(self.stock_entry))
+            
+        if stock_entry.stock_entry_type != 'Material Issue':
+            frappe.throw(_("Selected Stock Entry must be of type 'Material Issue'"))
+            
+        return flt(stock_entry.total_outgoing_value)
+
     @frappe.whitelist()
     def get_last_maintenance_dates(self):
         last_dates = {
