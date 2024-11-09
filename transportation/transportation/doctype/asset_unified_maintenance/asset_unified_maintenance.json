@@ -56,6 +56,13 @@
             "hidden": 1
         },
         {
+            "fieldname": "expense_link",
+            "fieldtype": "Link",
+            "label": "Expense Link",
+            "options": "Expense",
+            "read_only": 1
+        },
+        {
             "fieldname": "last_dates_col",
             "fieldtype": "Column Break"
         },
