@@ -40,8 +40,94 @@ def get_permission_query_conditions(user=None):
     return ""
 
 def validate(doc, method):
-    # Keep validate function but don't show any messages here
-    pass
+    """Validation logic for Asset Unified Maintenance"""
+    validate_dates(doc)
+    validate_and_update_total_cost(doc)
+    handle_issue_updates(doc)
+    if not doc.company:
+        doc.company = frappe.defaults.get_user_default("Company")
+
+def validate_dates(doc):
+    if not doc.begin_date:
+        frappe.throw(_("Begin Date is mandatory"))
+        
+    if doc.complete_date and getdate(doc.complete_date) < getdate(doc.begin_date):
+        frappe.throw(_("Complete Date cannot be before Begin Date"))
+
+def validate_and_update_total_cost(doc):
+    if doc.execution_type == 'Internal' and doc.stock_entry:
+        doc.total_stock_consumed_cost = get_stock_entry_value(doc)
+        doc.total_cost = flt(doc.total_stock_consumed_cost)
+    elif doc.execution_type == 'External' and doc.purchase_invoice:
+        pi = frappe.get_doc('Purchase Invoice', doc.purchase_invoice)
+        doc.total_cost = flt(pi.grand_total)
+    else:
+        doc.total_cost = 0
+
+def handle_issue_updates(doc):
+    if not doc.is_new():
+        # Get previously linked issues for this maintenance record
+        prev_issues = frappe.get_all('Issues', 
+            filters={'issue_assigned_to_maintenance_job': doc.name},
+            fields=['name'])
+        prev_issue_names = {issue.name for issue in prev_issues}
+        
+        # Get current assigned issues from child table
+        current_issue_names = {issue.issue for issue in doc.issues if issue.issue and issue.assign}
+        
+        # Handle unassigned issues
+        unassigned_issues = prev_issue_names - current_issue_names
+        if unassigned_issues:
+            for issue_name in unassigned_issues:
+                frappe.db.set_value('Issues', issue_name, {
+                    'issue_status': 'Unresolved',
+                    'issue_assigned_to_maintenance_job': ''
+                }, update_modified=False)
+    
+    # Handle currently assigned issues
+    for issue_link in doc.issues:
+        if not issue_link.issue or not issue_link.assign:
+            continue
+            
+        try:
+            issue_doc = frappe.get_doc('Issues', issue_link.issue)
+        except frappe.DoesNotExistError:
+            frappe.throw(_("Issue {0} does not exist").format(issue_link.issue))
+            
+        if issue_doc.asset != doc.asset:
+            frappe.throw(_("Issue {0} does not belong to the selected asset {1}").format(
+                issue_link.issue, doc.asset))
+            
+        # Update issue status based on maintenance status
+        update_values = {}
+        
+        if doc.maintenance_status in ['Planned', 'In Progress']:
+            update_values['issue_status'] = 'Assigned For Fix'
+            update_values['issue_assigned_to_maintenance_job'] = doc.name
+        elif doc.maintenance_status == 'Complete':
+            update_values['issue_status'] = 'Resolved'
+            update_values['issue_assigned_to_maintenance_job'] = doc.name
+        elif doc.maintenance_status == 'Cancelled':
+            update_values['issue_status'] = 'Unresolved'
+            update_values['issue_assigned_to_maintenance_job'] = ''
+            
+        # Update the issue
+        frappe.db.set_value('Issues', issue_link.issue, update_values, update_modified=False)
+
+@frappe.whitelist()
+def get_stock_entry_value(doc):
+    if not doc.stock_entry:
+        return 0
+        
+    try:
+        stock_entry = frappe.get_doc('Stock Entry', doc.stock_entry)
+    except frappe.DoesNotExistError:
+        frappe.throw(_("Stock Entry {0} does not exist").format(doc.stock_entry))
+        
+    if stock_entry.stock_entry_type != 'Material Issue':
+        frappe.throw(_("Selected Stock Entry must be of type 'Material Issue'"))
+        
+    return flt(stock_entry.total_outgoing_value)
 
 def before_save(doc, method):
     """Before save hook for Asset Unified Maintenance"""
@@ -146,95 +232,6 @@ def create_or_update_expense(doc):
         )
 
 class AssetUnifiedMaintenance(Document):
-    def validate(self):
-        self.validate_dates()
-        self.validate_and_update_total_cost()
-        self.handle_issue_updates()
-        if not self.company:
-            self.company = frappe.defaults.get_user_default("Company")
-        
-    def validate_dates(self):
-        if not self.begin_date:
-            frappe.throw(_("Begin Date is mandatory"))
-            
-        if self.complete_date and getdate(self.complete_date) < getdate(self.begin_date):
-            frappe.throw(_("Complete Date cannot be before Begin Date"))
-
-    def validate_and_update_total_cost(self):
-        if self.execution_type == 'Internal' and self.stock_entry:
-            self.total_stock_consumed_cost = self.get_stock_entry_value()
-            self.total_cost = flt(self.total_stock_consumed_cost)
-        elif self.execution_type == 'External' and self.purchase_invoice:
-            pi = frappe.get_doc('Purchase Invoice', self.purchase_invoice)
-            self.total_cost = flt(pi.grand_total)
-        else:
-            self.total_cost = 0
-
-    def handle_issue_updates(self):
-        if not self.is_new():
-            # Get previously linked issues for this maintenance record
-            prev_issues = frappe.get_all('Issues', 
-                filters={'issue_assigned_to_maintenance_job': self.name},
-                fields=['name'])
-            prev_issue_names = {issue.name for issue in prev_issues}
-            
-            # Get current assigned issues from child table
-            current_issue_names = {issue.issue for issue in self.issues if issue.issue and issue.assign}
-            
-            # Handle unassigned issues
-            unassigned_issues = prev_issue_names - current_issue_names
-            if unassigned_issues:
-                for issue_name in unassigned_issues:
-                    frappe.db.set_value('Issues', issue_name, {
-                        'issue_status': 'Unresolved',
-                        'issue_assigned_to_maintenance_job': ''
-                    }, update_modified=False)
-    
-        # Handle currently assigned issues
-        for issue_link in self.issues:
-            if not issue_link.issue or not issue_link.assign:
-                continue
-                
-            try:
-                issue_doc = frappe.get_doc('Issues', issue_link.issue)
-            except frappe.DoesNotExistError:
-                frappe.throw(_("Issue {0} does not exist").format(issue_link.issue))
-                
-            if issue_doc.asset != self.asset:
-                frappe.throw(_("Issue {0} does not belong to the selected asset {1}").format(
-                    issue_link.issue, self.asset))
-                
-            # Update issue status based on maintenance status
-            update_values = {}
-            
-            if self.maintenance_status in ['Planned', 'In Progress']:
-                update_values['issue_status'] = 'Assigned For Fix'
-                update_values['issue_assigned_to_maintenance_job'] = self.name
-            elif self.maintenance_status == 'Complete':
-                update_values['issue_status'] = 'Resolved'
-                update_values['issue_assigned_to_maintenance_job'] = self.name
-            elif self.maintenance_status == 'Cancelled':
-                update_values['issue_status'] = 'Unresolved'
-                update_values['issue_assigned_to_maintenance_job'] = ''
-                
-            # Update the issue
-            frappe.db.set_value('Issues', issue_link.issue, update_values, update_modified=False)
-
-    @frappe.whitelist()
-    def get_stock_entry_value(self):
-        if not self.stock_entry:
-            return 0
-            
-        try:
-            stock_entry = frappe.get_doc('Stock Entry', self.stock_entry)
-        except frappe.DoesNotExistError:
-            frappe.throw(_("Stock Entry {0} does not exist").format(self.stock_entry))
-            
-        if stock_entry.stock_entry_type != 'Material Issue':
-            frappe.throw(_("Selected Stock Entry must be of type 'Material Issue'"))
-            
-        return flt(stock_entry.total_outgoing_value)
-
     @frappe.whitelist()
     def get_last_maintenance_dates(self):
         last_dates = {
