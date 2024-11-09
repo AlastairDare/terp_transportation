@@ -3,8 +3,9 @@
     "doctype": "DocType",
     "module": "Transportation",
     "engine": "InnoDB",
-    "public":1,
+    "public": 1,
     "custom": 1,
+    "is_submittable": 1,
     "autoname": "format:FUEL-{license_plate}-{########}",
     "fields": [
         {
@@ -59,6 +60,15 @@
             "default": "Draft"
         },
         {
+            "fieldname": "docstatus",
+            "fieldtype": "Select",
+            "label": "Document Status",
+            "options": "Draft\nSubmitted\nCancelled",
+            "default": "0",
+            "hidden": 1,
+            "no_copy": 1
+        },
+        {
             "fieldname": "expense_link",
             "fieldtype": "Link",
             "label": "Expense",
@@ -111,6 +121,15 @@
             "fieldname": "fuel_receipt",
             "fieldtype": "Attach Image",
             "label": "Fuel Receipt"
+        },
+        {
+            "fieldname": "amended_from",
+            "fieldtype": "Link",
+            "label": "Amended From",
+            "no_copy": 1,
+            "options": "Refuel",
+            "print_hide": 1,
+            "read_only": 1
         }
     ],
     "modified": "2024-11-09 12:00:00.000000",
@@ -127,7 +146,10 @@
             "report": 1,
             "role": "System Manager",
             "share": 1,
-            "write": 1
+            "write": 1,
+            "submit": 1,
+            "cancel": 1,
+            "amend": 1
         }
     ],
     "sort_field": "modified",

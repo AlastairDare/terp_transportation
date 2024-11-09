@@ -1,5 +1,9 @@
 import frappe
 from frappe import _
+from frappe.model.document import Document
+
+class Refuel(Document):
+    pass
 
 def validate(doc, method):
     # Validate required fields
@@ -37,50 +41,84 @@ def on_submit(doc, method):
             indicator="blue"
         )
     elif doc.refuel_status == "Complete":
-        create_expense(doc)
+        create_or_update_expense(doc)
 
-def create_expense(doc):
+def create_or_update_expense(doc):
+    # Check if expense already exists
+    existing_expense = frappe.db.exists("Expense", {"refuel_reference": doc.name})
+    
     # Format expense notes based on refuel type
     if doc.refuel_type == "Internal Refuel":
         expense_notes = f"""Internal Refuel. {frappe.format_value(doc.total_fuel_cost, {'fieldtype': 'Currency'})} of {doc.fuel_type} consumed by Material Issue ({doc.material_issue}). Overseeing employee {doc.employee_responsible}"""
     else:
         expense_notes = f"""External Refuel. {frappe.format_value(doc.total_fuel_cost, {'fieldtype': 'Currency'})} of {doc.fuel_type} consumed. Overseeing employee {doc.employee_responsible}"""
 
-    # Create expense document
-    expense = frappe.get_doc({
-        "doctype": "Expense",
-        "transportation_asset": doc.transportation_asset,
-        "expense_type": "Refuel",
-        "refuel_reference": doc.name,
-        "expense_date": doc.refuel_date,
-        "expense_cost": doc.total_fuel_cost,
-        "expense_notes": expense_notes
-    })
-    
-    expense.insert(ignore_permissions=True)
+    if existing_expense:
+        # Update existing expense
+        expense = frappe.get_doc("Expense", existing_expense)
+        expense.transportation_asset = doc.transportation_asset
+        expense.expense_date = doc.refuel_date
+        expense.expense_cost = doc.total_fuel_cost
+        expense.expense_notes = expense_notes
+        expense.save(ignore_permissions=True)
+        
+        # Show update success message with copy button
+        message = f"""
+        <div>
+            <p>Expense log updated with ID: {expense.name}</p>
+            <button class="btn btn-xs btn-default" 
+                    onclick="frappe.utils.copy_to_clipboard('{expense.name}').then(() => {{
+                        frappe.show_alert({{
+                            message: 'Expense ID copied to clipboard',
+                            indicator: 'green'
+                        }});
+                    }})">
+                Copy Expense ID
+            </button>
+        </div>
+        """
+        
+        frappe.msgprint(
+            msg=message,
+            title=_("Expense Updated"),
+            indicator="green"
+        )
+    else:
+        # Create new expense document
+        expense = frappe.get_doc({
+            "doctype": "Expense",
+            "transportation_asset": doc.transportation_asset,
+            "expense_type": "Refuel",
+            "refuel_reference": doc.name,
+            "expense_date": doc.refuel_date,
+            "expense_cost": doc.total_fuel_cost,
+            "expense_notes": expense_notes
+        })
+        
+        expense.insert(ignore_permissions=True)
+        
+        # Show creation success message with copy button
+        message = f"""
+        <div>
+            <p>New expense logged with ID: {expense.name}</p>
+            <button class="btn btn-xs btn-default" 
+                    onclick="frappe.utils.copy_to_clipboard('{expense.name}').then(() => {{
+                        frappe.show_alert({{
+                            message: 'Expense ID copied to clipboard',
+                            indicator: 'green'
+                        }});
+                    }})">
+                Copy Expense ID
+            </button>
+        </div>
+        """
+        
+        frappe.msgprint(
+            msg=message,
+            title=_("Expense Created"),
+            indicator="green"
+        )
     
     # Update expense link in refuel document
     doc.expense_link = expense.name
     doc.save(ignore_permissions=True)
-    
-    # Show success message with copy button
-    message = f"""
-    <div>
-        <p>Expense logged with ID: {expense.name}</p>
-        <button class="btn btn-xs btn-default" 
-                onclick="frappe.utils.copy_to_clipboard('{expense.name}').then(() => {{
-                    frappe.show_alert({{
-                        message: 'Expense ID copied to clipboard',
-                        indicator: 'green'
-                    }});
-                }})">
-            Copy Expense ID
-        </button>
-    </div>
-    """
-    
-    frappe.msgprint(
-        msg=message,
-        title=_("Expense Created"),
-        indicator="green"
-    )
