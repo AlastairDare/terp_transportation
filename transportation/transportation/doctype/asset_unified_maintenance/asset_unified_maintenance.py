@@ -39,8 +39,12 @@ def get_permission_query_conditions(user=None):
     # You can add company or other field-level permissions here
     return ""
 
+def validate(doc, method):
+    # Keep validate function but don't show any messages here
+    pass
+
 def before_save(doc, method):
-    """Before save hook to create/update expense"""
+    """Before save hook for Asset Unified Maintenance"""
     if doc.maintenance_status == "Complete":
         create_or_update_expense(doc)
 

@@ -73,7 +73,9 @@ frappe.ui.form.on('Asset Unified Maintenance', {
     },
     
     before_save: function(frm) {
-        if (frm.doc.maintenance_status === "Planned" || frm.doc.maintenance_status === "In Progress") {
+        // Show alert only when explicitly saving in these statuses
+        // and not during automatic refreshes or other operations
+        if (frm.doc.__unsaved && (frm.doc.maintenance_status === "Planned" || frm.doc.maintenance_status === "In Progress")) {
             frappe.show_alert({
                 message: __("Change status to 'Complete' to create an Expense log for this Maintenance Event"),
                 indicator: 'blue'
