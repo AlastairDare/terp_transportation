@@ -5,22 +5,20 @@ from frappe.model.document import Document
 
 
 class Refuel(Document):
-    pass
+    def validate(self):
+        if not self.transportation_asset:
+            frappe.throw(_("Transportation Asset is required"))
+        
+        if not self.refuel_date:
+            frappe.throw(_("Refuel Date is required"))
+        
+        # Validate and calculate total fuel cost for external refuel
+        if self.refuel_type == "External Refuel":
+            if self.fuel_amount and self.fuel_rate:
+                self.total_fuel_cost = self.fuel_amount * self.fuel_rate
 
 
 def validate(doc, method):
-    # Validate required fields
-    if not doc.transportation_asset:
-        frappe.throw(_("Transportation Asset is required"))
-    
-    if not doc.refuel_date:
-        frappe.throw(_("Refuel Date is required"))
-    
-    # Validate and calculate total fuel cost for external refuel
-    if doc.refuel_type == "External Refuel":
-        if doc.fuel_amount and doc.fuel_rate:
-            doc.total_fuel_cost = doc.fuel_amount * doc.fuel_rate
-    
     # Show message for draft status
     if doc.refuel_status == "Draft" and not doc.get("__islocal"):
         frappe.msgprint(
@@ -71,9 +69,9 @@ def create_or_update_expense(doc):
     
     # Format expense notes based on refuel type
     if doc.refuel_type == "Internal Refuel":
-        expense_notes = f"""Internal Refuel. {frappe.format_value(doc.total_fuel_cost, {'fieldtype': 'Currency'})} of {doc.fuel_type} consumed by Material Issue ({doc.material_issue}). Overseeing employee {doc.employee_name}"""
+        expense_notes = f"""Internal Refuel. {frappe.format_value(doc.total_fuel_cost, {'fieldtype': 'Currency'})} of {doc.fuel_type} consumed by Material Issue ({doc.material_issue}). Overseeing employee {doc.employee_responsible}"""
     else:
-        expense_notes = f"""External Refuel. {frappe.format_value(doc.total_fuel_cost, {'fieldtype': 'Currency'})} of {doc.fuel_type} consumed. Overseeing employee {doc.employee_name}"""
+        expense_notes = f"""External Refuel. {frappe.format_value(doc.total_fuel_cost, {'fieldtype': 'Currency'})} of {doc.fuel_type} consumed. Overseeing employee {doc.employee_responsible}"""
 
     # Logic for existing expense
     if existing_expense:
@@ -86,9 +84,9 @@ def create_or_update_expense(doc):
         expense.save(ignore_permissions=True)
         
         # Update expense link in refuel document
-        doc.expense_link = expense.name
+        doc.db_set('expense_link', expense.name)
         
-        # Only show update message
+        # Show update message
         message = f"""
         <div>
             <p>Expense log updated with ID: {expense.name}</p>
@@ -126,9 +124,9 @@ def create_or_update_expense(doc):
         expense.insert(ignore_permissions=True)
         
         # Update expense link in refuel document
-        doc.expense_link = expense.name
+        doc.db_set('expense_link', expense.name)
         
-        # Only show creation message
+        # Show creation message
         message = f"""
         <div>
             <p>New expense logged with ID: {expense.name}</p>

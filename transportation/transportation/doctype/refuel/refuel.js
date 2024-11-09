@@ -87,31 +87,6 @@ frappe.ui.form.on('Refuel', {
         }
     },
 
-    after_save: function(frm) {
-        if (frm.doc.refuel_status === "Complete" && frm.doc.expense_link) {
-            let message = `
-                <div>
-                    <p>${__('Expense logged with ID: ')}${frm.doc.expense_link}</p>
-                    <button class="btn btn-xs btn-default" 
-                            onclick="frappe.utils.copy_to_clipboard('${frm.doc.expense_link}').then(() => {
-                                frappe.show_alert({
-                                    message: '${__('Expense ID copied to clipboard')}',
-                                    indicator: 'green'
-                                });
-                            })">
-                        ${__('Copy Expense ID')}
-                    </button>
-                </div>
-            `;
-            
-            frappe.msgprint({
-                message: message,
-                title: __("Expense Created"),
-                indicator: "green"
-            });
-        }
-    },
-
     fuel_amount: function(frm) {
         calculate_total_fuel_cost(frm);
     },
