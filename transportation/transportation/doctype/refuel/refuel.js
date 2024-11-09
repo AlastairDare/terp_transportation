@@ -16,11 +16,11 @@ frappe.ui.form.on('Refuel', {
     },
 
     onload: function(frm) {
-        // Set query for transportation asset to get fuel type
+        // Set query for transportation asset - removed is_active filter
         frm.set_query('transportation_asset', function() {
             return {
                 filters: {
-                    'is_active': 1
+                    'docstatus': 1  // Only show submitted transportation assets
                 }
             };
         });
