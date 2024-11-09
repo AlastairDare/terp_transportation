@@ -72,8 +72,9 @@ doc_events = {
         "before_save": "transportation.transportation.doctype.trip.trip.before_save"
     },
     "Refuel": {
-        "before_save": "transportation.transportation.doctype.refuel.refuel.before_save",
-        "on_submit": "transportation.transportation.doctype.refuel.refuel.on_submit"
+    "validate": "transportation.transportation.doctype.refuel.refuel.validate",
+    "before_save": "transportation.transportation.doctype.refuel.refuel.before_save",
+    "on_submit": "transportation.transportation.doctype.refuel.refuel.on_submit"
     }
 }
 

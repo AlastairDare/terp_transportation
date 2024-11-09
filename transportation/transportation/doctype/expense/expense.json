@@ -37,10 +37,10 @@
             "in_list_view": 1
         },
         {
-            "fieldname": "toll_reference",
+            "fieldname": "tolls_reference",
             "fieldtype": "Link",
-            "label": "Toll Reference",
-            "options": "Toll",
+            "label": "Tolls Reference",
+            "options": "Tolls",
             "read_only": 1,
             "depends_on": "eval:doc.expense_type=='Toll'"
         },

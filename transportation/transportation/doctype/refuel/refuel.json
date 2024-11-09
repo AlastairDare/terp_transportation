@@ -20,6 +20,14 @@
             "reqd": 1
         },
         {
+            "fetch_from": "transportation_asset.license_plate",
+            "fieldname": "license_plate",
+            "fieldtype": "Data",
+            "label": "License Plate",
+            "hidden": 1,
+            "read_only": 1
+        },
+        {
             "fieldname": "fuel_type",
             "fieldtype": "Select",
             "label": "Fuel Type",
