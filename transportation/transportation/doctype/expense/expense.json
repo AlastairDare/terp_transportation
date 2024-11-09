@@ -3,6 +3,7 @@
     "doctype": "DocType",
     "module": "Transportation",
     "custom": 1,
+    "public":1,
     "autoname": "format:EXP-{license_plate}-{########}",
     "fields": [
         {
