@@ -73,7 +73,7 @@ doc_events = {
     },
     "Refuel": {
     "validate": "transportation.transportation.doctype.refuel.refuel.validate",
-    "on_submit": "transportation.transportation.doctype.refuel.refuel.on_submit"
+    "before_save": "transportation.transportation.doctype.refuel.refuel.before_save"
     }
 }
 

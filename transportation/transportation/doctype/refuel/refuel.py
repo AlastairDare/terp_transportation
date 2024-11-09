@@ -1,9 +1,12 @@
+from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
 
+
 class Refuel(Document):
     pass
+
 
 def validate(doc, method):
     # Validate required fields
@@ -25,6 +28,7 @@ def validate(doc, method):
             indicator="blue"
         )
 
+
 @frappe.whitelist()
 def get_material_issue_cost(material_issue):
     """Get the total cost from a material issue document"""
@@ -34,14 +38,11 @@ def get_material_issue_cost(material_issue):
     cost = frappe.db.get_value('Stock Entry', material_issue, 'total_outgoing_value')
     return cost if cost else 0
 
-def on_submit(doc, method):
-    if doc.refuel_status == "Draft":
-        frappe.msgprint(
-            _("Expense Item has not been created. Change 'Refuel Status' to 'Complete' to create an Expense log for this Refuel Event"),
-            indicator="blue"
-        )
-    elif doc.refuel_status == "Complete":
+
+def before_save(doc, method):
+    if doc.refuel_status == "Complete":
         create_or_update_expense(doc)
+
 
 def create_or_update_expense(doc):
     # Check if expense already exists
@@ -121,4 +122,3 @@ def create_or_update_expense(doc):
     
     # Update expense link in refuel document
     doc.expense_link = expense.name
-    doc.save(ignore_permissions=True)
