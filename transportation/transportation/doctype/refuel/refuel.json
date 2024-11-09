@@ -78,6 +78,13 @@
             "reqd": 1
         },
         {
+            "fieldname": "employee_name",
+            "label": "Employee Name",
+            "fieldtype": "Read Only",
+            "fetch_from": "employee_responsible.employee_name",
+            "hidden":1
+        },
+        {
             "fieldname": "material_issue",
             "fieldtype": "Link",
             "label": "Material Issue",
