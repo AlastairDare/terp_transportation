@@ -42,10 +42,10 @@ def get_permission_query_conditions(user=None):
 def validate(doc, method):
     """Show message for non-complete status"""
     if doc.maintenance_status in ["Planned", "In Progress"] and not doc.get("__islocal"):
-        frappe.msgprint(
-            _("Change status to 'Complete' to create an Expense log for this Maintenance Event"),
-            indicator="blue"
-        )
+        frappe.show_alert({
+            'message': _("Change status to 'Complete' to create an Expense log for this Maintenance Event"),
+            'indicator': 'blue'
+        }, 5)  # The second parameter '5' is the number of seconds the alert will show
 
 def before_save(doc, method):
     """Before save hook to create/update expense"""
