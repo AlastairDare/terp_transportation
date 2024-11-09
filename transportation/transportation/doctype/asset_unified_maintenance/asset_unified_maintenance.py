@@ -39,6 +39,111 @@ def get_permission_query_conditions(user=None):
     # You can add company or other field-level permissions here
     return ""
 
+def validate(doc, method):
+    """Show message for non-complete status"""
+    if doc.maintenance_status in ["Planned", "In Progress"] and not doc.get("__islocal"):
+        frappe.msgprint(
+            _("Change status to 'Complete' to create an Expense log for this Maintenance Event"),
+            indicator="blue"
+        )
+
+def before_save(doc, method):
+    """Before save hook to create/update expense"""
+    if doc.maintenance_status == "Complete":
+        create_or_update_expense(doc)
+
+def create_or_update_expense(doc):
+    """Create or update expense entry for maintenance"""
+    # Check if expense already exists
+    existing_expense = frappe.db.exists("Expense", {"maintenance_reference": doc.name})
+    
+    # Format expense notes based on execution type and maintenance type
+    if doc.execution_type == "Internal":
+        if doc.maintenance_type == "Repair":
+            expense_notes = f"""Internal Repair. {frappe.format_value(doc.total_cost, {'fieldtype': 'Currency'})} of stock consumed by stock_entry ({doc.stock_entry}). Overseeing employee {doc.employee_name}"""
+        else:  # Service
+            expense_notes = f"""Internal Service. {frappe.format_value(doc.total_cost, {'fieldtype': 'Currency'})} of stock consumed by stock_entry ({doc.stock_entry}). Overseeing employee {doc.employee_name}"""
+    else:  # External
+        if doc.maintenance_type == "Repair":
+            expense_notes = f"""External Repair. {frappe.format_value(doc.total_cost, {'fieldtype': 'Currency'})} at vendor ({doc.vendor}). Purchase Invoice {doc.purchase_invoice}"""
+        else:  # Service
+            expense_notes = f"""External Service. {frappe.format_value(doc.total_cost, {'fieldtype': 'Currency'})} at vendor ({doc.vendor}). Purchase Invoice {doc.purchase_invoice}"""
+
+    # Logic for existing expense
+    if existing_expense:
+        # Update existing expense
+        expense = frappe.get_doc("Expense", existing_expense)
+        expense.asset = doc.asset
+        expense.expense_date = doc.complete_date
+        expense.expense_cost = doc.total_cost
+        expense.expense_notes = expense_notes
+        expense.save(ignore_permissions=True)
+        
+        # Update expense link in maintenance document
+        doc.db_set('expense_link', expense.name)
+        
+        # Show update message
+        message = f"""
+        <div>
+            <p>Expense log updated with ID: {expense.name}</p>
+            <button class="btn btn-xs btn-default" 
+                    onclick="frappe.utils.copy_to_clipboard('{expense.name}').then(() => {{
+                        frappe.show_alert({{
+                            message: 'Expense ID copied to clipboard',
+                            indicator: 'green'
+                        }});
+                    }})">
+                Copy Expense ID
+            </button>
+        </div>
+        """
+        
+        frappe.msgprint(
+            msg=message,
+            title=_("Expense Updated"),
+            indicator="blue"
+        )
+        
+    # Logic for new expense
+    else:
+        # Create new expense document
+        expense = frappe.get_doc({
+            "doctype": "Expense",
+            "asset": doc.asset,
+            "expense_type": "Unified Maintenance",
+            "maintenance_reference": doc.name,
+            "expense_date": doc.complete_date,
+            "expense_cost": doc.total_cost,
+            "expense_notes": expense_notes
+        })
+        
+        expense.insert(ignore_permissions=True)
+        
+        # Update expense link in maintenance document
+        doc.db_set('expense_link', expense.name)
+        
+        # Show creation message
+        message = f"""
+        <div>
+            <p>New expense logged with ID: {expense.name}</p>
+            <button class="btn btn-xs btn-default" 
+                    onclick="frappe.utils.copy_to_clipboard('{expense.name}').then(() => {{
+                        frappe.show_alert({{
+                            message: 'Expense ID copied to clipboard',
+                            indicator: 'green'
+                        }});
+                    }})">
+                Copy Expense ID
+            </button>
+        </div>
+        """
+        
+        frappe.msgprint(
+            msg=message,
+            title=_("Expense Created"),
+            indicator="green"
+        )
+
 class AssetUnifiedMaintenance(Document):
     def validate(self):
         self.validate_dates()
@@ -75,16 +180,15 @@ class AssetUnifiedMaintenance(Document):
             # Get current assigned issues from child table
             current_issue_names = {issue.issue for issue in self.issues if issue.issue and issue.assign}
             
-            # Handle unassigned issues (ones that were previously linked but not currently assigned)
+            # Handle unassigned issues
             unassigned_issues = prev_issue_names - current_issue_names
             if unassigned_issues:
-                # Update unassigned issues to Unresolved and remove maintenance link
                 for issue_name in unassigned_issues:
                     frappe.db.set_value('Issues', issue_name, {
                         'issue_status': 'Unresolved',
                         'issue_assigned_to_maintenance_job': ''
                     }, update_modified=False)
-        
+    
         # Handle currently assigned issues
         for issue_link in self.issues:
             if not issue_link.issue or not issue_link.assign:

@@ -141,6 +141,13 @@
             "options": "Employee"
         },
         {
+            "fieldname": "employee_name",
+            "label": "Employee Name",
+            "fieldtype": "Read Only",
+            "fetch_from": "assigned_employee.employee_name",
+            "hidden":1
+        },
+        {
             "depends_on": "eval:doc.execution_type=='Internal'",
             "fieldname": "stock_entry",
             "fieldtype": "Link",

@@ -3,6 +3,11 @@ frappe.ui.form.on('Asset Unified Maintenance', {
         update_field_labels(frm);
         update_warranty_display(frm);
         
+        // Update section label based on execution type
+        frm.set_df_property('execution_details_section', 'label',
+            frm.doc.execution_type === 'Internal' ? 'Internal Execution Details' : 'External Execution Details'
+        );
+        
         if(frm.doc.docstatus === 1) {
             frm.add_custom_button(__('Stock Entry'), function() {
                 frappe.route_options = {
@@ -67,6 +72,15 @@ frappe.ui.form.on('Asset Unified Maintenance', {
         update_warranty_display(frm);
     },
     
+    before_save: function(frm) {
+        if (frm.doc.maintenance_status === "Planned" || frm.doc.maintenance_status === "In Progress") {
+            frappe.show_alert({
+                message: __("Change status to 'Complete' to create an Expense log for this Maintenance Event"),
+                indicator: 'blue'
+            });
+        }
+    },
+    
     asset: function(frm) {
         if (frm.doc.asset) {
             frappe.call({
@@ -102,6 +116,11 @@ frappe.ui.form.on('Asset Unified Maintenance', {
     },
     
     execution_type: function(frm) {
+        // Update section label when execution type changes
+        frm.set_df_property('execution_details_section', 'label',
+            frm.doc.execution_type === 'Internal' ? 'Internal Execution Details' : 'External Execution Details'
+        );
+
         if (frm.doc.execution_type === 'Internal') {
             frm.set_value('vendor', '');
             frm.set_value('purchase_invoice', '');
