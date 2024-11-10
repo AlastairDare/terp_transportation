@@ -38,14 +38,6 @@
             "fetch_from": "fixed_asset.asset_name"
         },
         {
-            "fieldname": "most_recent_service",
-            "label": "Most Recent Service",
-            "fieldtype": "Link",
-            "options": "Asset Unified Maintenance",
-            "hidden": 1,
-            "read_only":1
-        },
-        {
             "fieldname": "asset_number",
             "label": "Asset Number",
             "fieldtype": "Data",
@@ -53,14 +45,14 @@
             "unique": 1
         },
         {
-            "fieldname": "col_break_1",
-            "fieldtype": "Column Break"
-        },
-        {
             "fieldname": "etag_number",
             "label": "E-Tag Number",
             "fieldtype": "Data",
             "depends_on": "eval:doc.transportation_asset_type=='Truck'"
+        },
+        {
+            "fieldname": "col_break_1",
+            "fieldtype": "Column Break"
         },
         {
             "fieldname": "license_plate",
@@ -84,7 +76,8 @@
         {
             "fieldname": "pairing_section",
             "fieldtype": "Section Break",
-            "label": "Asset Pairing"
+            "label": "Asset Pairing",
+            "collapsible": 1
         },
         {
             "fieldname": "primary_trailer",
@@ -112,6 +105,26 @@
             "depends_on": "eval:doc.transportation_asset_type=='Trailer'",
             "description": "Link to paired trailer",
             "get_query": "transportation.utils.get_valid_trailers"
+        },
+        {
+            "fieldname": "service_detail_section",
+            "fieldtype": "Section Break",
+            "label": "Service Detail",
+            "collapsible": 1
+        },
+        {
+            "fieldname": "most_recent_service",
+            "label": "Most Recent Service",
+            "fieldtype": "Link",
+            "options": "Asset Unified Maintenance",
+            "hidden": 1,
+            "read_only":1
+        },
+        {
+            "fieldname": "most_recent_service_date",
+            "label": "Most Recent Service Date",
+            "fieldtype": "Read Only",
+            "fetch_from": "most_recent_service.complete_date"
         },
         {
             "fieldname": "warranty_section",

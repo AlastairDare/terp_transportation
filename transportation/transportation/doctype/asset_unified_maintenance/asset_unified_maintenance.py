@@ -59,6 +59,11 @@ class AssetUnifiedMaintenance(Document):
         if not self.company:
             self.company = frappe.defaults.get_user_default("Company")
 
+        if self.maintenance_status == "Complete" and not self.complete_date:
+            # Get the maintenance type label for the error message
+            maintenance_type_label = "Service" if self.maintenance_type == "Service" else "Repair"
+            frappe.throw(_(f"When setting a {maintenance_type_label} to 'Complete' an '{maintenance_type_label} Complete Date' is required"))
+
     def validate_dates(self):
         if not self.begin_date:
             frappe.throw(_("Begin Date is mandatory"))

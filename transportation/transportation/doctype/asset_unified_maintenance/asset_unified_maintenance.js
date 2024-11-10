@@ -116,6 +116,11 @@ frappe.ui.form.on('Asset Unified Maintenance', {
     maintenance_type: function(frm) {
         update_field_labels(frm);
     },
+
+    maintenance_status: function(frm) {
+        // Only make the field visually required in the form UI
+        frm.toggle_reqd('complete_date', frm.doc.maintenance_status === 'Complete');
+    },
     
     execution_type: function(frm) {
         // Update section label when execution type changes
