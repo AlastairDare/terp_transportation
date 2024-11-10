@@ -4,6 +4,7 @@ frappe.ui.form.on('Transportation Asset', {
         setupFieldFilters(frm);
         toggleSecondaryTrailer(frm);
         setupFixedAssetFilter(frm);
+        toggleMostRecentService(frm);
     },
 
     transportation_asset_type: function(frm) {
@@ -92,6 +93,10 @@ function updateFieldLabels(frm) {
         frm.set_df_property('cargo_capacity', 'description', 
             'Maximum mass of the cargo that the trailer can reliably support');
     }
+}
+
+function toggleMostRecentService(frm) {
+    frm.set_df_property('most_recent_service', 'hidden', !frm.doc.most_recent_service);
 }
 
 function setupFieldFilters(frm) {

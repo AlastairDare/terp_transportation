@@ -26,12 +26,30 @@ def validate(doc, method):
     # Remove any notification logic from here to avoid doubles
     pass
 
+def update_transportation_asset(doc):
+    """
+    Update Transportation Asset's most recent service and mileage when maintenance is complete
+    """
+    if doc.maintenance_type == "Service" and doc.maintenance_status == "Complete":
+        # Get the linked transportation asset
+        transportation_asset = frappe.get_doc("Transportation Asset", doc.asset)
+        
+        # Update most recent service link
+        transportation_asset.most_recent_service = doc.name
+        
+        # Update current mileage if odometer reading is provided
+        if doc.odometer_reading and doc.odometer_reading > 0:
+            transportation_asset.current_mileage = doc.odometer_reading
+            
+        transportation_asset.save(ignore_permissions=True)
+
 def before_save(doc, method):
     """
-    Module level before_save hook - for expense creation
+    Module level before_save hook - for expense creation and transportation asset updates
     """
     if doc.maintenance_status == "Complete":
         doc.create_or_update_expense()
+        update_transportation_asset(doc)
 
 class AssetUnifiedMaintenance(Document):
     def validate(self):
@@ -265,3 +283,5 @@ class AssetUnifiedMaintenance(Document):
                 issue_assigned_to_maintenance_job = ''
             WHERE name IN %s
         """, (tuple(issues),))
+
+    

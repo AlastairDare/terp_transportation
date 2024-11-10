@@ -1,0 +1,288 @@
+{
+    "actions": [],
+    "creation": "2024-11-10 12:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "fields": [
+        {
+            "fieldname": "drivers_license_notifications_section",
+            "fieldtype": "Section Break",
+            "label": "Drivers License Notifications"
+        },
+        {
+            "default": "0",
+            "fieldname": "track_driver_license_expiry_date",
+            "fieldtype": "Check",
+            "label": "Track Driver License Expiry Date"
+        },
+        {
+            "depends_on": "track_driver_license_expiry_date",
+            "fieldname": "driver_license_level_1_time_remaining",
+            "fieldtype": "Int",
+            "label": "Driver License Level 1 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_driver_license_expiry_date",
+            "fieldname": "driver_license_level_2_time_remaining",
+            "fieldtype": "Int",
+            "label": "Driver License Level 2 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_driver_license_expiry_date",
+            "fieldname": "driver_license_level_3_time_remaining",
+            "fieldtype": "Int",
+            "label": "Driver License Level 3 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "fieldname": "professional_driving_permit_notifications_section",
+            "fieldtype": "Section Break",
+            "label": "Professional Driving Permit (PrDP) Notifications"
+        },
+        {
+            "default": "0",
+            "fieldname": "track_driver_prdp_expiry_date",
+            "fieldtype": "Check",
+            "label": "Track Driver PrDP Expiry Date"
+        },
+        {
+            "depends_on": "track_driver_prdp_expiry_date",
+            "fieldname": "prdp_level_1_time_remaining",
+            "fieldtype": "Int",
+            "label": "PrDP Level 1 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_driver_prdp_expiry_date",
+            "fieldname": "prdp_level_2_time_remaining",
+            "fieldtype": "Int",
+            "label": "PrDP Level 2 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_driver_prdp_expiry_date",
+            "fieldname": "prdp_level_3_time_remaining",
+            "fieldtype": "Int",
+            "label": "PrDP Level 3 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "fieldname": "vehicles_and_trailers_registration_notifications_section",
+            "fieldtype": "Section Break",
+            "label": "Vehicles & Trailers Registration Notifications"
+        },
+        {
+            "default": "0",
+            "fieldname": "track_transportation_assets_registration_expiry_date",
+            "fieldtype": "Check",
+            "label": "Track Transportation Assets Registration Expiry Date"
+        },
+        {
+            "depends_on": "track_transportation_assets_registration_expiry_date",
+            "fieldname": "transportation_asset_registration_level_1_time_remaining",
+            "fieldtype": "Int",
+            "label": "Transportation Asset Registration Level 1 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_transportation_assets_registration_expiry_date",
+            "fieldname": "transportation_asset_registration_level_2_time_remaining",
+            "fieldtype": "Int",
+            "label": "Transportation Asset Registration Level 2 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_transportation_assets_registration_expiry_date",
+            "fieldname": "transportation_asset_registration_level_3_time_remaining",
+            "fieldtype": "Int",
+            "label": "Transportation Asset Registration Level 3 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "fieldname": "vehicles_and_trailers_warranty_notifications_section",
+            "fieldtype": "Section Break",
+            "label": "Vehicles & Trailers Warranty Notifications"
+        },
+        {
+            "default": "0",
+            "fieldname": "track_transportation_assets_warranty_expiry_date",
+            "fieldtype": "Check",
+            "label": "Track Transportation Assets Warranty Expiry Date"
+        },
+        {
+            "depends_on": "track_transportation_assets_warranty_expiry_date",
+            "fieldname": "transportation_asset_warranty_level_1_time_remaining",
+            "fieldtype": "Int",
+            "label": "Transportation Asset Warranty Level 1 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_transportation_assets_warranty_expiry_date",
+            "fieldname": "transportation_asset_warranty_level_2_time_remaining",
+            "fieldtype": "Int",
+            "label": "Transportation Asset Warranty Level 2 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_transportation_assets_warranty_expiry_date",
+            "fieldname": "transportation_asset_warranty_level_3_time_remaining",
+            "fieldtype": "Int",
+            "label": "Transportation Asset Warranty Level 3 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "fieldname": "vehicles_and_trailers_crw_notifications_section",
+            "fieldtype": "Section Break",
+            "label": "Vehicles & Trailers Certificate of Roadworthiness (CRW) Notifications"
+        },
+        {
+            "default": "0",
+            "fieldname": "track_transportation_assets_crw_expiry_date",
+            "fieldtype": "Check",
+            "label": "Track Transportation Assets CRW Expiry Date"
+        },
+        {
+            "depends_on": "track_transportation_assets_crw_expiry_date",
+            "fieldname": "transportation_asset_crw_level_1_time_remaining",
+            "fieldtype": "Int",
+            "label": "Transportation Asset CRW Level 1 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_transportation_assets_crw_expiry_date",
+            "fieldname": "transportation_asset_crw_level_2_time_remaining",
+            "fieldtype": "Int",
+            "label": "Transportation Asset CRW Level 2 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_transportation_assets_crw_expiry_date",
+            "fieldname": "transportation_asset_crw_level_3_time_remaining",
+            "fieldtype": "Int",
+            "label": "Transportation Asset CRW Level 3 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "fieldname": "trucks_and_trailers_cbrta_notifications_section",
+            "fieldtype": "Section Break",
+            "label": "Trucks & Trailers Cross-Border Road Transport Permit (C-BRTA) Notifications"
+        },
+        {
+            "default": "0",
+            "fieldname": "track_transportation_assets_cbrta_expiry_date",
+            "fieldtype": "Check",
+            "label": "Track Transportation Assets C-BRTA Expiry Date"
+        },
+        {
+            "depends_on": "track_transportation_assets_cbrta_expiry_date",
+            "fieldname": "transportation_asset_cbrta_level_1_time_remaining",
+            "fieldtype": "Int",
+            "label": "Transportation Asset C-BRTA Level 1 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_transportation_assets_cbrta_expiry_date",
+            "fieldname": "transportation_asset_cbrta_level_2_time_remaining",
+            "fieldtype": "Int",
+            "label": "Transportation Asset C-BRTA Level 2 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_transportation_assets_cbrta_expiry_date",
+            "fieldname": "transportation_asset_cbrta_level_3_time_remaining",
+            "fieldtype": "Int",
+            "label": "Transportation Asset C-BRTA Level 3 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "fieldname": "vehicles_upcoming_service_by_time_notifications_section",
+            "fieldtype": "Section Break",
+            "label": "Vehicles Upcoming Service By Time Notifications"
+        },
+        {
+            "default": "0",
+            "fieldname": "track_vehicles_upcoming_service_by_time",
+            "fieldtype": "Check",
+            "label": "Track Vehicles Upcoming Service By Time"
+        },
+        {
+            "depends_on": "track_vehicles_upcoming_service_by_time",
+            "fieldname": "track_vehicles_service_by_time_level_1_time_remaining",
+            "fieldtype": "Int",
+            "label": "Track Vehicles Service By Time Level 1 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_vehicles_upcoming_service_by_time",
+            "fieldname": "track_vehicles_service_by_time_level_2_time_remaining",
+            "fieldtype": "Int",
+            "label": "Track Vehicles Service By Time Level 2 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_vehicles_upcoming_service_by_time",
+            "fieldname": "track_vehicles_service_by_time_level_3_time_remaining",
+            "fieldtype": "Int",
+            "label": "Track Vehicles Service By Time Level 3 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "fieldname": "vehicles_upcoming_service_by_kilometres_notifications_section",
+            "fieldtype": "Section Break",
+            "label": "Vehicles Upcoming Service By Kilometres Notifications"
+        },
+        {
+            "default": "0",
+            "fieldname": "track_vehicles_upcoming_service_by_kilometres",
+            "fieldtype": "Check",
+            "label": "Track Vehicles Upcoming Service By Kilometres"
+        },
+        {
+            "depends_on": "track_vehicles_upcoming_service_by_kilometres",
+            "fieldname": "track_vehicles_service_by_kilometres_level_1_time_remaining",
+            "fieldtype": "Int",
+            "label": "Track Vehicles Service By Kilometres Level 1 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_vehicles_upcoming_service_by_kilometres",
+            "fieldname": "track_vehicles_service_by_kilometres_level_2_time_remaining",
+            "fieldtype": "Int",
+            "label": "Track Vehicles Service By Kilometres Level 2 Time Remaining",
+            "read_only": 1
+        },
+        {
+            "depends_on": "track_vehicles_upcoming_service_by_kilometres",
+            "fieldname": "track_vehicles_service_by_kilometres_level_3_time_remaining",
+            "fieldtype": "Int",
+            "label": "Track Vehicles Service By Kilometres Level 3 Time Remaining",
+            "read_only": 1
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "issingle": 1,
+    "links": [],
+    "modified": "2024-11-10 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Transportation",
+    "name": "Notifications Config",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "print": 1,
+            "read": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "track_changes": 1
+}
