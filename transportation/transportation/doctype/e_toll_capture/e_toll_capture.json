@@ -1,7 +1,8 @@
 {
     "autoname": "hash",
     "module": "Transportation",
-    "name": "E-Toll Capture",
+    "label": "E-Toll Capture",
+    "name": "E_Toll_Capture",
     "doctype": "DocType",
     "is_submittable": 0,
     "engine": "InnoDB",
