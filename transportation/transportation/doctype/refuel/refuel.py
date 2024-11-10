@@ -69,7 +69,7 @@ def create_or_update_expense(doc):
     
     # Format expense notes based on refuel type
     if doc.refuel_type == "Internal Refuel":
-        expense_notes = f"""Internal Refuel. {frappe.format_value(doc.total_fuel_cost, {'fieldtype': 'Currency'})} of {doc.fuel_type} consumed by Material Issue ({doc.material_issue}). Overseeing employee {doc.employee_name}"""
+        expense_notes = f"""Internal Refuel. {frappe.format_value(doc.total_fuel_cost, {'fieldtype': 'Currency'})} of {doc.fuel_type} consumed by Material Issue {doc.material_issue}. Overseeing employee {doc.employee_name}"""
     else:
         expense_notes = f"""External Refuel. {frappe.format_value(doc.total_fuel_cost, {'fieldtype': 'Currency'})} of {doc.fuel_type} consumed. Overseeing employee {doc.employee_name}"""
 

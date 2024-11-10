@@ -1,0 +1,52 @@
+{
+    "autoname": "hash",
+    "module": "Transportation",
+    "name": "E-Toll Capture",
+    "doctype": "DocType",
+    "is_submittable": 0,
+    "engine": "InnoDB",
+    "fields": [
+        {
+            "fieldname": "toll_document",
+            "fieldtype": "Attach",
+            "label": "E-Toll Document",
+            "reqd": 1,
+            "allowed_file_types": ["pdf"]
+        },
+        {
+            "fieldname": "process_section",
+            "fieldtype": "Section Break",
+            "label": "Processing Status"
+        },
+        {
+            "fieldname": "processing_status",
+            "fieldtype": "Data",
+            "label": "Status",
+            "read_only": 1
+        },
+        {
+            "fieldname": "progress_count",
+            "fieldtype": "Data",
+            "label": "Progress",
+            "read_only": 1
+        },
+        {
+            "fieldname": "total_records",
+            "fieldtype": "Int",
+            "label": "Total Records Found",
+            "read_only": 1
+        },
+        {
+            "fieldname": "new_records",
+            "fieldtype": "Int",
+            "label": "New Records",
+            "read_only": 1
+        },
+        {
+            "fieldname": "duplicate_records",
+            "fieldtype": "Int",
+            "label": "Duplicate Records",
+            "read_only": 1
+        }
+    ]
+}

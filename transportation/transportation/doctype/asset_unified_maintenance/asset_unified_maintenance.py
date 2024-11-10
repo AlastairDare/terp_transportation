@@ -131,9 +131,9 @@ class AssetUnifiedMaintenance(Document):
         
         if self.execution_type == "Internal":
             if self.maintenance_type == "Repair":
-                expense_notes = f"""Internal Repair. {frappe.format_value(self.total_cost, {'fieldtype': 'Currency'})} of stock consumed by material issue {self.stock_entry}. Overseeing employee {self.employee_name}"""
+                expense_notes = f"""Internal Repair. {frappe.format_value(self.total_cost, {'fieldtype': 'Currency'})} of stock consumed by Material Issue {self.stock_entry}. Overseeing employee {self.employee_name}"""
             else:
-                expense_notes = f"""Internal Service. {frappe.format_value(self.total_cost, {'fieldtype': 'Currency'})} of stock consumed by material issue {self.stock_entry}. Overseeing employee {self.employee_name}"""
+                expense_notes = f"""Internal Service. {frappe.format_value(self.total_cost, {'fieldtype': 'Currency'})} of stock consumed by Material Issue {self.stock_entry}. Overseeing employee {self.employee_name}"""
         else:
             if self.maintenance_type == "Repair":
                 expense_notes = f"""External Repair. {frappe.format_value(self.total_cost, {'fieldtype': 'Currency'})} at vendor ({self.vendor}). Purchase Invoice {self.purchase_invoice}"""

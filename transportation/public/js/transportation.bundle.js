@@ -7,3 +7,6 @@ import '../../transportation/doctype/trip/trip.js';
 import '../../transportation/doctype/expense/expense.js';
 import '../../transportation/doctype/refuel/refuel.js';
 import '../../transportation/doctype/notifications_config/notifications_config.js';
+import '../../transportation/doctype/e_toll_capture/e_toll_capture.js';
+import '../../transportation/doctype/tolls/tolls.js';
+

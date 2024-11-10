@@ -1,50 +1,52 @@
 {
+    "autoname": "hash",
+    "module": "Transportation",
     "name": "Tolls",
     "doctype": "DocType",
-    "module": "Transportation",
-    "custom": 1,
-    "autoname": "format:TOLL-{####}",
-    "public": 1,
+    "is_submittable": 0,
+    "engine": "InnoDB",
     "fields": [
-    {
-        "fieldname": "etag_number",
-        "label": "E-Tag Number",
-        "fieldtype": "Link",
-        "options": "Vehicle",
-        "reqd": 1,
-        "in_list_view": 1,
-        "description": "Link to corresponding Vehicle record"
-    },
-    {
-        "fieldname": "location",
-        "label": "Location",
-        "fieldtype": "Data",
-        "reqd": 1,
-        "in_list_view": 1
-    },
-    {
-        "fieldname": "amount",
-        "label": "Amount (ZAR)",
-        "fieldtype": "Currency",
-        "reqd": 1,
-        "in_list_view": 1,
-        "options": "ZAR"
-    },
-    {
-        "fieldname": "transaction_date",
-        "label": "Transaction Date",
-        "fieldtype": "Date",
-        "reqd": 1,
-        "in_list_view": 1
-    }
+        {
+            "fieldname": "transaction_date",
+            "fieldtype": "Datetime",
+            "label": "Transaction Date & Time",
+            "reqd": 1,
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "tolling_point",
+            "fieldtype": "Data",
+            "label": "TA/Tolling Point",
+            "reqd": 1,
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "etag_id",
+            "fieldtype": "Data",
+            "label": "e-tag ID",
+            "reqd": 1,
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "net_amount",
+            "fieldtype": "Currency",
+            "label": "Net Amount",
+            "reqd": 1,
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "process_status",
+            "fieldtype": "Select",
+            "label": "Process Status",
+            "options": "Unprocessed\nProcessed",
+            "default": "Unprocessed"
+        },
+        {
+            "fieldname": "source_capture",
+            "fieldtype": "Link",
+            "label": "Source Capture",
+            "options": "E-Toll Capture"
+        }
     ],
-    "permissions": [
-    {
-        "role": "System Manager",
-        "read": 1,
-        "write": 1,
-        "create": 1,
-        "delete": 1
-    }
-    ]
- }
+    "unique_fields": ["transaction_date", "etag_id"]
+}
