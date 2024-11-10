@@ -95,9 +95,6 @@ whitelisted_methods = {
 	"transportation.transportation.doctype.asset_unified_maintenance.asset_unified_maintenance.get_last_maintenance_dates": True
 }
 
-doctype_list = [
-    "E_Toll_Capture"
-]
 
 dependencies = [
     {
