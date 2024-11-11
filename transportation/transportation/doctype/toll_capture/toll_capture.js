@@ -1,9 +1,9 @@
-frappe.ui.form.on('E-Toll Capture', {
+frappe.ui.form.on('Toll Capture', {
     refresh: function(frm) {
         // Add Process Document button
-        frm.add_custom_button(__('Process E-Toll Document'), function() {
+        frm.add_custom_button(__('Process Toll Document'), function() {
             if (!frm.doc.toll_document) {
-                frappe.throw(__('Please attach an E-Toll document first'));
+                frappe.throw(__('Please attach an Toll document first'));
                 return;
             }
             
@@ -15,11 +15,11 @@ frappe.ui.form.on('E-Toll Capture', {
             }
             
             // Create progress dialog
-            let dialog = frappe.show_progress('Processing E-Toll Document', 0, 100, 'Please wait...');
+            let dialog = frappe.show_progress('Processing Toll Document', 0, 100, 'Please wait...');
             
             // Call process method
             frappe.call({
-                method: 'transportation.transportation.doctype.e_toll_capture.e_toll_capture.process_etoll_document',
+                method: 'transportation.transportation.doctype.toll_capture.toll_capture.process_toll_document',
                 args: {
                     doc_name: frm.doc.name
                 },

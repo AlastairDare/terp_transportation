@@ -1,8 +1,8 @@
 {
     "autoname": "hash",
     "module": "Transportation",
-    "label": "E-Toll Capture",
-    "name": "E-Toll Capture",
+    "label": "Toll Capture",
+    "name": "Toll Capture",
     "doctype": "DocType",
     "is_submittable": 0,
     "engine": "InnoDB",
@@ -10,7 +10,7 @@
         {
             "fieldname": "toll_document",
             "fieldtype": "Attach",
-            "label": "E-Toll Document",
+            "label": "Toll Document",
             "reqd": 1,
             "allowed_file_types": ["pdf"]
         },

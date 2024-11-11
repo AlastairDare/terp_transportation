@@ -22,7 +22,7 @@ class ETollCapture:
             file_path = get_file_path(self.doc.toll_document)
             
             # Update status
-            self.update_status("Extracting e-toll data...")
+            self.update_status("Extracting toll data...")
             
             # Read tables from PDF
             tables = tabula.read_pdf(file_path, pages='all')
@@ -75,14 +75,14 @@ class ETollCapture:
                 })
                 toll.insert()
             
-            self.update_status(f"{len(new_records)} New E-Toll Records Saved")
+            self.update_status(f"{len(new_records)} New Toll Records Saved")
             
         except Exception as e:
             frappe.throw(f"Error processing document: {str(e)}")
 
 @frappe.whitelist()
 def process_etoll_document(doc_name):
-    doc = frappe.get_doc("E-Toll Capture", doc_name)
+    doc = frappe.get_doc("Toll Capture", doc_name)
     processor = ETollCapture(doc)
     processor.process_document()
     return "Processing Complete"

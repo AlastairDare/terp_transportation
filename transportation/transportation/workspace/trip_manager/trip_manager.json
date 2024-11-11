@@ -1,5 +1,5 @@
 {
-  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Trip Management</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip\",\"col\":3}},{\"type\":\"card\",\"data\":{\"card_name\":\"Trips\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Trip List\",\"link_type\":\"DocType\",\"link_to\":\"Trip\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Tolls\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Tolls List\",\"link_type\":\"DocType\",\"link_to\":\"Tolls\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"E-Toll Capture List\",\"link_type\":\"DocType\",\"link_to\":\"E-Toll Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Documents\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Delivery Note Capture List\",\"link_type\":\"DocType\",\"link_to\":\"Delivery Note Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"E-Toll Capture List\",\"link_type\":\"DocType\",\"link_to\":\"E-Toll Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}}]",
+  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Trip Management</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip\",\"col\":3}},{\"type\":\"card\",\"data\":{\"card_name\":\"Trips\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Trip List\",\"link_type\":\"DocType\",\"link_to\":\"Trip\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Tolls\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Tolls List\",\"link_type\":\"DocType\",\"link_to\":\"Tolls\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Toll Capture List\",\"link_type\":\"DocType\",\"link_to\":\"Toll Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Documents\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Delivery Note Capture List\",\"link_type\":\"DocType\",\"link_to\":\"Delivery Note Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Toll Capture List\",\"link_type\":\"DocType\",\"link_to\":\"Toll Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}}]",
   "doctype": "Workspace",
   "icon": "road",
   "label": "Trip Manager",
@@ -44,9 +44,9 @@
     {
       "hidden": 0,
       "is_query_report": 0,
-      "label": "E-Toll Capture",
+      "label": "Toll Capture",
       "link_count": 0,
-      "link_to": "E-Toll Capture",
+      "link_to": "Toll Capture",
       "link_type": "DocType",
       "onboard": 1,
       "type": "Link"
@@ -72,9 +72,9 @@
     {
       "hidden": 0,
       "is_query_report": 0,
-      "label": "E-Toll Capture",
+      "label": "Toll Capture",
       "link_count": 0,
-      "link_to": "E-Toll Capture",
+      "link_to": "Toll Capture",
       "link_type": "DocType",
       "onboard": 1,
       "type": "Link"
