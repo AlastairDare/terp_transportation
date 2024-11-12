@@ -2,8 +2,8 @@ import frappe
 import tabula
 import pandas as pd
 from frappe.utils.file_manager import get_file_path
-from frappe.model.document import Document
 from frappe.utils import get_datetime_str
+from frappe.model.document import Document
 
 def validate(doc, method):
     if not doc.toll_document:
@@ -17,16 +17,6 @@ def validate(doc, method):
 def create_toll_record(transaction_date, tolling_point, etag_id, net_amount, source_capture):
     """Create individual toll record at module level"""
     try:
-        # Log the incoming data for debugging
-        frappe.log_error(
-            f"Creating toll record with:\n"
-            f"Date: {transaction_date}\n"
-            f"Point: {tolling_point}\n"
-            f"Tag: {etag_id}\n"
-            f"Amount: {net_amount}",
-            "Toll Data Debug"
-        )
-        
         # Check for existing record
         exists = frappe.db.exists("Tolls", {
             "transaction_date": transaction_date,
@@ -53,7 +43,6 @@ def create_toll_record(transaction_date, tolling_point, etag_id, net_amount, sou
         return True, toll.name
         
     except Exception as e:
-        frappe.log_error(f"Failed to create toll record: {str(e)}")
         return False, str(e)
 
 def process_toll_records(doc):
@@ -66,18 +55,31 @@ def process_toll_records(doc):
             file_path,
             pages='all',
             multiple_tables=True,
-            lattice=True
+            lattice=True,
+            pandas_options={'header': None}  # Don't use first row as header
         )
         
         if not tables:
             raise Exception("No tables found in PDF document")
         
-        # Combine all tables and remove header/footer
+        # Combine all tables
         df = pd.concat(tables)
-        df = df.iloc[1:-1]  # Remove first and last row
         
-        # Log column names for debugging
-        frappe.log_error(f"Columns in DataFrame: {df.columns.tolist()}", "Column Debug")
+        # Drop the first row and set proper column names
+        column_names = {
+            0: 'Transaction Date & Time',
+            1: 'TA/Tolling Point',
+            2: 'Vehicle Licence Plate Number',
+            3: 'e-tag ID',
+            4: 'Detected TA Class',
+            5: 'Nominal Amount',
+            6: 'Discount',
+            7: 'Net Amount',
+            8: 'VAT'
+        }
+        
+        df = df.iloc[1:]  # Skip first row
+        df.columns = [column_names.get(i, f'Column_{i}') for i in range(len(df.columns))]
         
         total_records = len(df)
         doc.db_set('total_records', total_records)
@@ -91,26 +93,13 @@ def process_toll_records(doc):
                 # Update progress
                 doc.db_set('progress_count', f"Processing record {index + 1}/{total_records}")
                 
-                # Log raw row data for debugging
-                frappe.log_error(f"Processing row: {row.to_dict()}", "Row Data Debug")
-                
-                # Clean and format date - handle possible column name variations
-                date_col = next((col for col in df.columns if 'Transaction Date' in col), None)
-                if not date_col:
-                    raise Exception(f"Date column not found. Available columns: {df.columns.tolist()}")
-                
-                raw_date = str(row[date_col]).strip()
-                # Convert to datetime and then to string in ERPNext format
-                transaction_date = pd.to_datetime(raw_date, format='%Y/%m/%d %I:%M:%S %p')
+                # Clean and format data
+                transaction_date = pd.to_datetime(row['Transaction Date & Time'], format='%Y/%m/%d %I:%M:%S %p')
                 date_str = get_datetime_str(transaction_date)
                 
-                # Clean other fields
-                tolling_point = str(row['TA/Tolling Point']).strip() if 'TA/Tolling Point' in row else ''
-                etag_id = str(row['e-tag ID']).strip() if 'e-tag ID' in row else ''
-                
-                # Clean amount
-                amount_str = str(row['Net Amount']).strip() if 'Net Amount' in row else '0'
-                net_amount = float(amount_str.replace('R ', '').replace(',', ''))
+                tolling_point = str(row['TA/Tolling Point']).strip()
+                etag_id = str(row['e-tag ID']).strip()
+                net_amount = float(str(row['Net Amount']).replace('R ', '').replace(',', ''))
                 
                 # Create individual toll record
                 success, result = create_toll_record(
@@ -151,7 +140,7 @@ def process_toll_records(doc):
         
         if failed_records:
             message += "<p>Failed records details have been logged.</p>"
-            frappe.log_error("\n".join(failed_records), "Toll Processing Failures")
+            frappe.log_error("\n".join(failed_records[:5]), "Sample Failed Records")
             
         frappe.msgprint(
             msg=message,
