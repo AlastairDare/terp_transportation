@@ -3,38 +3,38 @@ import tabula
 import pandas as pd
 from frappe.utils.file_manager import get_file_path
 
+def validate(doc, method=None):
+    """Module-level validation function that hooks can find"""
+    if not doc.toll_document:
+        frappe.throw("Toll document is required")
+        
+    # Validate file format
+    file_path = get_file_path(doc.toll_document)
+    if not file_path.lower().endswith('.pdf'):
+        frappe.throw("Only PDF files are supported")
+        
+    # Validate document status
+    if doc.processing_status == "Processing":
+        frappe.throw("Document is already being processed")
+        
+    # Validate mandatory fields
+    mandatory_fields = ['toll_document', 'company']
+    for field in mandatory_fields:
+        if not doc.get(field):
+            frappe.throw(f"{field.replace('_', ' ').title()} is mandatory")
+            
+    # Prevent duplicate uploads
+    if frappe.db.exists("Toll Capture", {
+        "toll_document": doc.toll_document,
+        "name": ("!=", doc.name)
+    }):
+        frappe.throw("This toll document has already been uploaded")
+
 class TollCapture:
     def __init__(self, doc):
         self.doc = doc
         self.processed_data = None
-    
-    def validate(self):
-        """Validate the toll capture document before saving"""
-        if not self.doc.toll_document:
-            frappe.throw("Toll document is required")
-            
-        # Validate file format
-        file_path = get_file_path(self.doc.toll_document)
-        if not file_path.lower().endswith('.pdf'):
-            frappe.throw("Only PDF files are supported")
-            
-        # Validate document status
-        if self.doc.processing_status == "Processing":
-            frappe.throw("Document is already being processed")
-            
-        # Validate mandatory fields
-        mandatory_fields = ['toll_document', 'company']
-        for field in mandatory_fields:
-            if not self.doc.get(field):
-                frappe.throw(f"{field.replace('_', ' ').title()} is mandatory")
-                
-        # Prevent duplicate uploads
-        if frappe.db.exists("Toll Capture", {
-            "toll_document": self.doc.toll_document,
-            "name": ("!=", self.doc.name)
-        }):
-            frappe.throw("This toll document has already been uploaded")
-    
+        
     def update_status(self, status, progress=None):
         """Update processing status and progress in the document"""
         self.doc.processing_status = status
@@ -95,7 +95,7 @@ class TollCapture:
                     "doctype": "Tolls",
                     "transaction_date": pd.to_datetime(record['Transaction Date & Time']).strftime('%Y-%m-%d %H:%M:%S'),
                     "tolling_point": record['TA/Tolling Point'],
-                    "etag_id": row['e-tag ID'],
+                    "etag_id": record['e-tag ID'],
                     "net_amount": record['Net Amount'],
                     "process_status": "Unprocessed",
                     "source_capture": self.doc.name
@@ -109,12 +109,24 @@ class TollCapture:
 
 @frappe.whitelist()
 def process_etoll_document(doc_name):
-    doc = frappe.get_doc("Toll Capture", doc_name)
-    processor = TollCapture(doc)
-    processor.process_document()
-    return "Processing Complete"
+    """Process the toll capture document"""
+    try:
+        doc = frappe.get_doc("Toll Capture", doc_name)
+        processor = TollCapture(doc)
+        processor.process_document()
+        return "Processing Complete"
+    except Exception as e:
+        frappe.log_error(f"Error processing toll document: {str(e)}")
+        frappe.throw(f"Failed to process toll document: {str(e)}")
 
-def validate(doc, method):
-    """Hook method for document validation"""
-    processor = TollCapture(doc)
-    processor.validate()
+def on_trash(doc, method=None):
+    """Handle document deletion"""
+    try:
+        # Delete associated toll records
+        frappe.db.delete("Tolls", {
+            "source_capture": doc.name
+        })
+        frappe.db.commit()
+    except Exception as e:
+        frappe.log_error(f"Error deleting toll records: {str(e)}")
+        frappe.throw(f"Failed to delete associated toll records: {str(e)}")
