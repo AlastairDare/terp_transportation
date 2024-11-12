@@ -29,26 +29,12 @@ class TollCapture(Document):
             file_path = get_file_path(self.toll_document)
             self.db_set('processing_status', 'Processing')
             
-            # Define all columns in the exact order they appear in the PDF
-            columns = [
-                'Transaction Date & Time',
-                'TA/Tolling Point',
-                'Vehicle Licence Plate Number',
-                'e-tag ID',
-                'Detected TA Class',
-                'Nominal Amount',
-                'Discount',
-                'Net Amount',
-                'VAT'
-            ]
-            
-            # Read tables from PDF with all columns in order
+            # First try without specifying columns
             tables = tabula.read_pdf(
                 file_path,
                 pages='all',
                 multiple_tables=True,
-                lattice=True,
-                columns=columns
+                lattice=True
             )
             
             if not tables:
@@ -57,53 +43,76 @@ class TollCapture(Document):
             # Combine all tables
             df = pd.concat(tables)
             
-            # Filter only the columns we need
-            needed_columns = ['Transaction Date & Time', 'TA/Tolling Point', 'e-tag ID', 'Net Amount']
-            df = df[needed_columns]
+            # Log the found columns for debugging
+            frappe.log_error(f"Found columns: {df.columns.tolist()}", "PDF Processing")
             
-            # Remove rows where all needed columns are empty
-            df = df.dropna(subset=needed_columns, how='all')
+            # Clean column names
+            df.columns = [str(col).strip().replace('\n', ' ') for col in df.columns]
             
-            total_records = len(df)
+            # Map the columns we need
+            column_mapping = {
+                'Transaction Date & Time': 'transaction_date',
+                'TA/Tolling Point': 'tolling_point',
+                'e-tag ID': 'etag_id',
+                'Net Amount': 'net_amount'
+            }
+            
+            # Create a new DataFrame with just the columns we need
+            processed_data = []
+            
+            for index, row in df.iterrows():
+                try:
+                    # Clean and parse the date
+                    date_str = str(row['Transaction Date & Time']).strip()
+                    transaction_date = pd.to_datetime(date_str, format='%Y/%m/%d %I:%M:%S %p')
+                    
+                    # Clean and parse the amount (remove 'R ' and convert to float)
+                    amount_str = str(row['Net Amount']).replace('R ', '').replace(',', '').strip()
+                    net_amount = float(amount_str) if amount_str else 0.0
+                    
+                    # Create cleaned record
+                    processed_data.append({
+                        'transaction_date': transaction_date.strftime('%Y-%m-%d %H:%M:%S'),
+                        'tolling_point': str(row['TA/Tolling Point']).strip(),
+                        'etag_id': str(row['e-tag ID']).strip(),
+                        'net_amount': net_amount
+                    })
+                    
+                except Exception as row_error:
+                    frappe.log_error(f"Error processing row {index}: {str(row_error)}\nRow data: {row.to_dict()}", 
+                                   "Row Processing Error")
+                    continue
+            
+            total_records = len(processed_data)
             self.db_set('total_records', total_records)
             
+            # Process records
             duplicates = []
             new_records = []
             
-            for index, row in df.iterrows():
-                # Update progress
+            for index, data in enumerate(processed_data):
                 self.db_set('progress_count', f"Processing records: {index + 1}/{total_records}")
                 
-                try:
-                    # Clean up date format and convert to datetime
-                    transaction_date = pd.to_datetime(row['Transaction Date & Time'], format='%Y/%m/%d %I:%M:%S %p')
-                    
-                    # Clean up net amount (remove 'R ' and convert to float)
-                    net_amount = float(str(row['Net Amount']).replace('R ', '').replace(',', '').strip())
-                    
-                    # Check for duplicates
-                    exists = frappe.db.exists("Tolls", {
-                        "transaction_date": transaction_date.strftime('%Y-%m-%d %H:%M:%S'),
-                        "etag_id": str(row['e-tag ID']).strip(),
-                        "tolling_point": str(row['TA/Tolling Point']).strip()
+                # Check for duplicates
+                exists = frappe.db.exists("Tolls", {
+                    "transaction_date": data['transaction_date'],
+                    "etag_id": data['etag_id'],
+                    "tolling_point": data['tolling_point']
+                })
+                
+                if exists:
+                    duplicates.append(data)
+                else:
+                    new_records.append({
+                        "doctype": "Tolls",
+                        "transaction_date": data['transaction_date'],
+                        "tolling_point": data['tolling_point'],
+                        "etag_id": data['etag_id'],
+                        "net_amount": data['net_amount'],
+                        "process_status": "Unprocessed",
+                        "source_capture": self.name
                     })
-                    
-                    if exists:
-                        duplicates.append(row)
-                    else:
-                        new_records.append({
-                            "doctype": "Tolls",
-                            "transaction_date": transaction_date.strftime('%Y-%m-%d %H:%M:%S'),
-                            "tolling_point": str(row['TA/Tolling Point']).strip(),
-                            "etag_id": str(row['e-tag ID']).strip(),
-                            "net_amount": net_amount,
-                            "process_status": "Unprocessed",
-                            "source_capture": self.name
-                        })
-                except Exception as row_error:
-                    frappe.log_error(f"Error processing row {index}: {str(row_error)}")
-                    continue
-            
+                
                 # Insert in batches of 100
                 if len(new_records) >= 100:
                     frappe.db.bulk_insert("Tolls", new_records)
