@@ -5,6 +5,8 @@
     "name": "Toll Capture",
     "doctype": "DocType",
     "engine": "InnoDB",
+    "track_changes": 1,
+    "track_seen": 1,
     "fields": [
         {
             "fieldname": "toll_document",
@@ -14,14 +16,23 @@
             "allowed_file_types": ["pdf"]
         },
         {
+            "fieldname": "company",
+            "fieldtype": "Link",
+            "label": "Company",
+            "options": "Company",
+            "reqd": 1
+        },
+        {
             "fieldname": "process_section",
             "fieldtype": "Section Break",
             "label": "Processing Status"
         },
         {
             "fieldname": "processing_status",
-            "fieldtype": "Data",
+            "fieldtype": "Select",
             "label": "Status",
+            "options": "Pending\nProcessing\nCompleted\nFailed",
+            "default": "Pending",
             "read_only": 1
         },
         {
@@ -47,6 +58,32 @@
             "fieldtype": "Int",
             "label": "Duplicate Records",
             "read_only": 1
+        },
+        {
+            "fieldname": "amended_from",
+            "fieldtype": "Link",
+            "label": "Amended From",
+            "no_copy": 1,
+            "options": "Toll Capture",
+            "print_hide": 1,
+            "read_only": 1
         }
-    ]
+    ],
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "track_views": 1
 }
