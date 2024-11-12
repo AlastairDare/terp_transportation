@@ -1,10 +1,9 @@
 {
-    "autoname": "hash",
+    "autoname": "format:TOLL-CAP-{########}",
     "module": "Transportation",
     "label": "Toll Capture",
     "name": "Toll Capture",
     "doctype": "DocType",
-    "is_submittable": 0,
     "engine": "InnoDB",
     "fields": [
         {
