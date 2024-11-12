@@ -1,5 +1,5 @@
 import frappe
-import tabula
+import fitz  # PyMuPDF
 import pandas as pd
 from frappe.utils.file_manager import get_file_path
 from frappe.model.document import Document
@@ -12,73 +12,82 @@ def validate(doc, method):
     if not file_path.lower().endswith('.pdf'):
         frappe.throw("Only PDF files are supported")
 
-def clean_table_data(df):
-    """Clean up table data by combining split rows"""
-    try:
-        # Show initial state
-        frappe.msgprint(f"Initial columns: {df.columns.tolist()[:5]}...")  # Show first 5
-        
-        # Try to find date pattern in any column
-        for col in df.columns:
-            sample = str(df[col].iloc[0]) if len(df) > 0 else ""
-            if '2024/' in sample:
-                frappe.msgprint(f"Found date in column: {col}")
-                frappe.msgprint(f"Sample value: {sample}")
-        
-        return df
-    except Exception as e:
-        frappe.msgprint(f"Error in cleaning: {str(e)}")
-        return df
-
 def process_toll_records(doc):
     try:
         file_path = get_file_path(doc.toll_document)
         doc.db_set('processing_status', 'Processing')
         
-        # Try different table extraction settings
-        tables = tabula.read_pdf(
-            file_path,
-            pages='all',
-            multiple_tables=True,
-            lattice=True,  # Try lattice mode first
-            pandas_options={
-                'header': None,  # Don't use first row as header
-            },
-            area=[300, 0, 700, 1000],  # Focus more on transaction area
-            relative_area=True,  # Use relative coordinates
-            guess=False  # Don't guess the structure
-        )
+        # Open PDF
+        pdf_doc = fitz.open(file_path)
         
-        if not tables:
-            frappe.throw("No tables found in PDF")
-            
-        frappe.msgprint(f"Found {len(tables)} tables")
+        # Expected columns
+        expected_columns = [
+            "Transaction Date & Time",
+            "TA/ Tolling Point",
+            "Vehicle Licence Plate Number",
+            "e-tag ID",
+            "Detected TA Class",
+            "Nominal Amount",
+            "Discount",
+            "Net Amount",
+            "VAT"
+        ]
         
-        # Process each table
-        for i, table in enumerate(tables):
-            frappe.msgprint(f"\nTable {i+1}:")
-            frappe.msgprint(f"Shape: {table.shape}")
-            
-            # Show first few cells of first row
-            if len(table) > 0:
-                first_row = table.iloc[0]
-                sample_data = [str(val)[:30] for val in first_row.values[:3]]
-                frappe.msgprint(f"Sample data: {', '.join(sample_data)}")
-            
-            # Clean and analyze table
-            cleaned_table = clean_table_data(table)
-            
-            # If this table has our transaction data, process it
-            if any('2024/' in str(val) for val in cleaned_table.values.flatten()):
-                frappe.msgprint("Found transaction table!")
-                return "Found potential transaction table - check the logs"
+        all_data = []
         
-        return "Debug mode - check messages"
+        # Process each page
+        for page in pdf_doc:
+            # Get text blocks
+            blocks = page.get_text("blocks")
+            
+            # Look for blocks that contain transaction data
+            for block in blocks:
+                text = block[4]  # block[4] contains the text
+                
+                # If we find a date pattern (2024/), process the block
+                if "2024/" in text:
+                    # Split into lines and process
+                    lines = text.split('\n')
+                    for line in lines:
+                        if "2024/" in line:
+                            # Clean and split the line
+                            data = line.strip().split()
+                            if len(data) > 8:  # Make sure we have enough data
+                                all_data.append(line)
+        
+        # Convert to DataFrame
+        if all_data:
+            frappe.msgprint("Found transaction data. Sample records:")
+            
+            # Show first two records
+            if len(all_data) > 0:
+                frappe.msgprint("\nFirst record:")
+                frappe.msgprint(all_data[0])
+            if len(all_data) > 1:
+                frappe.msgprint("\nSecond record:")
+                frappe.msgprint(all_data[1])
+            
+            # Show last two records
+            if len(all_data) > 2:
+                frappe.msgprint("\nSecond to last record:")
+                frappe.msgprint(all_data[-2])
+                frappe.msgprint("\nLast record:")
+                frappe.msgprint(all_data[-1])
+            
+            frappe.msgprint(f"\nTotal records found: {len(all_data)}")
+        else:
+            frappe.msgprint("No transaction data found")
+        
+        doc.db_set('processing_status', 'Completed')
+        return "Debug mode - check sample records"
             
     except Exception as e:
         doc.db_set('processing_status', 'Failed')
         frappe.msgprint(f"Error: {str(e)}")
         return
+    finally:
+        if 'pdf_doc' in locals():
+            pdf_doc.close()
 
 class TollCapture(Document):
     def validate(self):
