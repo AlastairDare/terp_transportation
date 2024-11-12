@@ -19,32 +19,33 @@ def process_toll_records(doc):
         
         frappe.msgprint("Starting PDF read...")
         
-        # Try reading with different options
+        # Try reading with more specific area
         tables = tabula.read_pdf(
             file_path,
             pages='all',
-            multiple_tables=True,
-            area=[150, 0, 500, 1000],  # Try to focus on the data area
-            columns=[50, 150, 250, 350, 450, 550, 650]  # Try specifying column positions
+            multiple_tables=False,  # Just get one table
+            area=[250, 0, 700, 1000],  # Adjusted to focus below "Toll Transactions"
+            pandas_options={'header': 0}  # Use first row as header
         )
         
-        frappe.msgprint(f"Found {len(tables)} tables in PDF")
-        
-        if tables:
+        if isinstance(tables, list):
             first_table = tables[0]
-            frappe.msgprint(f"Table shape: {first_table.shape}")
+        else:
+            first_table = tables
             
-            # Show all column names
-            frappe.msgprint("All columns found:")
-            for i, col in enumerate(first_table.columns):
-                frappe.msgprint(f"Column {i}: {str(col)}")
-                
-            # Show first row of data
-            if len(first_table) > 0:
-                frappe.msgprint("First row data:")
-                first_row = first_table.iloc[0]
-                for col, val in first_row.items():
-                    frappe.msgprint(f"{col}: {val}")
+        frappe.msgprint(f"Table shape: {first_table.shape}")
+        
+        # Show all column names
+        frappe.msgprint("All columns found:")
+        for i, col in enumerate(first_table.columns):
+            frappe.msgprint(f"Column {i}: {str(col)}")
+            
+        # Show first row of data
+        if len(first_table) > 0:
+            frappe.msgprint("First row data:")
+            first_row = first_table.iloc[0]
+            for col, val in first_row.items():
+                frappe.msgprint(f"{col}: {val}")
         
         doc.db_set('processing_status', 'Completed')
         return "Debug mode - check messages"
