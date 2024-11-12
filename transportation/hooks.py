@@ -79,10 +79,6 @@ doc_events = {
         "validate": "transportation.transportation.doctype.asset_unified_maintenance.asset_unified_maintenance.validate",
         "before_save": "transportation.transportation.doctype.asset_unified_maintenance.asset_unified_maintenance.before_save"
     },
-    "Toll Capture": {
-        "before_save": "transportation.transportation.doctype.toll_capture.toll_capture.validate",
-        "on_trash": "transportation.transportation.doctype.toll_capture.toll_capture.on_trash"
-    },
     "Tolls": {
         "before_save": "transportation.transportation.doctype.tolls.tolls.validate",
     }
