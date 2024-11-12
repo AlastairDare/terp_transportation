@@ -21,36 +21,6 @@ class TollCapture(Document):
             self.total_records = 0
             self.new_records = 0
             self.duplicate_records = 0
-            
-        # Prevent processing while in progress
-        if self.processing_status == "Processing" and not self.is_new():
-            frappe.throw("Document is already being processed")
-            
-        # Validate mandatory fields
-        mandatory_fields = ['toll_document', 'company']
-        for field in mandatory_fields:
-            if not self.get(field):
-                frappe.throw(f"{field.replace('_', ' ').title()} is mandatory")
-                
-        # Prevent duplicate uploads
-        if frappe.db.exists("Toll Capture", {
-            "toll_document": self.toll_document,
-            "name": ("!=", self.name)
-        }):
-            frappe.throw("This toll document has already been uploaded")
-
-    def on_trash(self):
-        """Handle deletion of toll records when the capture document is deleted"""
-        try:
-            # Delete associated toll records
-            frappe.db.sql("""
-                DELETE FROM `tabTolls` 
-                WHERE source_capture = %s
-            """, self.name)
-            frappe.db.commit()
-        except Exception as e:
-            frappe.log_error(str(e), "Toll Capture Delete Error")
-            frappe.throw(f"Failed to delete associated toll records: {str(e)}")
 
     def process_document(self):
         """Process the uploaded PDF document and create toll records"""
@@ -59,56 +29,75 @@ class TollCapture(Document):
             file_path = get_file_path(self.toll_document)
             self.db_set('processing_status', 'Processing')
             
-            # Extract tables from PDF
-            tables = tabula.read_pdf(file_path, pages='all')
+            # Read tables from PDF - specify the area where the table is
+            tables = tabula.read_pdf(
+                file_path,
+                pages='all',
+                multiple_tables=True,
+                lattice=True,  # Use lattice mode for tables with lines
+                columns=['Transaction\nDate & Time', 'TA/\nTolling\nPoint', 'Vehicle\nLicence Plate\nNumber', 'e-tag\nID', 'Detected\nTA Class', 'Nominal\nAmount', 'Discount', 'Net\nAmount', 'VAT']
+            )
+            
             if not tables:
                 raise Exception("No tables found in PDF document")
             
             # Combine all tables and clean data
             df = pd.concat(tables)
-            df = df.dropna(subset=['Transaction Date & Time', 'e-tag ID'])
+            
+            # Clean up column names (remove newlines and extra spaces)
+            df.columns = [col.replace('\n', ' ').strip() for col in df.columns]
+            
+            # Filter only needed columns
+            needed_columns = ['Transaction Date & Time', 'TA/ Tolling Point', 'e-tag ID', 'Net Amount']
+            df = df[needed_columns]
+            
+            # Remove rows where all needed columns are empty
+            df = df.dropna(subset=needed_columns, how='all')
             
             total_records = len(df)
             self.db_set('total_records', total_records)
             
-            # Process records in batches to improve performance
-            batch_size = 100
             duplicates = []
             new_records = []
             
-            for i in range(0, total_records, batch_size):
-                batch = df.iloc[i:i+batch_size]
+            for index, row in df.iterrows():
+                # Update progress
+                self.db_set('progress_count', f"Processing records: {index + 1}/{total_records}")
                 
-                for _, row in batch.iterrows():
-                    # Update progress
-                    progress = f"Processing records: {i + len(new_records)}/{total_records}"
-                    self.db_set('progress_count', progress)
-                    
-                    # Check for duplicate records
-                    exists = frappe.db.exists("Tolls", {
-                        "transaction_date": pd.to_datetime(row['Transaction Date & Time']).strftime('%Y-%m-%d %H:%M:%S'),
-                        "etag_id": row['e-tag ID'],
-                        "tolling_point": row['TA/Tolling Point']
+                # Clean up date format and convert to datetime
+                transaction_date = pd.to_datetime(row['Transaction Date & Time'], format='%Y/%m/%d %I:%M:%S %p')
+                
+                # Clean up net amount (remove 'R ' and convert to float)
+                net_amount = float(str(row['Net Amount']).replace('R ', '').replace(',', '').strip())
+                
+                # Check for duplicates
+                exists = frappe.db.exists("Tolls", {
+                    "transaction_date": transaction_date.strftime('%Y-%m-%d %H:%M:%S'),
+                    "etag_id": str(row['e-tag ID']).strip(),
+                    "tolling_point": str(row['TA/ Tolling Point']).strip()
+                })
+                
+                if exists:
+                    duplicates.append(row)
+                else:
+                    new_records.append({
+                        "doctype": "Tolls",
+                        "transaction_date": transaction_date.strftime('%Y-%m-%d %H:%M:%S'),
+                        "tolling_point": str(row['TA/ Tolling Point']).strip(),
+                        "etag_id": str(row['e-tag ID']).strip(),
+                        "net_amount": net_amount,
+                        "process_status": "Unprocessed",
+                        "source_capture": self.name
                     })
-                    
-                    if exists:
-                        duplicates.append(row)
-                    else:
-                        new_records.append({
-                            "doctype": "Tolls",
-                            "transaction_date": pd.to_datetime(row['Transaction Date & Time']).strftime('%Y-%m-%d %H:%M:%S'),
-                            "tolling_point": row['TA/Tolling Point'],
-                            "etag_id": row['e-tag ID'],
-                            "net_amount": row['Net Amount'],
-                            "process_status": "Unprocessed",
-                            "source_capture": self.name,
-                            "company": self.company
-                        })
-                
-                # Insert batch of new records
-                if new_records:
+            
+                # Insert in batches of 100
+                if len(new_records) >= 100:
                     frappe.db.bulk_insert("Tolls", new_records)
-                    new_records = []  # Clear the batch
+                    new_records = []
+            
+            # Insert remaining records
+            if new_records:
+                frappe.db.bulk_insert("Tolls", new_records)
             
             # Update final counts and status
             self.db_set('duplicate_records', len(duplicates))

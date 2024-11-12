@@ -17,13 +17,6 @@
             "allowed_file_types": ["pdf"]
         },
         {
-            "fieldname": "company",
-            "fieldtype": "Link",
-            "label": "Company",
-            "options": "Company",
-            "reqd": 1
-        },
-        {
             "fieldname": "process_section",
             "fieldtype": "Section Break",
             "label": "Processing Status"
