@@ -81,7 +81,12 @@ doc_events = {
     },
     "Tolls": {
         "before_save": "transportation.transportation.doctype.tolls.tolls.validate",
+    },
+    "Toll Capture": {
+        "validate": "transportation.transportation.doctype.toll_capture.toll_capture.validate",
+        "on_trash": "transportation.transportation.doctype.toll_capture.toll_capture.on_trash"
     }
+
 }
 
 has_permission = {
@@ -107,3 +112,10 @@ dependencies = [
         "version": ">=1.24.0"
     }
 ]
+
+doctype_properties = {
+    "Toll Capture": {
+        "allow_copy": 1,
+        "allow_rename": 0,
+    }
+}
