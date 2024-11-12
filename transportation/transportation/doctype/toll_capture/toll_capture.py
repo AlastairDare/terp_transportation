@@ -24,55 +24,54 @@ class TollCapture(Document):
 
     def clean_column_names(self, df):
         """Clean up column names and standardize them"""
-        column_mapping = {
-            'TA/\rTolling\rPoint': 'TA/Tolling Point',
-            'Vehicle\rLicence Plate\rNumber': 'Vehicle Licence Plate Number',
-            'e-tag\rID': 'e-tag ID',
-            'Detected\rTA Class': 'Detected TA Class',
-            'Nominal\rAmount': 'Nominal Amount',
-            'Net\rAmount': 'Net Amount',
-            'Transaction\rDate & Time': 'Transaction Date & Time'
-        }
+        # First, log original columns
+        print("Original columns:", df.columns.tolist())
         
-        # Replace column names if they exist
-        new_columns = []
-        for col in df.columns:
-            if col in column_mapping:
-                new_columns.append(column_mapping[col])
-            else:
-                new_columns.append(col.replace('\r', ' ').strip())
-                
-        df.columns = new_columns
+        # Clean up column names
+        df.columns = [col.replace('\r', ' ').replace('\n', ' ').strip() for col in df.columns]
+        
+        # Log cleaned columns
+        print("Cleaned columns:", df.columns.tolist())
+        
         return df
 
     def is_valid_transaction_row(self, row):
         """Check if this row represents a valid transaction"""
         try:
+            # Print row data for debugging
+            print("\nChecking row:", row.to_dict())
+            
             # Skip empty rows
             if pd.isna(row).all():
-                return False
-                
-            # Check if this is a total row
-            if 'Total' in str(row.values):
-                return False
-                
-            # Check for required data
-            if not all(pd.notna(row.get(col, '')) for col in ['Transaction Date & Time', 'e-tag ID', 'Net Amount']):
+                print("Row is all empty")
                 return False
             
-            # Validate e-tag ID (should be numbers with possible spaces)
-            etag_id = str(row['e-tag ID']).strip()
-            if not etag_id.replace(' ', '').isdigit():
+            # Check if any column contains 'Total'
+            if any('Total' in str(val) for val in row.values):
+                print("Row contains Total")
                 return False
-                
-            # Validate amount format
-            amount_str = str(row['Net Amount']).strip()
-            if not amount_str.startswith('R '):
+            
+            # Check if we have the required columns
+            required_cols = ['Transaction Date & Time', 'e-tag ID', 'Net Amount', 'TA/Tolling Point']
+            missing_cols = [col for col in required_cols if col not in row.index]
+            if missing_cols:
+                print(f"Missing columns: {missing_cols}")
                 return False
-                
+            
+            # Check if required fields have values
+            if any(pd.isna(row[col]) for col in required_cols):
+                print("Required fields have NaN values")
+                return False
+            
+            # Print specific field values for debugging
+            print("Date:", str(row['Transaction Date & Time']).strip())
+            print("e-tag ID:", str(row['e-tag ID']).strip())
+            print("Net Amount:", str(row['Net Amount']).strip())
+            
             return True
             
-        except Exception:
+        except Exception as e:
+            print(f"Validation error: {str(e)}")
             return False
 
     def process_document(self):
@@ -81,23 +80,43 @@ class TollCapture(Document):
             file_path = get_file_path(self.toll_document)
             self.db_set('processing_status', 'Processing')
             
+            print("\nStarting PDF processing...")
+            
             # Read PDF
             tables = tabula.read_pdf(
                 file_path,
                 pages='all',
                 area=[120, 0, 750, 1000],
-                multiple_tables=True
+                multiple_tables=True,
+                guess=False,
+                lattice=True
             )
+            
+            print(f"\nFound {len(tables)} tables")
             
             if not tables:
                 raise Exception("No tables found in PDF document")
+            
+            # Print first table sample
+            if tables:
+                print("\nFirst table sample:")
+                print(tables[0].head())
             
             # Combine tables and clean column names
             df = pd.concat(tables)
             df = self.clean_column_names(df)
             
+            print(f"\nTotal rows before filtering: {len(df)}")
+            
             # Filter valid rows
-            valid_rows = [row for _, row in df.iterrows() if self.is_valid_transaction_row(row)]
+            valid_rows = []
+            for idx, row in df.iterrows():
+                print(f"\nChecking row {idx}")
+                if self.is_valid_transaction_row(row):
+                    valid_rows.append(row)
+                    print("Row is valid")
+            
+            print(f"\nValid rows found: {len(valid_rows)}")
             
             if not valid_rows:
                 raise Exception("No valid transactions found in the document")
@@ -114,7 +133,6 @@ class TollCapture(Document):
                 self.db_set('progress_count', f"Processing record {index + 1} of {total_records}")
                 
                 try:
-                    # Clean data
                     transaction_date = pd.to_datetime(str(row['Transaction Date & Time']).strip(), 
                                                     format='%Y/%m/%d %I:%M:%S %p')
                     tolling_point = str(row['TA/Tolling Point']).strip()
@@ -145,7 +163,7 @@ class TollCapture(Document):
                         new_records.append(doc.name)
                         
                 except Exception as e:
-                    frappe.log_error(f"Row processing error: {str(e)}", "Toll Processing")
+                    print(f"Error processing row {index}: {str(e)}")
                     continue
             
             # Update final counts
