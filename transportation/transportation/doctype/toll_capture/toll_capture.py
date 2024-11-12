@@ -1,5 +1,6 @@
 import frappe
-import pdfplumber
+import tabula
+import pandas as pd
 from frappe.utils.file_manager import get_file_path
 from frappe.model.document import Document
 
@@ -14,31 +15,47 @@ def validate(doc, method):
 def process_toll_records(doc):
     try:
         file_path = get_file_path(doc.toll_document)
+        doc.db_set('processing_status', 'Processing')
         
-        # Read with pdfplumber
-        with pdfplumber.open(file_path) as pdf:
-            # Get first page
-            first_page = pdf.pages[0]
+        # Basic tabula read first
+        tables = tabula.read_pdf(
+            file_path,
+            pages='1',  # Just first page
+            multiple_tables=True
+        )
+        
+        # Immediate feedback
+        frappe.msgprint("Step 1: Reading PDF")
+        frappe.db.commit()  # Make sure message shows
+        
+        if not tables:
+            frappe.msgprint("No tables found")
+            return
             
-            # Extract table
-            table = first_page.extract_table()
-            
-            if table:
-                # Show first few rows
-                for i, row in enumerate(table[:5]):  # Show first 5 rows
-                    # Clean the row data (remove None and empty strings)
-                    clean_row = [str(cell) for cell in row if cell and str(cell).strip()]
-                    if clean_row:  # Only show rows that have data
-                        frappe.msgprint(f"Row {i}: {' | '.join(clean_row)}")
-            else:
-                frappe.msgprint("No table found with pdfplumber")
-                
-            # Also try to get raw text to see structure
-            text = first_page.extract_text()
-            frappe.msgprint("Raw text sample (first 200 chars):")
-            frappe.msgprint(text[:200] if text else "No text found")
-            
-        raise Exception("Debug pause - check all messages above")
+        frappe.msgprint(f"Found {len(tables)} tables")
+        frappe.db.commit()
+        
+        # Look at first table
+        first_table = tables[0]
+        frappe.msgprint("Step 2: First Table Details")
+        frappe.db.commit()
+        
+        # Look at columns
+        col_str = str(first_table.columns.tolist())[:100]  # Truncate to avoid length issues
+        frappe.msgprint(f"Columns (truncated): {col_str}")
+        frappe.db.commit()
+        
+        # Look at shape
+        frappe.msgprint(f"Table shape: {first_table.shape}")
+        frappe.db.commit()
+        
+        # Look at first row
+        if len(first_table) > 0:
+            row_str = str(first_table.iloc[0].tolist())[:100]
+            frappe.msgprint(f"First row (truncated): {row_str}")
+            frappe.db.commit()
+        
+        raise Exception("Debug complete - check messages above")
             
     except Exception as e:
         doc.db_set('processing_status', 'Failed')
