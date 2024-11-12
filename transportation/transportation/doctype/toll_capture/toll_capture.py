@@ -22,6 +22,33 @@ class TollCapture(Document):
             self.new_records = 0
             self.duplicate_records = 0
 
+    def is_valid_transaction_row(self, row):
+        """Check if this row represents a valid transaction"""
+        try:
+            # Check if this is a total row
+            if any(str(val).strip().lower().startswith('total') for val in row.values):
+                return False
+                
+            # Validate date format
+            date_str = str(row['Transaction Date & Time']).strip()
+            pd.to_datetime(date_str, format='%Y/%m/%d %I:%M:%S %p')
+            
+            # Validate e-tag ID format (should be numeric and certain length)
+            etag_id = str(row['e-tag ID']).strip()
+            if not etag_id.replace(' ', '').isdigit():
+                return False
+                
+            # Validate amount (should be convertible to float and have 'R' prefix)
+            amount_str = str(row['Net Amount']).strip()
+            if not amount_str.startswith('R '):
+                return False
+            float(amount_str.replace('R ', '').replace(',', ''))
+            
+            return True
+            
+        except (ValueError, KeyError, TypeError):
+            return False
+
     def process_document(self):
         """Process the uploaded PDF document and create toll records"""
         try:
@@ -33,8 +60,8 @@ class TollCapture(Document):
             tables = tabula.read_pdf(
                 file_path,
                 pages='all',
-                guess=False,  # Don't guess the table structure
-                area=[120, 0, 750, 1000],  # Approximate area where the table is
+                guess=False,
+                area=[120, 0, 750, 1000],
                 multiple_tables=True
             )
             
@@ -44,15 +71,27 @@ class TollCapture(Document):
             # Combine all tables
             df = pd.concat(tables)
             
-            # Process records
-            total_records = len(df)
+            # Filter valid transaction rows
+            valid_rows = []
+            for index, row in df.iterrows():
+                if self.is_valid_transaction_row(row):
+                    valid_rows.append(row)
+            
+            df_filtered = pd.DataFrame(valid_rows)
+            
+            total_records = len(df_filtered)
             self.db_set('total_records', total_records)
+            
+            if total_records == 0:
+                raise Exception("No valid transactions found in the document")
             
             duplicates = []
             new_records = []
+            processed_count = 0
             
-            for index, row in df.iterrows():
-                self.db_set('progress_count', f"Processing record {index + 1} of {total_records}")
+            for index, row in df_filtered.iterrows():
+                processed_count += 1
+                self.db_set('progress_count', f"Processing record {processed_count} of {total_records}")
                 
                 try:
                     # Extract and clean data
@@ -72,7 +111,7 @@ class TollCapture(Document):
                     if exists:
                         duplicates.append(row)
                     else:
-                        new_records.append({
+                        new_toll = frappe.get_doc({
                             "doctype": "Tolls",
                             "transaction_date": transaction_date.strftime('%Y-%m-%d %H:%M:%S'),
                             "tolling_point": tolling_point,
@@ -82,26 +121,35 @@ class TollCapture(Document):
                             "source_capture": self.name
                         })
                         
-                        # Insert in batches
-                        if len(new_records) >= 100:
-                            frappe.db.bulk_insert("Tolls", new_records)
-                            new_records = []
-                            
+                        new_toll.insert()
+                        frappe.db.commit()
+                        new_records.append(new_toll.name)
+                        
                 except Exception as e:
+                    frappe.log_error(
+                        f"Error processing record {processed_count}:\n"
+                        f"Data: {row.to_dict()}\n"
+                        f"Error: {str(e)}",
+                        "Toll Record Processing Error"
+                    )
                     continue
-            
-            # Insert remaining records
-            if new_records:
-                frappe.db.bulk_insert("Tolls", new_records)
             
             # Update final counts and status
             self.db_set('duplicate_records', len(duplicates))
-            self.db_set('new_records', total_records - len(duplicates))
+            self.db_set('new_records', len(new_records))
             self.db_set('processing_status', 'Completed')
+            
+            # Log success
+            frappe.log_error(
+                f"Successfully processed {len(new_records)} records.\n"
+                f"Duplicates found: {len(duplicates)}",
+                "Toll Processing Success"
+            )
             
         except Exception as e:
             self.db_set('processing_status', 'Failed')
-            frappe.throw(str(e))
+            frappe.log_error(str(e), "Toll Capture Processing Error")
+            raise
 
 @frappe.whitelist()
 def process_toll_document(doc_name):
