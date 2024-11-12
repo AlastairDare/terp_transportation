@@ -29,20 +29,20 @@ class TollCapture(Document):
             file_path = get_file_path(self.toll_document)
             self.db_set('processing_status', 'Processing')
             
-            # Define columns in sorted order
+            # Define all columns in the exact order they appear in the PDF
             columns = [
-                'Detected\nTA Class',
+                'Transaction Date & Time',
+                'TA/Tolling Point',
+                'Vehicle Licence Plate Number',
+                'e-tag ID',
+                'Detected TA Class',
+                'Nominal Amount',
                 'Discount',
-                'e-tag\nID',
-                'Net\nAmount',
-                'Nominal\nAmount',
-                'TA/\nTolling\nPoint',
-                'Transaction\nDate & Time',
-                'VAT',
-                'Vehicle\nLicence Plate\nNumber'
+                'Net Amount',
+                'VAT'
             ]
             
-            # Read tables from PDF
+            # Read tables from PDF with all columns in order
             tables = tabula.read_pdf(
                 file_path,
                 pages='all',
@@ -54,14 +54,11 @@ class TollCapture(Document):
             if not tables:
                 raise Exception("No tables found in PDF document")
             
-            # Combine all tables and clean data
+            # Combine all tables
             df = pd.concat(tables)
             
-            # Clean up column names (remove newlines and extra spaces)
-            df.columns = [col.replace('\n', ' ').strip() for col in df.columns]
-            
-            # Filter only needed columns
-            needed_columns = ['Transaction Date & Time', 'TA/ Tolling Point', 'e-tag ID', 'Net Amount']
+            # Filter only the columns we need
+            needed_columns = ['Transaction Date & Time', 'TA/Tolling Point', 'e-tag ID', 'Net Amount']
             df = df[needed_columns]
             
             # Remove rows where all needed columns are empty
@@ -88,7 +85,7 @@ class TollCapture(Document):
                     exists = frappe.db.exists("Tolls", {
                         "transaction_date": transaction_date.strftime('%Y-%m-%d %H:%M:%S'),
                         "etag_id": str(row['e-tag ID']).strip(),
-                        "tolling_point": str(row['TA/ Tolling Point']).strip()
+                        "tolling_point": str(row['TA/Tolling Point']).strip()
                     })
                     
                     if exists:
@@ -97,7 +94,7 @@ class TollCapture(Document):
                         new_records.append({
                             "doctype": "Tolls",
                             "transaction_date": transaction_date.strftime('%Y-%m-%d %H:%M:%S'),
-                            "tolling_point": str(row['TA/ Tolling Point']).strip(),
+                            "tolling_point": str(row['TA/Tolling Point']).strip(),
                             "etag_id": str(row['e-tag ID']).strip(),
                             "net_amount": net_amount,
                             "process_status": "Unprocessed",
