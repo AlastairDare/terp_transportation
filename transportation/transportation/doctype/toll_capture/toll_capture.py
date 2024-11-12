@@ -9,15 +9,12 @@ def validate(doc, method):
     if not doc.toll_document:
         frappe.throw("Toll document is required")
         
-    # Validate file format
     file_path = get_file_path(doc.toll_document)
     if not file_path.lower().endswith('.pdf'):
         frappe.throw("Only PDF files are supported")
 
 def create_toll_record(transaction_date, tolling_point, etag_id, net_amount, source_capture):
-    """Create individual toll record at module level"""
     try:
-        # Check for existing record
         exists = frappe.db.exists("Tolls", {
             "transaction_date": transaction_date,
             "etag_id": etag_id
@@ -26,7 +23,6 @@ def create_toll_record(transaction_date, tolling_point, etag_id, net_amount, sou
         if exists:
             return False, "Duplicate record"
             
-        # Create new toll record
         toll = frappe.get_doc({
             "doctype": "Tolls",
             "transaction_date": transaction_date,
@@ -46,17 +42,17 @@ def create_toll_record(transaction_date, tolling_point, etag_id, net_amount, sou
         return False, str(e)
 
 def process_toll_records(doc):
-    """Process PDF and create toll records at module level"""
     try:
         file_path = get_file_path(doc.toll_document)
         
-        # Read tables from PDF
+        # Read tables from PDF with specific options
         tables = tabula.read_pdf(
             file_path,
             pages='all',
             multiple_tables=True,
-            lattice=True,
-            pandas_options={'header': None}  # Don't use first row as header
+            lattice=True,  # Use lattice mode since the PDF has lines
+            guess=False,   # Don't guess the structure
+            pandas_options={'header': None}
         )
         
         if not tables:
@@ -65,21 +61,12 @@ def process_toll_records(doc):
         # Combine all tables
         df = pd.concat(tables)
         
-        # Drop the first row and set proper column names
-        column_names = {
-            0: 'Transaction Date & Time',
-            1: 'TA/Tolling Point',
-            2: 'Vehicle Licence Plate Number',
-            3: 'e-tag ID',
-            4: 'Detected TA Class',
-            5: 'Nominal Amount',
-            6: 'Discount',
-            7: 'Net Amount',
-            8: 'VAT'
-        }
+        # Debug: Print the first few rows with their raw data
+        frappe.log_error(f"First row raw data: {df.iloc[0].to_dict()}", "Data Debug")
+        frappe.log_error(f"Second row raw data: {df.iloc[1].to_dict()}", "Data Debug")
         
-        df = df.iloc[1:]  # Skip first row
-        df.columns = [column_names.get(i, f'Column_{i}') for i in range(len(df.columns))]
+        # Let's see what columns we actually have
+        frappe.log_error(f"Number of columns: {len(df.columns)}", "Data Debug")
         
         total_records = len(df)
         doc.db_set('total_records', total_records)
@@ -88,20 +75,53 @@ def process_toll_records(doc):
         duplicate_records = []
         failed_records = []
         
+        # Process rows (skipping header)
         for index, row in df.iterrows():
             try:
-                # Update progress
-                doc.db_set('progress_count', f"Processing record {index + 1}/{total_records}")
+                # Debug: Print each field for this row
+                row_data = {
+                    'Col0': row[0] if 0 in row else 'Missing',
+                    'Col1': row[1] if 1 in row else 'Missing',
+                    'Col2': row[2] if 2 in row else 'Missing',
+                    'Col3': row[3] if 3 in row else 'Missing',
+                    'Col4': row[4] if 4 in row else 'Missing',
+                    'Col5': row[5] if 5 in row else 'Missing'
+                }
+                frappe.log_error(f"Processing row {index}, data: {row_data}", "Row Debug")
                 
-                # Clean and format data
-                transaction_date = pd.to_datetime(row['Transaction Date & Time'], format='%Y/%m/%d %I:%M:%S %p')
+                # Skip if this looks like a header or total row
+                if any(['Total' in str(val) for val in row.values]):
+                    continue
+                
+                if index == 0:  # Skip header row
+                    continue
+                
+                # Try to find the date column by looking at the format
+                date_val = None
+                tolling_point = None
+                etag_id = None
+                net_amount = None
+                
+                # Look through each column to identify the correct data
+                for col in row.index:
+                    val = str(row[col]).strip()
+                    if '/' in val and ':' in val:  # Likely a date
+                        date_val = val
+                    elif 'N4:' in val or 'N1:' in val:  # Likely tolling point
+                        tolling_point = val
+                    elif val.replace(' ', '').isdigit() and len(val.replace(' ', '')) > 8:  # Likely etag
+                        etag_id = val
+                    elif val.startswith('R '):  # Likely amount
+                        net_amount = float(val.replace('R ', '').replace(',', ''))
+                
+                if not all([date_val, tolling_point, etag_id, net_amount]):
+                    raise Exception(f"Missing required data: date={bool(date_val)}, point={bool(tolling_point)}, tag={bool(etag_id)}, amount={bool(net_amount)}")
+                
+                # Parse date
+                transaction_date = pd.to_datetime(date_val, format='%Y/%m/%d %I:%M:%S %p')
                 date_str = get_datetime_str(transaction_date)
                 
-                tolling_point = str(row['TA/Tolling Point']).strip()
-                etag_id = str(row['e-tag ID']).strip()
-                net_amount = float(str(row['Net Amount']).replace('R ', '').replace(',', ''))
-                
-                # Create individual toll record
+                # Create record
                 success, result = create_toll_record(
                     date_str,
                     tolling_point,
@@ -126,7 +146,6 @@ def process_toll_records(doc):
         doc.db_set('duplicate_records', len(duplicate_records))
         doc.db_set('processing_status', 'Completed')
         
-        # Show summary message
         message = f"""
         <div>
             <p>Toll processing completed:</p>
@@ -162,12 +181,10 @@ class TollCapture(Document):
             self.duplicate_records = 0
 
     def process_document(self):
-        """Trigger the processing at module level"""
         process_toll_records(self)
 
 @frappe.whitelist()
 def process_toll_document(doc_name):
-    """Whitelist method to process toll documents"""
     try:
         doc = frappe.get_doc("Toll Capture", doc_name)
         doc.process_document()
