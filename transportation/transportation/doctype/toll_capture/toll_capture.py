@@ -12,52 +12,66 @@ def validate(doc, method):
     if not file_path.lower().endswith('.pdf'):
         frappe.throw("Only PDF files are supported")
 
+def clean_table_data(df):
+    """Clean up table data by combining split rows"""
+    try:
+        # Show initial state
+        frappe.msgprint(f"Initial columns: {df.columns.tolist()[:5]}...")  # Show first 5
+        
+        # Try to find date pattern in any column
+        for col in df.columns:
+            sample = str(df[col].iloc[0]) if len(df) > 0 else ""
+            if '2024/' in sample:
+                frappe.msgprint(f"Found date in column: {col}")
+                frappe.msgprint(f"Sample value: {sample}")
+        
+        return df
+    except Exception as e:
+        frappe.msgprint(f"Error in cleaning: {str(e)}")
+        return df
+
 def process_toll_records(doc):
     try:
         file_path = get_file_path(doc.toll_document)
         doc.db_set('processing_status', 'Processing')
         
-        # Try with specific table settings
+        # Try different table extraction settings
         tables = tabula.read_pdf(
             file_path,
             pages='all',
             multiple_tables=True,
-            lattice=False,  # Change to False since it's not strictly a grid
-            stream=True,    # Use stream mode for less structured tables
-            guess=False,    # Don't guess the table structure
-            area=[250, 0, 700, 1000],  # Adjust area to focus on data
-            columns=[50, 150, 250, 350, 450, 550, 650, 750]  # Try to define column positions
+            lattice=True,  # Try lattice mode first
+            pandas_options={
+                'header': None,  # Don't use first row as header
+            },
+            area=[300, 0, 700, 1000],  # Focus more on transaction area
+            relative_area=True,  # Use relative coordinates
+            guess=False  # Don't guess the structure
         )
         
         if not tables:
             frappe.throw("No tables found in PDF")
             
-        # Combine all tables
-        df = pd.concat(tables)
+        frappe.msgprint(f"Found {len(tables)} tables")
         
-        # Look for date-like columns
-        date_col = None
-        for col in df.columns:
-            sample_value = str(df[col].iloc[0]) if len(df) > 0 else ""
-            if '2024' in sample_value and ':' in sample_value:
-                date_col = col
-                break
-                
-        frappe.msgprint(f"Found these columns: {', '.join(df.columns.tolist())}")
-        if date_col:
-            frappe.msgprint(f"Found date column: {date_col}")
-            frappe.msgprint(f"Sample date: {df[date_col].iloc[0] if len(df) > 0 else 'No data'}")
+        # Process each table
+        for i, table in enumerate(tables):
+            frappe.msgprint(f"\nTable {i+1}:")
+            frappe.msgprint(f"Shape: {table.shape}")
             
-        # Show first row data
-        if len(df) > 0:
-            first_row = df.iloc[0]
-            frappe.msgprint("First row data (sample):")
-            for col in df.columns[:3]:  # Show first 3 columns
-                frappe.msgprint(f"{col}: {first_row[col]}")
-        
-        # Continue with more detailed debugging info
-        total_rows = len(df)
-        frappe.msgprint(f"Total rows found: {total_rows}")
+            # Show first few cells of first row
+            if len(table) > 0:
+                first_row = table.iloc[0]
+                sample_data = [str(val)[:30] for val in first_row.values[:3]]
+                frappe.msgprint(f"Sample data: {', '.join(sample_data)}")
+            
+            # Clean and analyze table
+            cleaned_table = clean_table_data(table)
+            
+            # If this table has our transaction data, process it
+            if any('2024/' in str(val) for val in cleaned_table.values.flatten()):
+                frappe.msgprint("Found transaction table!")
+                return "Found potential transaction table - check the logs"
         
         return "Debug mode - check messages"
             
