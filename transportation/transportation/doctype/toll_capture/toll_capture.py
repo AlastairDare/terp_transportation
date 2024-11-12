@@ -17,37 +17,48 @@ def process_toll_records(doc):
         file_path = get_file_path(doc.toll_document)
         doc.db_set('processing_status', 'Processing')
         
-        frappe.msgprint("Starting PDF read...")
-        
-        # Try reading with more specific area
+        # Try with specific table settings
         tables = tabula.read_pdf(
             file_path,
             pages='all',
-            multiple_tables=False,  # Just get one table
-            area=[250, 0, 700, 1000],  # Adjusted to focus below "Toll Transactions"
-            pandas_options={'header': 0}  # Use first row as header
+            multiple_tables=True,
+            lattice=False,  # Change to False since it's not strictly a grid
+            stream=True,    # Use stream mode for less structured tables
+            guess=False,    # Don't guess the table structure
+            area=[250, 0, 700, 1000],  # Adjust area to focus on data
+            columns=[50, 150, 250, 350, 450, 550, 650, 750]  # Try to define column positions
         )
         
-        if isinstance(tables, list):
-            first_table = tables[0]
-        else:
-            first_table = tables
+        if not tables:
+            frappe.throw("No tables found in PDF")
             
-        frappe.msgprint(f"Table shape: {first_table.shape}")
+        # Combine all tables
+        df = pd.concat(tables)
         
-        # Show all column names
-        frappe.msgprint("All columns found:")
-        for i, col in enumerate(first_table.columns):
-            frappe.msgprint(f"Column {i}: {str(col)}")
+        # Look for date-like columns
+        date_col = None
+        for col in df.columns:
+            sample_value = str(df[col].iloc[0]) if len(df) > 0 else ""
+            if '2024' in sample_value and ':' in sample_value:
+                date_col = col
+                break
+                
+        frappe.msgprint(f"Found these columns: {', '.join(df.columns.tolist())}")
+        if date_col:
+            frappe.msgprint(f"Found date column: {date_col}")
+            frappe.msgprint(f"Sample date: {df[date_col].iloc[0] if len(df) > 0 else 'No data'}")
             
-        # Show first row of data
-        if len(first_table) > 0:
-            frappe.msgprint("First row data:")
-            first_row = first_table.iloc[0]
-            for col, val in first_row.items():
-                frappe.msgprint(f"{col}: {val}")
+        # Show first row data
+        if len(df) > 0:
+            first_row = df.iloc[0]
+            frappe.msgprint("First row data (sample):")
+            for col in df.columns[:3]:  # Show first 3 columns
+                frappe.msgprint(f"{col}: {first_row[col]}")
         
-        doc.db_set('processing_status', 'Completed')
+        # Continue with more detailed debugging info
+        total_rows = len(df)
+        frappe.msgprint(f"Total rows found: {total_rows}")
+        
         return "Debug mode - check messages"
             
     except Exception as e:
