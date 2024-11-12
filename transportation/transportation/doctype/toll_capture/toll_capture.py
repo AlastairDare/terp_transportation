@@ -17,49 +17,33 @@ def process_toll_records(doc):
         file_path = get_file_path(doc.toll_document)
         doc.db_set('processing_status', 'Processing')
         
+        frappe.msgprint("Starting PDF read...")
+        
         # Basic tabula read first
         tables = tabula.read_pdf(
             file_path,
-            pages='1',  # Just first page
+            pages='1',
             multiple_tables=True
         )
         
-        # Immediate feedback
-        frappe.msgprint("Step 1: Reading PDF")
-        frappe.db.commit()  # Make sure message shows
+        frappe.msgprint(f"Found {len(tables)} tables in PDF")
         
-        if not tables:
-            frappe.msgprint("No tables found")
-            return
+        if tables:
+            first_table = tables[0]
+            frappe.msgprint(f"First table has {len(first_table.columns)} columns")
+            frappe.msgprint(f"First table has {len(first_table)} rows")
             
-        frappe.msgprint(f"Found {len(tables)} tables")
-        frappe.db.commit()
+            # Just show first few column names
+            for i, col in enumerate(first_table.columns[:3]):
+                frappe.msgprint(f"Column {i}: {str(col)[:50]}")
         
-        # Look at first table
-        first_table = tables[0]
-        frappe.msgprint("Step 2: First Table Details")
-        frappe.db.commit()
-        
-        # Look at columns
-        col_str = str(first_table.columns.tolist())[:100]  # Truncate to avoid length issues
-        frappe.msgprint(f"Columns (truncated): {col_str}")
-        frappe.db.commit()
-        
-        # Look at shape
-        frappe.msgprint(f"Table shape: {first_table.shape}")
-        frappe.db.commit()
-        
-        # Look at first row
-        if len(first_table) > 0:
-            row_str = str(first_table.iloc[0].tolist())[:100]
-            frappe.msgprint(f"First row (truncated): {row_str}")
-            frappe.db.commit()
-        
-        raise Exception("Debug complete - check messages above")
+        doc.db_set('processing_status', 'Completed')
+        return "Debug mode - check messages"
             
     except Exception as e:
         doc.db_set('processing_status', 'Failed')
-        raise
+        frappe.msgprint(f"Error: {str(e)}")
+        return
 
 class TollCapture(Document):
     def validate(self):
@@ -71,13 +55,14 @@ class TollCapture(Document):
             self.duplicate_records = 0
 
     def process_document(self):
-        process_toll_records(self)
+        return process_toll_records(self)
 
 @frappe.whitelist()
 def process_toll_document(doc_name):
     try:
         doc = frappe.get_doc("Toll Capture", doc_name)
-        doc.process_document()
-        return "Processing Complete"
+        result = doc.process_document()
+        return result or "Processing Complete"
     except Exception as e:
-        frappe.throw(str(e))
+        frappe.msgprint(f"Error in processing: {str(e)}")
+        return "Failed"
