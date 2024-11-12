@@ -4,16 +4,25 @@ import pandas as pd
 from frappe.utils.file_manager import get_file_path
 from frappe.model.document import Document
 
+# Module level methods for hooks
+def validate(doc, method):
+    if not doc.toll_document:
+        frappe.throw("Toll document is required")
+        
+    # Validate file format
+    file_path = get_file_path(doc.toll_document)
+    if not file_path.lower().endswith('.pdf'):
+        frappe.throw("Only PDF files are supported")
+
+def on_trash(doc, method):
+    frappe.db.sql("""
+        DELETE FROM `tabTolls` 
+        WHERE source_capture = %s
+    """, doc.name)
+    frappe.db.commit()
+
 class TollCapture(Document):
     def validate(self):
-        if not self.toll_document:
-            frappe.throw("Toll document is required")
-            
-        # Validate file format
-        file_path = get_file_path(self.toll_document)
-        if not file_path.lower().endswith('.pdf'):
-            frappe.throw("Only PDF files are supported")
-            
         # Reset processing status for new documents
         if not self.name:
             self.processing_status = "Pending"
@@ -76,36 +85,22 @@ class TollCapture(Document):
                     
                     if exists:
                         duplicates.append(row)
-                        frappe.log_error(f"Duplicate found: Date {date_str}, Tag {etag_id}", "Toll Processing")
                     else:
-                        # Create new toll record
-                        try:
-                            new_toll = {
-                                "doctype": "Tolls",
-                                "transaction_date": date_str,
-                                "tolling_point": tolling_point,
-                                "etag_id": etag_id,
-                                "net_amount": net_amount,
-                                "process_status": "Unprocessed",
-                                "source_capture": self.name
-                            }
-                            
-                            # Log the data being inserted
-                            frappe.log_error(f"Creating toll record: {new_toll}", "Toll Creation")
-                            
-                            doc = frappe.get_doc(new_toll)
-                            doc.insert(ignore_permissions=True)
-                            frappe.db.commit()
-                            
-                            new_records.append(doc.name)
-                            frappe.log_error(f"Created toll record: {doc.name}", "Toll Creation Success")
-                            
-                        except Exception as e:
-                            frappe.log_error(f"Failed to create toll: {str(e)}\nData: {new_toll}", "Toll Creation Error")
-                            raise
+                        doc = frappe.get_doc({
+                            "doctype": "Tolls",
+                            "transaction_date": date_str,
+                            "tolling_point": tolling_point,
+                            "etag_id": etag_id,
+                            "net_amount": net_amount,
+                            "process_status": "Unprocessed",
+                            "source_capture": self.name
+                        })
+                        doc.insert(ignore_permissions=True)
+                        frappe.db.commit()
+                        new_records.append(doc.name)
                         
                 except Exception as e:
-                    frappe.log_error(f"Error processing row {index}: {str(e)}", "Row Processing Error")
+                    frappe.log_error(f"Error processing row {index}: {str(e)}")
                     continue
             
             # Update final counts and status
@@ -113,18 +108,8 @@ class TollCapture(Document):
             self.db_set('new_records', len(new_records))
             self.db_set('processing_status', 'Completed')
             
-            # Log final summary
-            frappe.log_error(
-                f"Processing completed:\n"
-                f"Total records: {total_records}\n"
-                f"New records: {len(new_records)}\n"
-                f"Duplicates: {len(duplicates)}",
-                "Toll Processing Summary"
-            )
-            
         except Exception as e:
             self.db_set('processing_status', 'Failed')
-            frappe.log_error(str(e), "Toll Processing Failed")
             raise
 
 @frappe.whitelist()
