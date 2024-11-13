@@ -8,7 +8,7 @@ class ResponseProcessingHandler(BaseHandler):
     def handle(self, request: DocumentRequest) -> DocumentRequest:
         try:
             if request.method == "process_toll":
-                self._process_toll_response(request)
+                self._process_toll_records(request)
             else:
                 self._update_documents(request)
             return super().handle(request)
@@ -17,26 +17,28 @@ class ResponseProcessingHandler(BaseHandler):
             self._handle_error(request)
             raise DocumentProcessingError(f"Response processing failed: {str(e)}")
 
-    def _process_toll_response(self, request: DocumentRequest):
-        """Process toll document AI response and create toll records"""
+    def _process_toll_records(self, request: DocumentRequest):
+        """Process toll records and handle duplicates"""
         try:
             if not request.ai_response or not isinstance(request.ai_response, list):
                 raise DocumentProcessingError("Invalid AI response format for toll data")
 
-            # Initialize counters
             total_records = len(request.ai_response)
             new_records = 0
             duplicate_records = 0
 
             for toll_entry in request.ai_response:
                 try:
-                    # Check for existing toll record
+                    # Clean e-tag ID (remove spaces)
+                    if toll_entry.get('etag_id'):
+                        toll_entry['etag_id'] = toll_entry['etag_id'].replace(" ", "")
+
+                    # Check for duplicates
                     existing_toll = frappe.get_list(
                         "Toll",
                         filters={
-                            "transaction_id": toll_entry.get("transaction_id"),
-                            "date": toll_entry.get("date"),
-                            "license_plate": toll_entry.get("license_plate")
+                            "etag_id": toll_entry.get('etag_id'),
+                            "transaction_date": toll_entry.get('transaction_date')
                         }
                     )
 
@@ -47,22 +49,12 @@ class ResponseProcessingHandler(BaseHandler):
                     # Create new toll record
                     toll_doc = frappe.get_doc({
                         "doctype": "Toll",
-                        "transaction_id": toll_entry.get("transaction_id"),
-                        "date": toll_entry.get("date"),
-                        "time": toll_entry.get("time"),
-                        "license_plate": toll_entry.get("license_plate"),
-                        "location": toll_entry.get("location"),
-                        "amount": float(toll_entry.get("amount", 0)),
+                        "transaction_date": toll_entry.get('transaction_date'),
+                        "tolling_point": toll_entry.get('tolling_point'),
+                        "etag_id": toll_entry.get('etag_id'),
+                        "net_amount": toll_entry.get('net_amount'),
                         "processed_from": request.doc.name
                     })
-
-                    # Try to link to transportation asset
-                    if toll_entry.get("license_plate"):
-                        matching_truck = self._find_matching_truck_by_plate(
-                            toll_entry.get("license_plate")
-                        )
-                        if matching_truck:
-                            toll_doc.transportation_asset = matching_truck.get('name')
 
                     toll_doc.insert(ignore_permissions=True)
                     new_records += 1
@@ -78,7 +70,16 @@ class ResponseProcessingHandler(BaseHandler):
             request.doc.total_records = total_records
             request.doc.new_records = new_records
             request.doc.duplicate_records = duplicate_records
+            
+            # Update document status
+            request.doc.processing_status = "Completed"
             request.doc.save(ignore_permissions=True)
+
+            # Show user message
+            frappe.msgprint(
+                f"{new_records} New Tolls Created. {duplicate_records} Duplicate Tolls found in the system and were excluded",
+                title="Toll Processing Complete"
+            )
 
             frappe.db.commit()
 
