@@ -54,7 +54,7 @@ def process_toll_page(doc_name: str, page_num: int, total_pages: int, pdf_path: 
             with open(optimized_path, "rb") as img_file:
                 base64_image = base64.b64encode(img_file.read()).decode('utf-8')
             
-            # Save page result
+            # Save page result only
             frappe.get_doc({
                 "doctype": "Toll Page Result",
                 "parent_document": doc_name,
@@ -63,46 +63,25 @@ def process_toll_page(doc_name: str, page_num: int, total_pages: int, pdf_path: 
                 "status": "Completed"
             }).insert(ignore_permissions=True)
             
-            # Update document progress with retries
-            retry_count = 0
-            while retry_count < 3:
-                try:
-                    doc = frappe.get_doc("Toll Capture", doc_name)
-                    completed_pages = frappe.db.count(
-                        "Toll Page Result",
-                        {"parent_document": doc_name, "status": "Completed"}
-                    )
-                    
-                    doc.progress_count = f"Processed {completed_pages} of {total_pages} pages"
-                    
-                    if completed_pages == total_pages:
-                        doc.status = "Completed"
-                        pages = frappe.get_all(
-                            "Toll Page Result",
-                            filters={"parent_document": doc_name, "status": "Completed"},
-                            fields=["page_number", "base64_image"],
-                            order_by="page_number"
-                        )
-                        doc.processed_pages = frappe.as_json([{
-                            'page_number': page.page_number,
-                            'base64_image': page.base64_image
-                        } for page in pages])
-                    
-                    doc.flags.ignore_version = True
-                    doc.save(ignore_permissions=True, ignore_version=True)
-                    break  # Success, exit retry loop
-                    
-                except frappe.TimestampMismatchError:
-                    retry_count += 1
-                    if retry_count < 3:
-                        import time
-                        time.sleep(1)  # Wait before retry
-                    else:
-                        raise  # Re-raise if max retries reached
+            # Check if this is the last page and update parent only once
+            completed_pages = frappe.db.count(
+                "Toll Page Result",
+                {"parent_document": doc_name, "status": "Completed"}
+            )
             
+            if completed_pages == total_pages:
+                frappe.db.set_value(
+                    "Toll Capture",
+                    doc_name,
+                    {
+                        "status": "Completed",
+                        "progress_count": f"Processed {completed_pages} of {total_pages} pages"
+                    },
+                    update_modified=False
+                )
+                
     except Exception as e:
-        # Create shorter error message for log
-        error_msg = f"Page {page_num} failed: {str(e)[:50]}..."  # Truncate error message
+        error_msg = f"Page {page_num} failed: {str(e)[:50]}..."
         frappe.log_error(error_msg, "Toll Processing Error")
         
         frappe.get_doc({
@@ -125,20 +104,24 @@ class DocumentPreparationHandler(BaseHandler):
                 total_pages = len(pdf.pages)
                 
                 # Initialize document state
-                request.doc.total_records = total_pages
-                request.doc.status = "Processing"
-                request.doc.progress_count = "0"
-                request.doc.save(ignore_permissions=True)
+                frappe.db.set_value(
+                    "Toll Capture",
+                    request.doc.name,
+                    {
+                        "total_records": total_pages,
+                        "status": "Processing",
+                        "progress_count": "0"
+                    },
+                    update_modified=False
+                )
                 
                 # Queue jobs for each page
                 for page_num in range(1, total_pages + 1):
-                    job_name = f'toll_processing_{request.doc.name}_page_{page_num}'
-                    
                     enqueue(
                         process_toll_page,
                         queue='long',
                         timeout=300,
-                        job_name=job_name,
+                        job_name=f'toll_processing_{request.doc.name}_page_{page_num}',
                         doc_name=request.doc.name,
                         page_num=page_num,
                         total_pages=total_pages,
