@@ -81,9 +81,6 @@ doc_events = {
     },
     "Tolls": {
         "before_save": "transportation.transportation.doctype.tolls.tolls.validate",
-    },
-    "Toll Capture": {
-        "validate": "transportation.transportation.doctype.toll_capture.toll_capture.validate"
     }
 
 }
