@@ -63,33 +63,48 @@ def process_toll_page(doc_name: str, page_num: int, total_pages: int, pdf_path: 
                 "status": "Completed"
             }).insert(ignore_permissions=True)
             
-            # Update document progress
-            doc = frappe.get_doc("Toll Capture", doc_name)
-            completed_pages = frappe.db.count(
-                "Toll Page Result",
-                {"parent_document": doc_name, "status": "Completed"}
-            )
-            
-            doc.progress_count = f"Processed {completed_pages} of {total_pages} pages"
-            
-            if completed_pages == total_pages:
-                doc.status = "Completed"
-                pages = frappe.get_all(
-                    "Toll Page Result",
-                    filters={"parent_document": doc_name, "status": "Completed"},
-                    fields=["page_number", "base64_image"],
-                    order_by="page_number"
-                )
-                doc.processed_pages = frappe.as_json([{
-                    'page_number': page.page_number,
-                    'base64_image': page.base64_image
-                } for page in pages])
-            
-            doc.flags.ignore_version = True
-            doc.save(ignore_permissions=True, ignore_version=True)
+            # Update document progress with retries
+            retry_count = 0
+            while retry_count < 3:
+                try:
+                    doc = frappe.get_doc("Toll Capture", doc_name)
+                    completed_pages = frappe.db.count(
+                        "Toll Page Result",
+                        {"parent_document": doc_name, "status": "Completed"}
+                    )
+                    
+                    doc.progress_count = f"Processed {completed_pages} of {total_pages} pages"
+                    
+                    if completed_pages == total_pages:
+                        doc.status = "Completed"
+                        pages = frappe.get_all(
+                            "Toll Page Result",
+                            filters={"parent_document": doc_name, "status": "Completed"},
+                            fields=["page_number", "base64_image"],
+                            order_by="page_number"
+                        )
+                        doc.processed_pages = frappe.as_json([{
+                            'page_number': page.page_number,
+                            'base64_image': page.base64_image
+                        } for page in pages])
+                    
+                    doc.flags.ignore_version = True
+                    doc.save(ignore_permissions=True, ignore_version=True)
+                    break  # Success, exit retry loop
+                    
+                except frappe.TimestampMismatchError:
+                    retry_count += 1
+                    if retry_count < 3:
+                        import time
+                        time.sleep(1)  # Wait before retry
+                    else:
+                        raise  # Re-raise if max retries reached
             
     except Exception as e:
-        frappe.log_error(f"Error processing page {page_num}: {str(e)}")
+        # Create shorter error message for log
+        error_msg = f"Page {page_num} failed: {str(e)[:50]}..."  # Truncate error message
+        frappe.log_error(error_msg, "Toll Processing Error")
+        
         frappe.get_doc({
             "doctype": "Toll Page Result",
             "parent_document": doc_name,
