@@ -1,3 +1,4 @@
+import frappe
 from .handlers.config_handler import ConfigurationHandler
 from .handlers.document_handler import DocumentPreparationHandler
 from .handlers.ai_handler import AIProcessingHandler
