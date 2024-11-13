@@ -1,34 +1,156 @@
 import os
 import base64
 import tempfile
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Dict, Optional
 from PIL import Image
 from PyPDF2 import PdfReader
 from pdf2image import convert_from_path
 import frappe
 from frappe.utils import get_files_path
+from frappe.utils.background_jobs import enqueue
 from .base_handler import BaseHandler
 from ..utils.request import DocumentRequest
 from ..utils.exceptions import DocumentProcessingError
 
 class DocumentPreparationHandler(BaseHandler):
     def handle(self, request: DocumentRequest) -> DocumentRequest:
-        """Required implementation of abstract handle method"""
+        """Main handler - now with background processing for toll documents only"""
         try:
             if request.method == "process_toll":
-                self._prepare_toll_document(request)
+                # Get total pages first
+                pdf_path = get_files_path() + '/' + request.doc.toll_document.lstrip('/files/')
+                pdf = PdfReader(pdf_path)
+                total_pages = len(pdf.pages)
+                
+                # Initialize document state
+                request.doc.total_records = total_pages
+                request.doc.status = "Processing"
+                request.doc.progress_count = "0"
+                request.doc.save(ignore_permissions=True)
+                
+                # Queue jobs for each page
+                for page_num in range(1, total_pages + 1):
+                    enqueue(
+                        method=self._process_toll_page,
+                        queue='long',
+                        timeout=180,
+                        is_async=True,
+                        job_name=f'toll_processing_{request.doc.name}_page_{page_num}',
+                        doc_name=request.doc.name,
+                        page_num=page_num,
+                        total_pages=total_pages,
+                        pdf_path=pdf_path
+                    )
+                
+                return request  # Return immediately while processing continues in background
             else:
+                # Original delivery note processing remains unchanged
                 self._prepare_delivery_note(request)
+                return super().handle(request)
             
-            return super().handle(request)
-        
         except Exception as e:
             request.set_error(e)
             raise DocumentProcessingError(f"Document preparation failed: {str(e)}")
 
+    def _process_toll_page(self, doc_name: str, page_num: int, total_pages: int, pdf_path: str):
+        """Process a single toll document page in the background"""
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                # Convert single page
+                images = convert_from_path(
+                    pdf_path,
+                    dpi=150,
+                    output_folder=temp_dir,
+                    fmt="jpeg",
+                    first_page=page_num,
+                    last_page=page_num,
+                    output_file=f"page_{page_num}",
+                    paths_only=True,
+                    poppler_path="/usr/bin"
+                )
+                
+                if not images:
+                    raise Exception(f"Failed to convert page {page_num}")
+                
+                # Optimize the image
+                optimized_path = self._optimize_image(images[0])
+                
+                # Convert to base64
+                with open(optimized_path, "rb") as img_file:
+                    base64_image = base64.b64encode(img_file.read()).decode('utf-8')
+                
+                # Save the result
+                self._save_toll_page(
+                    doc_name=doc_name,
+                    page_data={
+                        'page_number': page_num,
+                        'base64_image': base64_image
+                    }
+                )
+                
+                # Update progress
+                self._update_toll_progress(doc_name, page_num, total_pages)
+                
+        except Exception as e:
+            frappe.log_error(
+                f"Failed to process page {page_num}: {str(e)}", 
+                f"Toll Page {page_num} Processing Error"
+            )
+            self._save_toll_page_error(doc_name, page_num, str(e))
+
+    def _save_toll_page(self, doc_name: str, page_data: Dict):
+        """Save processed toll page"""
+        frappe.get_doc({
+            "doctype": "Toll Page Result",
+            "parent_document": doc_name,
+            "page_number": page_data['page_number'],
+            "base64_image": page_data['base64_image'],
+            "status": "Completed"
+        }).insert(ignore_permissions=True)
+
+    def _update_toll_progress(self, doc_name: str, current_page: int, total_pages: int):
+        """Update toll document progress"""
+        doc = frappe.get_doc("Toll Capture", doc_name)
+        completed_pages = frappe.db.count(
+            "Toll Page Result",
+            {
+                "parent_document": doc_name,
+                "status": "Completed"
+            }
+        )
+        
+        doc.progress_count = f"Processed {completed_pages} of {total_pages} pages"
+        
+        if completed_pages == total_pages:
+            doc.status = "Completed"
+            # Collect all processed pages in order
+            pages = frappe.get_all(
+                "Toll Page Result",
+                filters={"parent_document": doc_name, "status": "Completed"},
+                fields=["page_number", "base64_image"],
+                order_by="page_number"
+            )
+            # Store final result in a JSON field
+            doc.processed_pages = frappe.as_json([{
+                'page_number': page.page_number,
+                'base64_image': page.base64_image
+            } for page in pages])
+        
+        doc.save(ignore_permissions=True)
+
+    def _save_toll_page_error(self, doc_name: str, page_num: int, error_msg: str):
+        """Record toll page processing error"""
+        frappe.get_doc({
+            "doctype": "Toll Page Result",
+            "parent_document": doc_name,
+            "page_number": page_num,
+            "status": "Failed",
+            "error_message": error_msg
+        }).insert(ignore_permissions=True)
+
+    # Keep existing methods unchanged
     def _optimize_image(self, image_path: str) -> str:
-        """Optimize image size while maintaining readability"""
+        """Existing optimize_image method remains the same"""
         try:
             with Image.open(image_path) as img:
                 max_dimension = 1200
@@ -44,97 +166,8 @@ class DocumentPreparationHandler(BaseHandler):
             frappe.log_error(f"Image optimization failed: {str(e)}", "Image Optimization Error")
             return image_path
 
-    def _process_single_page(self, image_path: str, page_number: int, total_pages: int) -> Optional[Dict]:
-        """Process a single page in parallel"""
-        try:
-            # Log start of page processing
-            frappe.logger("toll_capture").info(f"Starting processing of page {page_number}/{total_pages}")
-            
-            # Optimize the image
-            optimized_path = self._optimize_image(image_path)
-            
-            # Convert to base64
-            with open(optimized_path, "rb") as img_file:
-                base64_image = base64.b64encode(img_file.read()).decode('utf-8')
-                
-                return {
-                    'page_number': page_number,
-                    'base64_image': base64_image
-                }
-                
-        except Exception as e:
-            frappe.log_error(
-                f"Failed to process page {page_number}: {str(e)}", 
-                f"Page {page_number} Processing Error"
-            )
-            return None
-
-    def _prepare_toll_document(self, request: DocumentRequest) -> DocumentRequest:
-        """Handle toll PDF document preparation with single page processing"""
-        if not request.doc.toll_document:
-            raise DocumentProcessingError("Toll Document is required")
-        
-        pdf_path = get_files_path() + '/' + request.doc.toll_document.lstrip('/files/')
-        if not os.path.exists(pdf_path):
-            raise DocumentProcessingError("Toll Document file not found")
-        
-        try:
-            # Initial PDF preparation
-            frappe.logger("toll_capture").info("Starting PDF processing")
-            
-            # Get total pages
-            pdf = PdfReader(pdf_path)
-            total_pages = len(pdf.pages)
-            
-            request.doc.total_records = total_pages
-            request.doc.save(ignore_permissions=True)
-            
-            # Process one page at a time
-            request.pages = []
-            successful_pages = 0
-            
-            with tempfile.TemporaryDirectory() as temp_dir:
-                # Process each page individually
-                for page_num in range(1, total_pages + 1):
-                    frappe.logger("toll_capture").info(f"Processing page {page_num}")
-                    
-                    # Convert just one page
-                    image = convert_from_path(
-                        pdf_path,
-                        dpi=150,
-                        output_folder=temp_dir,
-                        fmt="jpeg",
-                        first_page=page_num,
-                        last_page=page_num,
-                        output_file=f"page_{page_num}",
-                        paths_only=True,
-                        poppler_path="/usr/bin"
-                    )[0]  # Get the single image path
-                    
-                    # Process the single page
-                    result = self._process_single_page(image, page_num, total_pages)
-                    if result:
-                        request.pages.append(result)
-                        successful_pages += 1
-                        
-                        # Update progress
-                        request.doc.progress_count = f"Processed {successful_pages} of {total_pages} pages"
-                        request.doc.save(ignore_permissions=True)
-                
-                if not request.pages:
-                    raise DocumentProcessingError("No valid pages were extracted from the PDF")
-                
-                frappe.logger("toll_capture").info(
-                    f"Successfully processed {successful_pages} of {total_pages} pages"
-                )
-                return request
-                
-        except Exception as e:
-            frappe.log_error(str(e), "PDF Processing Error")
-            raise DocumentProcessingError(f"Failed to process PDF document: {str(e)}")
-
     def _prepare_delivery_note(self, request: DocumentRequest) -> DocumentRequest:
-        """Handle delivery note image preparation"""
+        """Original delivery note method remains completely unchanged"""
         if not request.doc.delivery_note_image:
             raise DocumentProcessingError("Delivery Note Image is required")
         
@@ -149,7 +182,7 @@ class DocumentPreparationHandler(BaseHandler):
         request.trip_id = trip_doc.name
 
     def _create_initial_trip(self, source_doc):
-        """Create initial trip document"""
+        """Original create_initial_trip method remains unchanged"""
         try:
             employee_name = frappe.get_value("Employee", source_doc.employee, "employee_name")
             trip_doc = frappe.get_doc({

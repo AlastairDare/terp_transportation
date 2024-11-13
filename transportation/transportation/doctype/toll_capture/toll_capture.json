@@ -52,7 +52,20 @@
             "fieldtype": "Int",
             "label": "Duplicate Records",
             "read_only": 1
-        }
+        },
+        {
+            "fieldname": "status",
+            "label": "Status",
+            "fieldtype": "Select",
+            "options": "\nDraft\nProcessing\nCompleted\nFailed",
+            "default": "Draft"
+          },
+          {
+            "fieldname": "processed_pages",
+            "label": "Processed Pages",
+            "fieldtype": "Long Text",
+            "hidden": 1  
+          }
     ],
     "permissions": [
         {

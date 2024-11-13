@@ -1,0 +1,51 @@
+{
+    "doctype": "Toll Page Result",
+    "module": "Transportation",
+    "custom": 1,
+    "fields": [
+        {
+            "fieldname": "parent_document",
+            "fieldtype": "Link",
+            "label": "Parent Document",
+            "options": "Toll Capture",
+            "reqd": 1
+        },
+        {
+            "fieldname": "page_number",
+            "fieldtype": "Int",
+            "label": "Page Number",
+            "reqd": 1
+        },
+        {
+            "fieldname": "base64_image",
+            "fieldtype": "Long Text",
+            "label": "Base64 Image"
+        },
+        {
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "label": "Status",
+            "options": "Completed\nFailed",
+            "default": "Completed",
+            "reqd": 1
+        },
+        {
+            "fieldname": "error_message",
+            "fieldtype": "Long Text",
+            "label": "Error Message",
+            "depends_on": "eval:doc.status=='Failed'"
+        }
+    ],
+    "permissions": [
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "track_changes": 1
+}
