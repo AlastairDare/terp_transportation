@@ -37,17 +37,25 @@ def analyze_pdf_structure(doc) -> str:
                         debug_info.append(f"Line at position {bbox}: {text}")
             
             # Try table detection
-            tables = page.find_tables()
-            debug_info.append(f"\nNumber of tables detected: {len(tables)}")
+            debug_info.append("\nAttempting Table Detection:")
+            finder = page.find_tables()
+            tables = finder.extract()  # This gets the actual tables
+            debug_info.append(f"Number of tables detected: {len(tables)}")
             
             for table_num, table in enumerate(tables):
                 debug_info.append(f"\nTable {table_num + 1}:")
-                rows = table.extract()
+                debug_info.append(f"Table bbox: {table.bbox}")  # Show table boundaries
+                rows = table  # table is already the extracted data
                 debug_info.append(f"Rows detected: {len(rows)}")
                 
                 # Show first few rows for inspection
-                for row_num, row in enumerate(rows[:3]):  # Show first 3 rows
+                for row_num, row in enumerate(rows[:5]):  # Show first 5 rows
                     debug_info.append(f"Row {row_num}: {row}")
+            
+            # Alternative text extraction for comparison
+            debug_info.append("\nRaw Text Extraction:")
+            raw_text = page.get_text()
+            debug_info.append(raw_text[:500])  # First 500 chars for comparison
         
         # Log the complete debug info
         debug_text = "\n".join(debug_info)
@@ -62,6 +70,7 @@ def analyze_pdf_structure(doc) -> str:
         return "Diagnostic Complete"
         
     except Exception as e:
+        frappe.log_error(f"Error during analysis: {str(e)}", "PDF Analysis Error")
         frappe.throw(f"Error analyzing document: {str(e)}")
     finally:
         if 'pdf_doc' in locals():
