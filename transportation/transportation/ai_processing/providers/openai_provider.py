@@ -8,7 +8,7 @@ from ..utils.exceptions import ProviderError
 class OpenAIProvider(BaseAIProvider):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.timeout = getattr(self.settings, 'request_timeout', 120)
+        self.timeout = getattr(self.settings, 'request_timeout', 480)
         self.base_retry_delay = 1
         self.max_retries = getattr(self.settings, 'max_retries', 3)
 
