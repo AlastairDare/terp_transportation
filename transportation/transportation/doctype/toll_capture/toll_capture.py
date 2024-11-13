@@ -1,4 +1,5 @@
 import frappe
+from frappe.model.document import Document  # Correct import for Document class
 import fitz  # PyMuPDF
 from datetime import datetime
 from frappe.utils import get_site_path, get_files_path
@@ -31,24 +32,19 @@ class TollDataExtractor:
         
         for page_num in range(len(self.pdf_doc)):
             page = self.pdf_doc[page_num]
-            # Get text blocks with their coordinates
             blocks = page.get_text("blocks")
-            
-            # Sort blocks by vertical position (top to bottom)
-            blocks.sort(key=lambda b: b[1])  # b[1] is y0 coordinate
+            blocks.sort(key=lambda b: b[1])  # Sort by y0 coordinate
             
             current_transaction = {}
             
             for block in blocks:
-                text = block[4].strip()  # block[4] contains the text
+                text = block[4].strip()
                 
-                # Look for date/time pattern
                 if self._is_transaction_row(text):
                     if current_transaction:
                         all_transactions.append(current_transaction)
                     current_transaction = self._parse_transaction_row(text)
         
-        # Add last transaction if exists
         if current_transaction:
             all_transactions.append(current_transaction)
             
@@ -56,29 +52,23 @@ class TollDataExtractor:
     
     def _is_transaction_row(self, text: str) -> bool:
         """Check if text block contains a transaction row"""
-        # Look for date/time pattern: YYYY/MM/DD HH:MM:SS
         date_pattern = r'\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2}'
         return bool(re.search(date_pattern, text))
     
     def _parse_transaction_row(self, text: str) -> Dict:
         """Parse a transaction row into structured data"""
-        # Split the text into fields
-        fields = text.split()
-        
         try:
-            # Extract date and time
+            fields = text.split()
+            
             date_time_str = f"{fields[0]} {fields[1]}"
             date_time = datetime.strptime(date_time_str, '%Y/%m/%d %H:%M:%S')
             
-            # Create transaction dictionary
-            transaction = {
+            return {
                 'transaction_date': date_time.strftime('%Y-%m-%d %H:%M:%S'),
-                'tolling_point': ' '.join(fields[2:4]),  # Assuming 2 words for tolling point
-                'etag_id': fields[-4],  # Assuming e-tag ID is 4th from last
-                'net_amount': float(fields[-2])  # Assuming amount is 2nd from last
+                'tolling_point': ' '.join(fields[2:4]),
+                'etag_id': fields[-4],
+                'net_amount': float(fields[-2])
             }
-            
-            return transaction
             
         except (IndexError, ValueError) as e:
             frappe.log_error(
@@ -87,7 +77,7 @@ class TollDataExtractor:
             )
             return {}
 
-class TollCapture(frappe.model.Document):
+class TollCapture(Document):
     def validate(self):
         """Validate the uploaded document"""
         if not self.toll_document:
@@ -110,7 +100,6 @@ class TollCapture(frappe.model.Document):
             if not transactions:
                 frappe.throw("No valid transaction data found in the document")
             
-            # Process transactions
             self._process_transactions(transactions)
             
             self.db_set('processing_status', 'Completed')
@@ -130,7 +119,6 @@ class TollCapture(frappe.model.Document):
         
         for transaction in transactions:
             try:
-                # Check for existing record
                 existing = frappe.get_all(
                     "Tolls",
                     filters={
@@ -140,7 +128,6 @@ class TollCapture(frappe.model.Document):
                 )
                 
                 if not existing:
-                    # Create new toll record
                     toll = frappe.get_doc({
                         "doctype": "Tolls",
                         "transaction_date": transaction['transaction_date'],
@@ -169,3 +156,12 @@ def process_toll_document(doc_name: str) -> str:
     """Whitelist method to process toll document"""
     doc = frappe.get_doc("Toll Capture", doc_name)
     return doc.process_document()
+
+def validate(doc, method):
+    """Module-level validate hook"""
+    if not doc.toll_document:
+        frappe.throw("Toll document is required")
+        
+    file_path = get_file_path(doc.toll_document)
+    if not file_path.lower().endswith('.pdf'):
+        frappe.throw("Only PDF files are supported")
