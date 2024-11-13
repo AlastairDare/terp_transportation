@@ -23,21 +23,6 @@ class DocumentPreparationHandler(BaseHandler):
             request.set_error(e)
             raise DocumentProcessingError(f"Document preparation failed: {str(e)}")
     
-    def _prepare_delivery_note(self, request):
-        """Handle delivery note image preparation"""
-        if not request.doc.delivery_note_image:
-            raise DocumentProcessingError("Delivery Note Image is required")
-        
-        original_image_path = get_files_path() + '/' + request.doc.delivery_note_image.lstrip('/files/')
-        if not os.path.exists(original_image_path):
-            raise DocumentProcessingError("Delivery Note Image file not found")
-        
-        with open(original_image_path, "rb") as image_file:
-            request.base64_image = base64.b64encode(image_file.read()).decode('utf-8')
-        
-        trip_doc = self._create_initial_trip(request.doc)
-        request.trip_id = trip_doc.name
-    
     def _prepare_toll_document(self, request):
         """Handle toll PDF document preparation"""
         if not request.doc.toll_document:
@@ -48,9 +33,9 @@ class DocumentPreparationHandler(BaseHandler):
             raise DocumentProcessingError("Toll Document file not found")
         
         try:
-            # Get total number of pages
+            # Get total number of pages - Fixed this line
             pdf = PdfReader(pdf_path)
-            total_pages = len(pdf)
+            total_pages = len(pdf.pages)  # Changed from len(pdf) to len(pdf.pages)
             
             # Update the document with total pages as total records
             request.doc.total_records = total_pages
@@ -91,6 +76,21 @@ class DocumentPreparationHandler(BaseHandler):
         except Exception as e:
             raise DocumentProcessingError(f"Failed to process PDF document: {str(e)}")
     
+    def _prepare_delivery_note(self, request):
+        """Handle delivery note image preparation"""
+        if not request.doc.delivery_note_image:
+            raise DocumentProcessingError("Delivery Note Image is required")
+        
+        original_image_path = get_files_path() + '/' + request.doc.delivery_note_image.lstrip('/files/')
+        if not os.path.exists(original_image_path):
+            raise DocumentProcessingError("Delivery Note Image file not found")
+        
+        with open(original_image_path, "rb") as image_file:
+            request.base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+        
+        trip_doc = self._create_initial_trip(request.doc)
+        request.trip_id = trip_doc.name
+
     def _create_initial_trip(self, source_doc):
         """Create initial trip document"""
         try:
