@@ -15,12 +15,11 @@
             "fieldname": "function",
             "fieldtype": "Select",
             "label": "Function",
-            "options": "Trip Capture Config\nSchedule Sheet Capture Config\nDelivery Note Capture Config\nProof of Delivery Config",
+            "options": "Trip Capture Config\nSchedule Sheet Capture Config\nDelivery Note Capture Config\nProof of Delivery Config\nToll Capture Config",
             "in_list_view": 1,
             "reqd": 1,
             "unique": 1,
-            "description": "Select the function this configuration will be used for",
-            "idx": 1
+            "description": "Select the function this configuration will be used for"
         },
         {
             "fieldname": "language_prompt",

@@ -9,10 +9,16 @@ class DocumentRequest:
         self.provider_settings = None      # ChatGPT or Claude settings
         self.ocr_settings = None          # Document-specific OCR settings
         self.base64_image: Optional[str] = None  # Base64 encoded image
+        self.base64_document: Optional[str] = None  # Base64 encoded PDF
+        self.document_type: Optional[str] = None  # 'image' or 'pdf'
         self.ai_response = None           # Response from AI provider
         self.processed_data = None        # Final processed data
         self.error = None                 # Any error information
         self.trip_id = None               # Created trip document ID
+        # New fields for toll processing
+        self.total_records: int = 0
+        self.new_records: int = 0
+        self.duplicate_records: int = 0
 
     def set_error(self, error: Exception) -> None:
         self.error = str(error)
