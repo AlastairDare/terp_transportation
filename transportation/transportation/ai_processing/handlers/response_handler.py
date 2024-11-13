@@ -26,7 +26,7 @@ class ResponseProcessingHandler(BaseHandler):
                     "asset_number": truck_number,
                     "transportation_asset_type": "Truck"
                 },
-                fields=["name"],
+                fields=["name", "license_plate"],
                 limit=1
             )
             return matching_truck[0] if matching_truck else None
@@ -36,6 +36,27 @@ class ResponseProcessingHandler(BaseHandler):
                 "Truck Matching Error"
             )
             return None
+
+    def _rename_trip_doc(self, doc_name: str, license_plate: str) -> str:
+        """
+        Rename the trip document to include the license plate
+        """
+        try:
+            # Get the current counter number from the existing name
+            counter = doc_name.split('--')[-1]
+            
+            # Format new name
+            new_name = f"TRIP-{license_plate}-{counter}"
+            
+            # Rename the document
+            frappe.rename_doc("Trip", doc_name, new_name, force=True)
+            return new_name
+        except Exception as e:
+            frappe.log_error(
+                f"Error renaming trip document {doc_name}: {str(e)}",
+                "Trip Rename Error"
+            )
+            return doc_name
 
     def _update_documents(self, request: DocumentRequest):
         """Update ERPNext documents with AI response"""
@@ -61,18 +82,33 @@ class ResponseProcessingHandler(BaseHandler):
                     # Handle tuple mappings with transformation functions
                     if isinstance(mapping, tuple):
                         doc_field, transform_func = mapping
-                        value = transform_func(value)
+                        
+                        # Special handling for truck number
+                        if api_field == 'truck_number':
+                            matching_truck = self._find_matching_truck(value)
+                            if matching_truck:
+                                # Set the truck link
+                                trip_doc.set(doc_field, matching_truck.get('name'))
+                                
+                                # Rename the document with license plate
+                                new_name = self._rename_trip_doc(
+                                    trip_doc.name, 
+                                    matching_truck.get('license_plate')
+                                )
+                                trip_doc.name = new_name
+                                request.trip_id = new_name  # Update request with new name
+                            else:
+                                value = None
+                                frappe.log_error(
+                                    f"No matching Transportation Asset found for truck number: {request.ai_response[api_field]}",
+                                    "Missing Transportation Asset"
+                                )
+                        else:
+                            value = transform_func(value)
                     else:
                         doc_field = mapping
 
                     trip_doc.set(doc_field, value)
-                    
-                    # Log if truck not found
-                    if api_field == 'truck_number' and value is None:
-                        frappe.log_error(
-                            f"No matching Transportation Asset found for truck number: {request.ai_response[api_field]}",
-                            "Missing Transportation Asset"
-                        )
 
             # Handle odometer readings
             trip_doc.drop_details_odo = []
