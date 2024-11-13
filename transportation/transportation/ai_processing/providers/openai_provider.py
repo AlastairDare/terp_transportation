@@ -1,7 +1,7 @@
 import json
 import time
 import requests
-from typing import Dict, List
+from typing import Dict
 from .base_provider import BaseAIProvider
 from ..utils.exceptions import ProviderError
 
@@ -9,7 +9,7 @@ class OpenAIProvider(BaseAIProvider):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.timeout = getattr(self.settings, 'request_timeout', 120)
-        self.base_retry_delay = 1  # Start with 1 second delay
+        self.base_retry_delay = 1
         self.max_retries = getattr(self.settings, 'max_retries', 3)
 
     def get_headers(self) -> Dict:
@@ -19,7 +19,6 @@ class OpenAIProvider(BaseAIProvider):
         }
 
     def _make_request_with_backoff(self, url: str, headers: Dict, data: Dict) -> Dict:
-        """Make request with exponential backoff retry logic"""
         for attempt in range(self.max_retries + 1):
             try:
                 response = requests.post(
@@ -32,10 +31,9 @@ class OpenAIProvider(BaseAIProvider):
                 if response.status_code == 200:
                     return response.json()
                     
-                if response.status_code >= 500:  # Server errors should be retried
+                if response.status_code >= 500:
                     raise ProviderError(f"Server error: {response.status_code}")
                     
-                # Client errors should fail fast
                 if response.status_code >= 400:
                     raise ProviderError(f"API error {response.status_code}: {response.text}")
                     
@@ -43,8 +41,7 @@ class OpenAIProvider(BaseAIProvider):
                 if attempt == self.max_retries:
                     raise ProviderError(f"Failed after {self.max_retries} retries: {str(e)}")
                     
-            # Calculate exponential backoff delay
-            delay = min(300, (2 ** attempt) * self.base_retry_delay)  # Cap at 5 minutes
+            delay = min(300, (2 ** attempt) * self.base_retry_delay)
             time.sleep(delay)
             
         raise ProviderError("Max retries exceeded")
@@ -54,16 +51,23 @@ class OpenAIProvider(BaseAIProvider):
             headers = self.get_headers()
             base_url = self.settings.base_url.rstrip('/')
             
-            # Structure the messages to force JSON response
+            # Modify the prompt to ensure complete JSON response
+            modified_prompt = (
+                f"{prompt}\n"
+                "IMPORTANT: Ensure your response is a complete, valid JSON object with the format: "
+                '{"transactions": [...]} where the array contains all transactions. '
+                "Each transaction must be complete. Do not truncate the response."
+            )
+            
             data = {
                 "model": self.settings.default_model,
                 "messages": [
                     {
                         "role": "system",
                         "content": (
-                            "You are a JSON-only response bot. Always respond with valid JSON "
-                            "objects only, no additional text or explanations. Each response "
-                            "should be a single, valid JSON object."
+                            "You are a JSON-only response bot. Respond with a complete, valid JSON object "
+                            "containing an array of transactions. Never truncate the response. "
+                            "Always complete all fields for every transaction."
                         )
                     },
                     {
@@ -71,7 +75,7 @@ class OpenAIProvider(BaseAIProvider):
                         "content": [
                             {
                                 "type": "text",
-                                "text": f"Analyze the following image and respond only with JSON: {prompt}"
+                                "text": modified_prompt
                             },
                             {
                                 "type": "image_url",
@@ -82,9 +86,9 @@ class OpenAIProvider(BaseAIProvider):
                         ]
                     }
                 ],
-                "max_tokens": 500,
+                "max_tokens": 4096,  # Increased to handle more transactions
                 "temperature": float(self.settings.temperature),
-                "response_format": { "type": "json_object" }  # Force JSON response
+                "response_format": { "type": "json_object" }
             }
 
             result = self._make_request_with_backoff(
@@ -93,11 +97,13 @@ class OpenAIProvider(BaseAIProvider):
                 data
             )
 
-            # Extract the JSON response - should be clean JSON now
             response_content = result['choices'][0]['message']['content']
             
             try:
-                return json.loads(response_content)
+                parsed_response = json.loads(response_content)
+                if not isinstance(parsed_response.get('transactions'), list):
+                    raise ProviderError("Response missing transactions array")
+                return parsed_response
             except json.JSONDecodeError as e:
                 raise ProviderError(f"Invalid JSON in response: {str(e)}\nResponse: {response_content}")
 
