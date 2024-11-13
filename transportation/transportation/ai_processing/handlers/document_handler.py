@@ -70,7 +70,7 @@ class DocumentPreparationHandler(BaseHandler):
             return None
 
     def _prepare_toll_document(self, request: DocumentRequest) -> DocumentRequest:
-        """Handle toll PDF document preparation with parallel processing"""
+        """Handle toll PDF document preparation with single page processing"""
         if not request.doc.toll_document:
             raise DocumentProcessingError("Toll Document is required")
         
@@ -79,7 +79,7 @@ class DocumentPreparationHandler(BaseHandler):
             raise DocumentProcessingError("Toll Document file not found")
         
         try:
-            # Initial serial phase - PDF preparation
+            # Initial PDF preparation
             frappe.logger("toll_capture").info("Starting PDF processing")
             
             # Get total pages
@@ -89,56 +89,37 @@ class DocumentPreparationHandler(BaseHandler):
             request.doc.total_records = total_pages
             request.doc.save(ignore_permissions=True)
             
-            # Convert PDF to images
+            # Process one page at a time
+            request.pages = []
+            successful_pages = 0
+            
             with tempfile.TemporaryDirectory() as temp_dir:
-                frappe.logger("toll_capture").info("Converting PDF to images")
-                
-                images = convert_from_path(
-                    pdf_path,
-                    dpi=150,
-                    output_folder=temp_dir,
-                    fmt="jpeg",
-                    output_file="page",
-                    paths_only=True,
-                    poppler_path="/usr/bin"
-                )
-                
-                # Parallel processing phase
-                request.pages = []
-                successful_pages = 0
-                
-                with ThreadPoolExecutor(max_workers=3) as executor:
-                    # Create futures for all pages
-                    future_to_page = {
-                        executor.submit(
-                            self._process_single_page, 
-                            image_path, 
-                            i, 
-                            total_pages
-                        ): (i, image_path) 
-                        for i, image_path in enumerate(images, 1)
-                    }
+                # Process each page individually
+                for page_num in range(1, total_pages + 1):
+                    frappe.logger("toll_capture").info(f"Processing page {page_num}")
                     
-                    # Process completed futures as they finish
-                    for future in as_completed(future_to_page):
-                        page_num, _ = future_to_page[future]
-                        try:
-                            result = future.result()
-                            if result:
-                                request.pages.append(result)
-                                successful_pages += 1
-                                
-                                # Update progress
-                                request.doc.progress_count = (
-                                    f"Processed {successful_pages} of {total_pages} pages"
-                                )
-                                request.doc.save(ignore_permissions=True)
-                                
-                        except Exception as e:
-                            frappe.log_error(
-                                f"Error processing future for page {page_num}: {str(e)}",
-                                "Page Processing Error"
-                            )
+                    # Convert just one page
+                    image = convert_from_path(
+                        pdf_path,
+                        dpi=150,
+                        output_folder=temp_dir,
+                        fmt="jpeg",
+                        first_page=page_num,
+                        last_page=page_num,
+                        output_file=f"page_{page_num}",
+                        paths_only=True,
+                        poppler_path="/usr/bin"
+                    )[0]  # Get the single image path
+                    
+                    # Process the single page
+                    result = self._process_single_page(image, page_num, total_pages)
+                    if result:
+                        request.pages.append(result)
+                        successful_pages += 1
+                        
+                        # Update progress
+                        request.doc.progress_count = f"Processed {successful_pages} of {total_pages} pages"
+                        request.doc.save(ignore_permissions=True)
                 
                 if not request.pages:
                     raise DocumentProcessingError("No valid pages were extracted from the PDF")
