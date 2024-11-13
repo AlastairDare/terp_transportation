@@ -1,12 +1,16 @@
-import frappe
-from frappe.utils.background_jobs import enqueue
-from frappe.utils import get_files_path
+from .base_handler import BaseHandler  # relative import since in same directory
 import os
 import base64
 import tempfile
-from pdf2image import convert_from_path
+from typing import List, Dict, Optional
 from PIL import Image
 from PyPDF2 import PdfReader
+from pdf2image import convert_from_path
+import frappe
+from frappe.utils import get_files_path
+from frappe.utils.background_jobs import enqueue
+from ..utils.request import DocumentRequest
+from ..utils.exceptions import DocumentProcessingError
 
 # Add this at the module level
 @frappe.whitelist()
