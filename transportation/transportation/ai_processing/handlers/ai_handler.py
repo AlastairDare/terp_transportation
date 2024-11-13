@@ -2,6 +2,7 @@ from .base_handler import BaseHandler
 from ..utils.request import DocumentRequest
 from ..utils.exceptions import ProviderError
 from ..providers.provider_factory import AIProviderFactory
+import frappe
 
 class AIProcessingHandler(BaseHandler):
     def handle(self, request: DocumentRequest) -> DocumentRequest:
@@ -12,26 +13,39 @@ class AIProcessingHandler(BaseHandler):
                 request.provider_settings
             )
             
-            if request.method == "process_toll" and hasattr(request, 'pages'):
-                # Process each page and combine results
-                all_responses = []
-                total_pages = len(request.pages)
+            if request.method == "process_toll":
+                # Get all completed page results in correct order
+                pages = frappe.get_all(
+                    "Toll Page Result",
+                    filters={
+                        "parent_document": request.doc.name,
+                        "status": "Completed"
+                    },
+                    fields=["page_number", "base64_image"],
+                    order_by="page_number"
+                )
                 
-                for page in request.pages:
+                if not pages:
+                    raise ProviderError("No processed pages found")
+                
+                all_responses = []
+                total_pages = len(pages)
+                
+                for idx, page in enumerate(pages, 1):
                     # Update progress
-                    request.doc.progress_count = f"Processing page {page['page_number']} of {total_pages}"
+                    request.doc.progress_count = f"AI Processing page {idx} of {total_pages}"
                     request.doc.save(ignore_permissions=True)
                     
                     # Format prompt
                     prompt = provider.format_prompt(
                         request.ocr_settings.language_prompt,
                         request.ocr_settings.json_example,
-                        page['base64_image']
+                        page.base64_image
                     )
                     
                     # Process page
                     page_response = provider.process_document(
-                        page['base64_image'],
+                        page.base64_image,
                         prompt
                     )
                     
@@ -44,7 +58,7 @@ class AIProcessingHandler(BaseHandler):
                 request.ai_response = all_responses
                 
             else:
-                # Original image processing logic
+                # Original single image processing logic
                 prompt = provider.format_prompt(
                     request.ocr_settings.language_prompt,
                     request.ocr_settings.json_example,
