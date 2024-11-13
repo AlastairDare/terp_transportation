@@ -1,6 +1,7 @@
 import os
 import base64
 import tempfile
+from PIL import Image
 from PyPDF2 import PdfReader
 from pdf2image import convert_from_path
 import frappe
@@ -10,19 +11,27 @@ from ..utils.request import DocumentRequest
 from ..utils.exceptions import DocumentProcessingError
 
 class DocumentPreparationHandler(BaseHandler):
-    def handle(self, request: DocumentRequest) -> DocumentRequest:
+    def _optimize_image(self, image_path):
+        """Optimize image size while maintaining readability"""
         try:
-            if request.method == "process_toll":
-                self._prepare_toll_document(request)
-            else:
-                self._prepare_delivery_note(request)
-            
-            return super().handle(request)
-        
+            with Image.open(image_path) as img:
+                # Calculate new size while maintaining aspect ratio
+                max_dimension = 1800  # Maximum dimension for either width or height
+                ratio = min(max_dimension / float(img.size[0]), 
+                          max_dimension / float(img.size[1]))
+                new_size = tuple(int(dim * ratio) for dim in img.size)
+                
+                # Resize image
+                optimized = img.resize(new_size, Image.Resampling.LANCZOS)
+                
+                # Save with reduced quality
+                temp_path = image_path.replace('.jpg', '_optimized.jpg')
+                optimized.save(temp_path, 'JPEG', quality=65, optimize=True)
+                return temp_path
         except Exception as e:
-            request.set_error(e)
-            raise DocumentProcessingError(f"Document preparation failed: {str(e)}")
-    
+            frappe.log_error(f"Image optimization failed: {str(e)}", "Image Optimization Error")
+            return image_path
+
     def _prepare_toll_document(self, request):
         """Handle toll PDF document preparation"""
         if not request.doc.toll_document:
@@ -33,9 +42,9 @@ class DocumentPreparationHandler(BaseHandler):
             raise DocumentProcessingError("Toll Document file not found")
         
         try:
-            # Get total number of pages - Fixed this line
+            # Get total number of pages
             pdf = PdfReader(pdf_path)
-            total_pages = len(pdf.pages)  # Changed from len(pdf) to len(pdf.pages)
+            total_pages = len(pdf.pages)
             
             # Update the document with total pages as total records
             request.doc.total_records = total_pages
@@ -43,14 +52,15 @@ class DocumentPreparationHandler(BaseHandler):
             
             # Create temp directory for image conversion
             with tempfile.TemporaryDirectory() as temp_dir:
-                # Convert PDF to images
+                # Convert PDF to images with reduced DPI
                 images = convert_from_path(
                     pdf_path,
-                    dpi=300,
+                    dpi=200,  # Reduced from 300
                     output_folder=temp_dir,
                     fmt="jpeg",
                     output_file="page",
-                    paths_only=True
+                    paths_only=True,
+                    poppler_path="/usr/bin"
                 )
                 
                 # Process each page
@@ -60,8 +70,11 @@ class DocumentPreparationHandler(BaseHandler):
                     request.doc.progress_count = f"Processing page {i} of {total_pages}"
                     request.doc.save(ignore_permissions=True)
                     
+                    # Optimize the image
+                    optimized_path = self._optimize_image(image_path)
+                    
                     # Convert image to base64
-                    with open(image_path, "rb") as img_file:
+                    with open(optimized_path, "rb") as img_file:
                         base64_image = base64.b64encode(img_file.read()).decode('utf-8')
                         request.pages.append({
                             'page_number': i,
