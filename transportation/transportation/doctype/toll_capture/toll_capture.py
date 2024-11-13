@@ -15,7 +15,7 @@ def validate(doc, method):
         frappe.throw("Only PDF files are supported")
 
 def extract_transactions(text: str) -> List[Dict]:
-    """Extract transaction data using the exact pattern"""
+    """Extract transaction data with corrected line pattern"""
     transactions = []
     
     # Find start of transactions
@@ -35,7 +35,7 @@ def extract_transactions(text: str) -> List[Dict]:
             lines = lines[i:]
             break
     
-    # Process lines in groups of 8 (the pattern we identified)
+    # Process lines
     i = 0
     while i < len(lines):
         try:
@@ -49,30 +49,29 @@ def extract_transactions(text: str) -> List[Dict]:
                 continue
                 
             # Make sure we have enough lines for a complete transaction
-            if i + 8 > len(lines):
+            if i + 10 > len(lines):  # Need at least 10 lines for a complete transaction
                 break
                 
             try:
-                # Parse date and time (first two lines)
+                # Date and Time (2 lines)
                 date_str = lines[i]
                 time_str = lines[i + 1]
                 date_time = datetime.strptime(f"{date_str} {time_str}", '%Y/%m/%d %I:%M:%S %p')
                 
-                # Parse class (third line)
-                ta_class = lines[i + 2]  # Should be "Class 1" etc.
+                # Class (1 line)
+                ta_class = lines[i + 2]
                 
-                # Parse amounts (fourth line - contains all amounts)
-                amounts = lines[i + 3].split()
-                nominal_amount = float(amounts[1])  # Skip 'R'
-                discount = float(amounts[3])        # Skip 'R'
-                net_amount = float(amounts[5])      # Skip 'R'
-                vat = float(amounts[7])            # Skip 'R'
+                # Amount lines (4 lines)
+                nominal_amount = float(lines[i + 3].replace('R', '').strip())
+                discount = float(lines[i + 4].replace('R', '').strip())
+                net_amount = float(lines[i + 5].replace('R', '').strip())
+                vat = float(lines[i + 6].replace('R', '').strip())
                 
-                # Parse tolling point (fifth and sixth lines)
-                tolling_point = f"{lines[i + 4]} {lines[i + 5]}".strip()
+                # Tolling point (2 lines)
+                tolling_point = f"{lines[i + 7]} {lines[i + 8]}".strip()
                 
-                # Parse etag (seventh and eighth lines)
-                etag_id = f"{lines[i + 6]} {lines[i + 7]}".strip()
+                # E-tag (2 lines)
+                etag_id = f"{lines[i + 9]} {lines[i + 10]}".strip()
                 
                 # Create transaction dictionary
                 transaction = {
@@ -89,27 +88,21 @@ def extract_transactions(text: str) -> List[Dict]:
                 # Add to transactions list if we have all required fields
                 if all(key in transaction for key in ['transaction_date', 'etag_id', 'net_amount', 'tolling_point']):
                     transactions.append(transaction)
-                    
-                # Log for debugging
-                frappe.log_error(
-                    f"Successfully parsed transaction:\n{transaction}",
-                    "Transaction Parse Success"
-                )
                 
-                # Move to next transaction block (8 lines per transaction)
-                i += 8
+                # Move to next transaction (11 lines per complete transaction)
+                i += 11
                 
             except (IndexError, ValueError) as e:
                 frappe.log_error(
-                    f"Error parsing transaction starting at line {i}: {str(e)}\nLines: {lines[i:i+8]}", 
-                    "Transaction Parse Error"
+                    f"Error parsing transaction at line {i}: {str(e)}\nLines: {lines[i:i+11]}", 
+                    "Parse Error"
                 )
                 i += 1
                 
         except Exception as e:
             frappe.log_error(
                 f"Error in transaction processing: {str(e)}", 
-                "General Processing Error"
+                "General Error"
             )
             i += 1
             
@@ -125,7 +118,7 @@ def analyze_pdf_structure(doc) -> str:
         full_text = ""
         for page in pdf_doc:
             full_text += page.get_text()
-        
+            
         # Extract transactions
         transactions = extract_transactions(full_text)
         
@@ -138,7 +131,6 @@ def analyze_pdf_structure(doc) -> str:
         
         for transaction in transactions:
             try:
-                # Check for existing record
                 existing = frappe.get_all(
                     "Tolls",
                     filters={
@@ -148,7 +140,6 @@ def analyze_pdf_structure(doc) -> str:
                 )
                 
                 if not existing:
-                    # Create new toll record
                     toll = frappe.get_doc({
                         "doctype": "Tolls",
                         "transaction_date": transaction['transaction_date'],
@@ -166,7 +157,7 @@ def analyze_pdf_structure(doc) -> str:
             except Exception as e:
                 frappe.log_error(
                     f"Error processing transaction: {transaction}\nError: {str(e)}", 
-                    "Transaction Processing Error"
+                    "Transaction Error"
                 )
         
         # Update document status
@@ -187,12 +178,10 @@ def analyze_pdf_structure(doc) -> str:
 
 class TollCapture(Document):
     def process_document(self) -> str:
-        """Process the uploaded toll document"""
         self.db_set('processing_status', 'Processing')
         return analyze_pdf_structure(self)
 
 @frappe.whitelist()
 def process_toll_document(doc_name: str) -> str:
-    """Whitelist method to process toll document"""
     doc = frappe.get_doc("Toll Capture", doc_name)
     return doc.process_document()
