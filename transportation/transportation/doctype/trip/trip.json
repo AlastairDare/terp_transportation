@@ -16,7 +16,7 @@
             "fieldname": "status",
             "fieldtype": "Select",
             "label": "Status",
-            "options": "Draft\nAwaiting Approval\nComplete\nError",
+            "options": "Draft\nProcessing\nAwaiting Approval\nComplete\nError",
             "default": "Draft",
             "reqd": 1,
             "in_list_view": 1

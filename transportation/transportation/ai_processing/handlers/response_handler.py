@@ -14,6 +14,29 @@ class ResponseProcessingHandler(BaseHandler):
             self._handle_error(request)
             raise DocumentProcessingError(f"Response processing failed: {str(e)}")
 
+    def _find_matching_truck(self, truck_number: str) -> dict:
+        """
+        Find a Transportation Asset matching the given truck number.
+        Returns None if no match is found.
+        """
+        try:
+            matching_truck = frappe.get_list(
+                "Transportation Asset",
+                filters={
+                    "asset_number": truck_number,
+                    "transportation_asset_type": "Truck"
+                },
+                fields=["name"],
+                limit=1
+            )
+            return matching_truck[0] if matching_truck else None
+        except Exception as e:
+            frappe.log_error(
+                f"Error finding matching truck for number {truck_number}: {str(e)}", 
+                "Truck Matching Error"
+            )
+            return None
+
     def _update_documents(self, request: DocumentRequest):
         """Update ERPNext documents with AI response"""
         try:
@@ -23,20 +46,33 @@ class ResponseProcessingHandler(BaseHandler):
             # Update trip fields from AI response
             field_mappings = {
                 'date': 'date',
-                'truck_number': 'truck_number',
+                'truck_number': ('truck', lambda x: self._find_matching_truck(x).get('name') if self._find_matching_truck(x) else None),
                 'delivery_note_number': 'delivery_note_number',
-                'odo_start': 'odo_start',
-                'odo_end': 'odo_end',
+                'odo_start': ('odo_start', lambda x: cint(x)),
+                'odo_end': ('odo_end', lambda x: cint(x)),
                 'time_start': 'time_start',
                 'time_end': 'time_end'
             }
 
-            for api_field, doc_field in field_mappings.items():
+            for api_field, mapping in field_mappings.items():
                 if api_field in request.ai_response:
                     value = request.ai_response[api_field]
-                    if doc_field in ['odo_start', 'odo_end']:
-                        value = cint(value)
+                    
+                    # Handle tuple mappings with transformation functions
+                    if isinstance(mapping, tuple):
+                        doc_field, transform_func = mapping
+                        value = transform_func(value)
+                    else:
+                        doc_field = mapping
+
                     trip_doc.set(doc_field, value)
+                    
+                    # Log if truck not found
+                    if api_field == 'truck_number' and value is None:
+                        frappe.log_error(
+                            f"No matching Transportation Asset found for truck number: {request.ai_response[api_field]}",
+                            "Missing Transportation Asset"
+                        )
 
             # Handle odometer readings
             trip_doc.drop_details_odo = []
