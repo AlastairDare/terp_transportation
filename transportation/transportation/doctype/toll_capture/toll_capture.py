@@ -2,9 +2,11 @@ import frappe
 from frappe.model.document import Document
 import fitz  # PyMuPDF
 from frappe.utils.file_manager import get_file_path
+from datetime import datetime
+import re
+from typing import List, Dict
 
 def validate(doc, method):
-    """Module-level validation method"""
     if not doc.toll_document:
         frappe.throw("Toll document is required")
             
@@ -12,72 +14,181 @@ def validate(doc, method):
     if not file_path.lower().endswith('.pdf'):
         frappe.throw("Only PDF files are supported")
 
+def extract_transactions(text: str) -> List[Dict]:
+    """Extract transaction data using the exact pattern"""
+    transactions = []
+    
+    # Find start of transactions
+    start_index = text.find("Toll Transactions")
+    if start_index == -1:
+        return []
+        
+    # Get text after "Toll Transactions"
+    text = text[start_index:]
+    
+    # Split into lines and remove empty lines
+    lines = [line.strip() for line in text.split('\n') if line.strip()]
+    
+    # Skip header rows (everything until we find a date)
+    for i, line in enumerate(lines):
+        if re.match(r'202[0-9]/\d{2}/\d{2}', line):
+            lines = lines[i:]
+            break
+    
+    # Process lines in groups of 8 (the pattern we identified)
+    i = 0
+    while i < len(lines):
+        try:
+            # Check if we've hit a line that indicates end of transactions
+            if "Total Amount" in lines[i] or "Page" in lines[i]:
+                break
+                
+            # Only process if line starts with a date
+            if not re.match(r'202[0-9]/\d{2}/\d{2}', lines[i]):
+                i += 1
+                continue
+                
+            # Make sure we have enough lines for a complete transaction
+            if i + 8 > len(lines):
+                break
+                
+            try:
+                # Parse date and time (first two lines)
+                date_str = lines[i]
+                time_str = lines[i + 1]
+                date_time = datetime.strptime(f"{date_str} {time_str}", '%Y/%m/%d %I:%M:%S %p')
+                
+                # Parse class (third line)
+                ta_class = lines[i + 2]  # Should be "Class 1" etc.
+                
+                # Parse amounts (fourth line - contains all amounts)
+                amounts = lines[i + 3].split()
+                nominal_amount = float(amounts[1])  # Skip 'R'
+                discount = float(amounts[3])        # Skip 'R'
+                net_amount = float(amounts[5])      # Skip 'R'
+                vat = float(amounts[7])            # Skip 'R'
+                
+                # Parse tolling point (fifth and sixth lines)
+                tolling_point = f"{lines[i + 4]} {lines[i + 5]}".strip()
+                
+                # Parse etag (seventh and eighth lines)
+                etag_id = f"{lines[i + 6]} {lines[i + 7]}".strip()
+                
+                # Create transaction dictionary
+                transaction = {
+                    'transaction_date': date_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'ta_class': ta_class,
+                    'nominal_amount': nominal_amount,
+                    'discount': discount,
+                    'net_amount': net_amount,
+                    'vat': vat,
+                    'tolling_point': tolling_point,
+                    'etag_id': etag_id
+                }
+                
+                # Add to transactions list if we have all required fields
+                if all(key in transaction for key in ['transaction_date', 'etag_id', 'net_amount', 'tolling_point']):
+                    transactions.append(transaction)
+                    
+                # Log for debugging
+                frappe.log_error(
+                    f"Successfully parsed transaction:\n{transaction}",
+                    "Transaction Parse Success"
+                )
+                
+                # Move to next transaction block (8 lines per transaction)
+                i += 8
+                
+            except (IndexError, ValueError) as e:
+                frappe.log_error(
+                    f"Error parsing transaction starting at line {i}: {str(e)}\nLines: {lines[i:i+8]}", 
+                    "Transaction Parse Error"
+                )
+                i += 1
+                
+        except Exception as e:
+            frappe.log_error(
+                f"Error in transaction processing: {str(e)}", 
+                "General Processing Error"
+            )
+            i += 1
+            
+    return transactions
+
 def analyze_pdf_structure(doc) -> str:
-    """Basic PDF structure analysis"""
+    """Process the PDF and extract transactions"""
     try:
         file_path = get_file_path(doc.toll_document)
         pdf_doc = fitz.open(file_path)
         
-        debug_info = []
-        for page_num in range(len(pdf_doc)):
-            page = pdf_doc[page_num]
-            debug_info.append(f"\n{'='*50}")
-            debug_info.append(f"PAGE {page_num + 1} ANALYSIS")
-            debug_info.append(f"{'='*50}")
-            
-            # 1. Basic page info
-            debug_info.append(f"\nPage Size: {page.rect}")
-            debug_info.append(f"Rotation: {page.rotation}")
-            
-            # 2. Raw text content
-            debug_info.append("\nRAW TEXT CONTENT:")
-            debug_info.append("-" * 30)
-            debug_info.append(page.get_text())
-            
-            # 3. Text blocks with positions
-            debug_info.append("\nTEXT BLOCKS WITH POSITIONS:")
-            debug_info.append("-" * 30)
-            text_dict = page.get_text("dict")
-            
-            for block_num, block in enumerate(text_dict["blocks"]):
-                if "lines" in block:
-                    debug_info.append(f"\nBlock {block_num + 1}:")
-                    for line in block["lines"]:
-                        for span in line["spans"]:
-                            text = span["text"]
-                            bbox = span["bbox"]
-                            font = span["font"]
-                            size = span["size"]
-                            debug_info.append(
-                                f"Text: {text}\n"
-                                f"Position: {bbox}\n"
-                                f"Font: {font}\n"
-                                f"Size: {size}\n"
-                                f"---"
-                            )
+        # Get all text from PDF
+        full_text = ""
+        for page in pdf_doc:
+            full_text += page.get_text()
         
-        # Log the complete debug info
-        debug_text = "\n".join(debug_info)
-        frappe.log_error(debug_text, "Basic PDF Analysis")
+        # Extract transactions
+        transactions = extract_transactions(full_text)
         
-        # Show summary to user
-        frappe.msgprint(
-            msg="PDF Analysis Complete. Check Error Log for full details.",
-            title="PDF Analysis Results"
-        )
+        if not transactions:
+            frappe.throw("No valid transaction data found in the document")
         
-        return "Analysis Complete"
+        # Process transactions
+        new_count = 0
+        duplicate_count = 0
+        
+        for transaction in transactions:
+            try:
+                # Check for existing record
+                existing = frappe.get_all(
+                    "Tolls",
+                    filters={
+                        "transaction_date": transaction['transaction_date'],
+                        "etag_id": transaction['etag_id']
+                    }
+                )
+                
+                if not existing:
+                    # Create new toll record
+                    toll = frappe.get_doc({
+                        "doctype": "Tolls",
+                        "transaction_date": transaction['transaction_date'],
+                        "tolling_point": transaction['tolling_point'],
+                        "etag_id": transaction['etag_id'],
+                        "net_amount": transaction['net_amount'],
+                        "source_capture": doc.name,
+                        "process_status": "Unprocessed"
+                    })
+                    toll.insert()
+                    new_count += 1
+                else:
+                    duplicate_count += 1
+                    
+            except Exception as e:
+                frappe.log_error(
+                    f"Error processing transaction: {transaction}\nError: {str(e)}", 
+                    "Transaction Processing Error"
+                )
+        
+        # Update document status
+        doc.db_set('processing_status', 'Completed')
+        doc.db_set('total_records', len(transactions))
+        doc.db_set('new_records', new_count)
+        doc.db_set('duplicate_records', duplicate_count)
+        
+        return "Processing Complete"
         
     except Exception as e:
-        frappe.log_error(f"Error during analysis: {str(e)}", "PDF Analysis Error")
-        frappe.throw(f"Error analyzing document: {str(e)}")
+        doc.db_set('processing_status', 'Failed')
+        frappe.log_error(f"PDF Processing Error: {str(e)}", "PDF Processing Error")
+        frappe.throw(f"Error processing document: {str(e)}")
     finally:
         if 'pdf_doc' in locals():
             pdf_doc.close()
 
 class TollCapture(Document):
     def process_document(self) -> str:
-        """Class method that calls module-level function"""
+        """Process the uploaded toll document"""
+        self.db_set('processing_status', 'Processing')
         return analyze_pdf_structure(self)
 
 @frappe.whitelist()
