@@ -1,12 +1,10 @@
 import frappe
-from frappe.model.document import Document  # Correct import for Document class
+from frappe.model.document import Document
 import fitz  # PyMuPDF
 from datetime import datetime
-from frappe.utils import get_site_path, get_files_path
 from frappe.utils.file_manager import get_file_path
 import re
-import os
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional
 
 class TollDataExtractor:
     """Handles PDF data extraction and processing for toll records"""
@@ -32,50 +30,63 @@ class TollDataExtractor:
         
         for page_num in range(len(self.pdf_doc)):
             page = self.pdf_doc[page_num]
-            blocks = page.get_text("blocks")
-            blocks.sort(key=lambda b: b[1])  # Sort by y0 coordinate
+            # Get text with preserved formatting
+            tables = page.find_tables()
             
-            current_transaction = {}
-            
-            for block in blocks:
-                text = block[4].strip()
-                
-                if self._is_transaction_row(text):
-                    if current_transaction:
-                        all_transactions.append(current_transaction)
-                    current_transaction = self._parse_transaction_row(text)
+            for table in tables:
+                rows = table.extract()
+                # Skip header row
+                for row in rows[1:]:  # Skip header row
+                    transaction = self._parse_table_row(row)
+                    if transaction:
+                        all_transactions.append(transaction)
         
-        if current_transaction:
-            all_transactions.append(current_transaction)
-            
         return all_transactions
     
-    def _is_transaction_row(self, text: str) -> bool:
-        """Check if text block contains a transaction row"""
-        date_pattern = r'\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2}'
-        return bool(re.search(date_pattern, text))
-    
-    def _parse_transaction_row(self, text: str) -> Dict:
-        """Parse a transaction row into structured data"""
+    def _parse_table_row(self, row: List[str]) -> Optional[Dict]:
+        """Parse a table row into transaction data"""
         try:
-            fields = text.split()
+            # Check if row has enough columns
+            if len(row) < 8:
+                return None
+                
+            # Parse date and time
+            date_str = row[0]
+            if not date_str or 'Date' in date_str:  # Skip header or empty rows
+                return None
+                
+            try:
+                # Parse the date time string
+                date_time = datetime.strptime(date_str.strip(), '%Y/%m/%d %I:%M:%S %p')
+            except ValueError:
+                try:
+                    # Try alternative format if first fails
+                    date_time = datetime.strptime(date_str.strip(), '%Y/%m/%d %H:%M:%S')
+                except ValueError:
+                    frappe.log_error(f"Invalid date format: {date_str}", "Toll Capture Date Error")
+                    return None
             
-            date_time_str = f"{fields[0]} {fields[1]}"
-            date_time = datetime.strptime(date_time_str, '%Y/%m/%d %H:%M:%S')
+            # Extract values from columns
+            tolling_point = row[1].strip()  # TA/Tolling Point
+            etag_id = row[3].strip()  # e-tag ID
+            net_amount_str = row[7].strip()  # Net Amount
+            
+            # Clean the net amount string (remove 'R' and spaces)
+            net_amount = float(net_amount_str.replace('R', '').replace(' ', ''))
             
             return {
                 'transaction_date': date_time.strftime('%Y-%m-%d %H:%M:%S'),
-                'tolling_point': ' '.join(fields[2:4]),
-                'etag_id': fields[-4],
-                'net_amount': float(fields[-2])
+                'tolling_point': tolling_point,
+                'etag_id': etag_id,
+                'net_amount': net_amount
             }
             
         except (IndexError, ValueError) as e:
             frappe.log_error(
-                f"Error parsing transaction row: {text}\nError: {str(e)}", 
+                f"Error parsing table row: {row}\nError: {str(e)}", 
                 "Toll Capture Parser Error"
             )
-            return {}
+            return None
 
 class TollCapture(Document):
     def validate(self):
@@ -119,6 +130,7 @@ class TollCapture(Document):
         
         for transaction in transactions:
             try:
+                # Check for existing record
                 existing = frappe.get_all(
                     "Tolls",
                     filters={
@@ -128,6 +140,7 @@ class TollCapture(Document):
                 )
                 
                 if not existing:
+                    # Create new toll record
                     toll = frappe.get_doc({
                         "doctype": "Tolls",
                         "transaction_date": transaction['transaction_date'],
