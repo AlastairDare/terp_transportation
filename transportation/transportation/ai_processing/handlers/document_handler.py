@@ -11,6 +11,7 @@ import json
 import traceback
 import psutil
 import redis
+from .base_handler import BaseHandler
 
 def log_system_status():
     """Log system resource usage"""
