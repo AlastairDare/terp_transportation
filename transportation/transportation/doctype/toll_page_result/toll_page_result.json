@@ -1,5 +1,6 @@
 {
-    "doctype": "Toll Page Result",
+    "doctype": "DocType",
+    "name": "Toll Page Result",
     "module": "Transportation",
     "custom": 1,
     "fields": [
