@@ -64,12 +64,60 @@ class DocumentPreparationHandler(BaseHandler):
             request.doc.total_records = total_pages
             request.doc.save(ignore_permissions=True)
             
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+            from functools import partial
+            
+            def process_page(image_path, page_num, total):
+                try:
+                    # Update progress
+                    request.doc.progress_count = f"Processing page {page_num} of {total}"
+                    request.doc.save(ignore_permissions=True)
+                    
+                    # Optimize the image
+                    optimized_path = self._optimize_image(image_path)
+                    
+                    # Quick check for empty page (you'd need to implement this)
+                    if self._is_empty_page(optimized_path):
+                        return None
+                    
+                    # Convert image to base64
+                    with open(optimized_path, "rb") as img_file:
+                        base64_image = base64.b64encode(img_file.read()).decode('utf-8')
+                        return {
+                            'page_number': page_num,
+                            'base64_image': base64_image
+                        }
+                except Exception as e:
+                    frappe.log_error(f"Page processing failed: {str(e)}", f"Page {page_num} Processing Error")
+                    return None
+
+            def _is_empty_page(self, image_path):
+                """Quick check if page is empty or contains only totals"""
+                try:
+                    with Image.open(image_path) as img:
+                        # Convert to grayscale
+                        gray = img.convert('L')
+                        
+                        # Get histogram
+                        hist = gray.histogram()
+                        
+                        # If mostly white pixels, likely empty
+                        white_pixels = sum(hist[250:])  # Count very light pixels
+                        total_pixels = sum(hist)
+                        
+                        if white_pixels / total_pixels > 0.95:  # 95% white
+                            return True
+                        
+                        return False
+                except Exception:
+                    return False
+
             # Create temp directory for image conversion
             with tempfile.TemporaryDirectory() as temp_dir:
-                # Convert PDF to images with reduced DPI
+                # Convert PDF to images
                 images = convert_from_path(
                     pdf_path,
-                    dpi=150,  # Reduced DPI
+                    dpi=150,
                     output_folder=temp_dir,
                     fmt="jpeg",
                     output_file="page",
@@ -77,26 +125,28 @@ class DocumentPreparationHandler(BaseHandler):
                     poppler_path="/usr/bin"
                 )
                 
-                # Process each page
+                # Process pages in parallel
                 request.pages = []
-                for i, image_path in enumerate(images, 1):
-                    # Update progress
-                    request.doc.progress_count = f"Processing page {i} of {total_pages}"
-                    request.doc.save(ignore_permissions=True)
+                with ThreadPoolExecutor(max_workers=3) as executor:
+                    # Create list of futures
+                    future_to_page = {
+                        executor.submit(
+                            process_page, 
+                            image_path, 
+                            i, 
+                            total_pages
+                        ): i 
+                        for i, image_path in enumerate(images, 1)
+                    }
                     
-                    # Optimize the image
-                    optimized_path = self._optimize_image(image_path)
-                    
-                    # Convert image to base64
-                    with open(optimized_path, "rb") as img_file:
-                        base64_image = base64.b64encode(img_file.read()).decode('utf-8')
-                        request.pages.append({
-                            'page_number': i,
-                            'base64_image': base64_image
-                        })
+                    # Process as they complete
+                    for future in as_completed(future_to_page):
+                        result = future.result()
+                        if result:  # Only add non-empty pages
+                            request.pages.append(result)
             
             if not request.pages:
-                raise DocumentProcessingError("No pages were extracted from the PDF")
+                raise DocumentProcessingError("No valid pages were extracted from the PDF")
             
             return request
             
