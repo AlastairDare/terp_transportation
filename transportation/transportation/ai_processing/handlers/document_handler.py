@@ -15,10 +15,10 @@ from ..utils.exceptions import DocumentProcessingError
 # Add this at the module level
 @frappe.whitelist()
 def process_toll_page(doc_name: str, page_num: int, total_pages: int, pdf_path: str):
-    """Standalone function for background processing"""
+    """Process a single toll document page with concurrency handling"""
+    frappe.logger("toll_capture").info(f"=== Starting background processing of page {page_num} for {doc_name} ===")
+    
     try:
-        frappe.logger("toll_capture").info(f"Starting processing of page {page_num}")
-        
         with tempfile.TemporaryDirectory() as temp_dir:
             # Convert single page
             images = convert_from_path(
@@ -37,21 +37,13 @@ def process_toll_page(doc_name: str, page_num: int, total_pages: int, pdf_path: 
                 raise Exception(f"Failed to convert page {page_num}")
             
             # Optimize the image
-            with Image.open(images[0]) as img:
-                max_dimension = 1200
-                ratio = min(max_dimension / float(img.size[0]), 
-                          max_dimension / float(img.size[1]))
-                new_size = tuple(int(dim * ratio) for dim in img.size)
-                
-                optimized = img.resize(new_size, Image.Resampling.LANCZOS)
-                optimized_path = images[0].replace('.jpg', '_optimized.jpg')
-                optimized.save(optimized_path, 'JPEG', quality=50, optimize=True)
+            optimized_path = optimize_image(images[0])
             
             # Convert to base64
             with open(optimized_path, "rb") as img_file:
                 base64_image = base64.b64encode(img_file.read()).decode('utf-8')
             
-            # Save the result
+            # Save the page result
             frappe.get_doc({
                 "doctype": "Toll Page Result",
                 "parent_document": doc_name,
@@ -60,39 +52,13 @@ def process_toll_page(doc_name: str, page_num: int, total_pages: int, pdf_path: 
                 "status": "Completed"
             }).insert(ignore_permissions=True)
             
-            # Update progress
-            doc = frappe.get_doc("Toll Capture", doc_name)
-            completed_pages = frappe.db.count(
-                "Toll Page Result",
-                {
-                    "parent_document": doc_name,
-                    "status": "Completed"
-                }
-            )
+            # Update progress with concurrency handling
+            update_toll_progress(doc_name, total_pages)
             
-            doc.progress_count = f"Processed {completed_pages} of {total_pages} pages"
-            
-            if completed_pages == total_pages:
-                doc.status = "Completed"
-                # Collect all processed pages in order
-                pages = frappe.get_all(
-                    "Toll Page Result",
-                    filters={"parent_document": doc_name, "status": "Completed"},
-                    fields=["page_number", "base64_image"],
-                    order_by="page_number"
-                )
-                # Store final result in a JSON field
-                doc.processed_pages = frappe.as_json([{
-                    'page_number': page.page_number,
-                    'base64_image': page.base64_image
-                } for page in pages])
-            
-            doc.save(ignore_permissions=True)
-            
-            frappe.logger("toll_capture").info(f"Completed processing of page {page_num}")
+            frappe.logger("toll_capture").info(f"=== Completed processing page {page_num} for {doc_name} ===")
             
     except Exception as e:
-        frappe.logger("toll_capture").error(f"Failed to process page {page_num}: {str(e)}")
+        frappe.logger("toll_capture").error(f"Error processing page {page_num}: {str(e)}")
         # Save error state
         frappe.get_doc({
             "doctype": "Toll Page Result",
@@ -101,6 +67,59 @@ def process_toll_page(doc_name: str, page_num: int, total_pages: int, pdf_path: 
             "status": "Failed",
             "error_message": str(e)
         }).insert(ignore_permissions=True)
+        raise
+    
+def update_toll_progress(doc_name: str, total_pages: int, retry_count=0):
+    """Update toll document progress with concurrency handling"""
+    if retry_count > 3:  # Limit retries to prevent infinite loops
+        frappe.logger("toll_capture").error(f"Max retries reached for {doc_name}")
+        return
+        
+    try:
+        # Get fresh document
+        doc = frappe.get_doc("Toll Capture", doc_name)
+        
+        # Get completion count
+        completed_pages = frappe.db.count(
+            "Toll Page Result",
+            {
+                "parent_document": doc_name,
+                "status": "Completed"
+            }
+        )
+        
+        doc.progress_count = f"Processed {completed_pages} of {total_pages} pages"
+        
+        if completed_pages == total_pages:
+            doc.status = "Completed"
+            # Collect all processed pages in order
+            pages = frappe.get_all(
+                "Toll Page Result",
+                filters={"parent_document": doc_name, "status": "Completed"},
+                fields=["page_number", "base64_image"],
+                order_by="page_number"
+            )
+            # Store final result in a JSON field
+            doc.processed_pages = frappe.as_json([{
+                'page_number': page.page_number,
+                'base64_image': page.base64_image
+            } for page in pages])
+        
+        # Use save with flags to handle concurrency
+        doc.flags.ignore_version = True  # Don't create version for progress updates
+        doc.save(
+            ignore_permissions=True,
+            ignore_version=True,
+            ignore_if_duplicate=True
+        )
+        
+    except frappe.TimestampMismatchError:
+        # If document was modified, wait briefly and retry
+        import time
+        time.sleep(1)
+        update_toll_progress(doc_name, total_pages, retry_count + 1)
+    except Exception as e:
+        frappe.logger("toll_capture").error(f"Error updating progress: {str(e)}")
 
 class DocumentPreparationHandler(BaseHandler):
     def handle(self, request: DocumentRequest) -> DocumentRequest:
