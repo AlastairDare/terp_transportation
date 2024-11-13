@@ -42,7 +42,7 @@ class DocumentPreparationHandler(BaseHandler):
                 "doctype": "Trip",
                 "date": frappe.utils.today(),
                 "status": "Draft",
-                "employee": source_doc.employee,
+                "driver": source_doc.employee,
                 "employee_name": employee_name
             })
             trip_doc.insert(ignore_permissions=True)
