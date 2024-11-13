@@ -86,7 +86,7 @@ class OpenAIProvider(BaseAIProvider):
                         ]
                     }
                 ],
-                "max_tokens": 4096,  # Increased to handle more transactions
+                "max_tokens": 16384,  # Increased to handle more transactions
                 "temperature": float(self.settings.temperature),
                 "response_format": { "type": "json_object" }
             }
