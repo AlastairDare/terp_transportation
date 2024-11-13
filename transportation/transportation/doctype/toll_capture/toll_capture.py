@@ -1,112 +1,171 @@
 import frappe
 import fitz  # PyMuPDF
-import pandas as pd
+from datetime import datetime
+from frappe.utils import get_site_path, get_files_path
 from frappe.utils.file_manager import get_file_path
-from frappe.model.document import Document
+import re
+import os
+from typing import List, Dict, Optional, Tuple
 
-def validate(doc, method):
-    if not doc.toll_document:
-        frappe.throw("Toll document is required")
+class TollDataExtractor:
+    """Handles PDF data extraction and processing for toll records"""
+    
+    def __init__(self, file_path: str):
+        self.file_path = file_path
+        self.pdf_doc = None
         
-    file_path = get_file_path(doc.toll_document)
-    if not file_path.lower().endswith('.pdf'):
-        frappe.throw("Only PDF files are supported")
-
-def process_toll_records(doc):
-    try:
-        file_path = get_file_path(doc.toll_document)
-        doc.db_set('processing_status', 'Processing')
+    def __enter__(self):
+        self.pdf_doc = fitz.open(self.file_path)
+        return self
         
-        # Open PDF
-        pdf_doc = fitz.open(file_path)
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.pdf_doc:
+            self.pdf_doc.close()
+            
+    def extract_table_data(self) -> List[Dict]:
+        """
+        Extracts toll transaction data from PDF tables
+        Returns list of dictionaries containing transaction details
+        """
+        all_transactions = []
         
-        # Expected columns
-        expected_columns = [
-            "Transaction Date & Time",
-            "TA/ Tolling Point",
-            "Vehicle Licence Plate Number",
-            "e-tag ID",
-            "Detected TA Class",
-            "Nominal Amount",
-            "Discount",
-            "Net Amount",
-            "VAT"
-        ]
-        
-        all_data = []
-        
-        # Process each page
-        for page in pdf_doc:
-            # Get text blocks
+        for page_num in range(len(self.pdf_doc)):
+            page = self.pdf_doc[page_num]
+            # Get text blocks with their coordinates
             blocks = page.get_text("blocks")
             
-            # Look for blocks that contain transaction data
+            # Sort blocks by vertical position (top to bottom)
+            blocks.sort(key=lambda b: b[1])  # b[1] is y0 coordinate
+            
+            current_transaction = {}
+            
             for block in blocks:
-                text = block[4]  # block[4] contains the text
+                text = block[4].strip()  # block[4] contains the text
                 
-                # If we find a date pattern (2024/), process the block
-                if "2024/" in text:
-                    # Split into lines and process
-                    lines = text.split('\n')
-                    for line in lines:
-                        if "2024/" in line:
-                            # Clean and split the line
-                            data = line.strip().split()
-                            if len(data) > 8:  # Make sure we have enough data
-                                all_data.append(line)
+                # Look for date/time pattern
+                if self._is_transaction_row(text):
+                    if current_transaction:
+                        all_transactions.append(current_transaction)
+                    current_transaction = self._parse_transaction_row(text)
         
-        # Convert to DataFrame
-        if all_data:
-            frappe.msgprint("Found transaction data. Sample records:")
+        # Add last transaction if exists
+        if current_transaction:
+            all_transactions.append(current_transaction)
             
-            # Show first two records
-            if len(all_data) > 0:
-                frappe.msgprint("\nFirst record:")
-                frappe.msgprint(all_data[0])
-            if len(all_data) > 1:
-                frappe.msgprint("\nSecond record:")
-                frappe.msgprint(all_data[1])
-            
-            # Show last two records
-            if len(all_data) > 2:
-                frappe.msgprint("\nSecond to last record:")
-                frappe.msgprint(all_data[-2])
-                frappe.msgprint("\nLast record:")
-                frappe.msgprint(all_data[-1])
-            
-            frappe.msgprint(f"\nTotal records found: {len(all_data)}")
-        else:
-            frappe.msgprint("No transaction data found")
+        return all_transactions
+    
+    def _is_transaction_row(self, text: str) -> bool:
+        """Check if text block contains a transaction row"""
+        # Look for date/time pattern: YYYY/MM/DD HH:MM:SS
+        date_pattern = r'\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2}'
+        return bool(re.search(date_pattern, text))
+    
+    def _parse_transaction_row(self, text: str) -> Dict:
+        """Parse a transaction row into structured data"""
+        # Split the text into fields
+        fields = text.split()
         
-        doc.db_set('processing_status', 'Completed')
-        return "Debug mode - check sample records"
+        try:
+            # Extract date and time
+            date_time_str = f"{fields[0]} {fields[1]}"
+            date_time = datetime.strptime(date_time_str, '%Y/%m/%d %H:%M:%S')
             
-    except Exception as e:
-        doc.db_set('processing_status', 'Failed')
-        frappe.msgprint(f"Error: {str(e)}")
-        return
-    finally:
-        if 'pdf_doc' in locals():
-            pdf_doc.close()
+            # Create transaction dictionary
+            transaction = {
+                'transaction_date': date_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'tolling_point': ' '.join(fields[2:4]),  # Assuming 2 words for tolling point
+                'etag_id': fields[-4],  # Assuming e-tag ID is 4th from last
+                'net_amount': float(fields[-2])  # Assuming amount is 2nd from last
+            }
+            
+            return transaction
+            
+        except (IndexError, ValueError) as e:
+            frappe.log_error(
+                f"Error parsing transaction row: {text}\nError: {str(e)}", 
+                "Toll Capture Parser Error"
+            )
+            return {}
 
-class TollCapture(Document):
+class TollCapture(frappe.model.Document):
     def validate(self):
-        if not self.name:
-            self.processing_status = "Pending"
-            self.progress_count = ""
-            self.total_records = 0
-            self.new_records = 0
-            self.duplicate_records = 0
-
-    def process_document(self):
-        return process_toll_records(self)
+        """Validate the uploaded document"""
+        if not self.toll_document:
+            frappe.throw("Toll document is required")
+            
+        file_path = get_file_path(self.toll_document)
+        if not file_path.lower().endswith('.pdf'):
+            frappe.throw("Only PDF files are supported")
+    
+    def process_document(self) -> str:
+        """Process the uploaded toll document"""
+        try:
+            self.db_set('processing_status', 'Processing')
+            
+            file_path = get_file_path(self.toll_document)
+            
+            with TollDataExtractor(file_path) as extractor:
+                transactions = extractor.extract_table_data()
+            
+            if not transactions:
+                frappe.throw("No valid transaction data found in the document")
+            
+            # Process transactions
+            self._process_transactions(transactions)
+            
+            self.db_set('processing_status', 'Completed')
+            self.db_set('total_records', len(transactions))
+            
+            return "Processing Complete"
+            
+        except Exception as e:
+            self.db_set('processing_status', 'Failed')
+            frappe.log_error(f"Toll Capture Processing Error: {str(e)}", "Toll Capture Error")
+            frappe.throw(f"Error processing document: {str(e)}")
+    
+    def _process_transactions(self, transactions: List[Dict]):
+        """Process extracted transactions and create Tolls records"""
+        new_count = 0
+        duplicate_count = 0
+        
+        for transaction in transactions:
+            try:
+                # Check for existing record
+                existing = frappe.get_all(
+                    "Tolls",
+                    filters={
+                        "transaction_date": transaction['transaction_date'],
+                        "etag_id": transaction['etag_id']
+                    }
+                )
+                
+                if not existing:
+                    # Create new toll record
+                    toll = frappe.get_doc({
+                        "doctype": "Tolls",
+                        "transaction_date": transaction['transaction_date'],
+                        "tolling_point": transaction['tolling_point'],
+                        "etag_id": transaction['etag_id'],
+                        "net_amount": transaction['net_amount'],
+                        "source_capture": self.name,
+                        "process_status": "Unprocessed"
+                    })
+                    toll.insert()
+                    new_count += 1
+                else:
+                    duplicate_count += 1
+                    
+            except Exception as e:
+                frappe.log_error(
+                    f"Error processing transaction: {transaction}\nError: {str(e)}", 
+                    "Toll Transaction Error"
+                )
+        
+        self.db_set('new_records', new_count)
+        self.db_set('duplicate_records', duplicate_count)
 
 @frappe.whitelist()
-def process_toll_document(doc_name):
-    try:
-        doc = frappe.get_doc("Toll Capture", doc_name)
-        result = doc.process_document()
-        return result or "Processing Complete"
-    except Exception as e:
-        frappe.msgprint(f"Error in processing: {str(e)}")
-        return "Failed"
+def process_toll_document(doc_name: str) -> str:
+    """Whitelist method to process toll document"""
+    doc = frappe.get_doc("Toll Capture", doc_name)
+    return doc.process_document()

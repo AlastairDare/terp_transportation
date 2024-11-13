@@ -12,21 +12,27 @@ frappe.ui.form.on('Toll Capture', {
                     return;
                 }
                 
-                if (!frm.doc.toll_document.toLowerCase().endsWith('.pdf')) {
-                    frappe.msgprint({
-                        title: __('Invalid Format'),
-                        message: __('Please upload a PDF document'),
-                        indicator: 'red'
-                    });
-                    return;
-                }
-                
                 // Confirm before processing
                 frappe.confirm(
                     __('Are you sure you want to process this document?'),
                     function() {
                         // Show progress dialog
-                        let dialog = frappe.show_progress(__('Processing Toll Document'), 0, 100);
+                        let d = new frappe.ui.Dialog({
+                            title: __('Processing Toll Document'),
+                            fields: [
+                                {
+                                    fieldname: 'status_html',
+                                    fieldtype: 'HTML',
+                                    options: `<div class="progress">
+                                        <div class="progress-bar progress-bar-striped active"
+                                            role="progressbar" style="width: 100%">
+                                        </div>
+                                    </div>
+                                    <p class="text-muted text-center">Processing document, please wait...</p>`
+                                }
+                            ]
+                        });
+                        d.show();
                         
                         frappe.call({
                             method: 'transportation.transportation.doctype.toll_capture.toll_capture.process_toll_document',
@@ -34,15 +40,23 @@ frappe.ui.form.on('Toll Capture', {
                                 doc_name: frm.doc.name
                             },
                             callback: function(r) {
-                                dialog.hide();
+                                d.hide();
                                 frm.reload_doc();
-                                frappe.show_alert({
-                                    message: __('Document processing complete'),
+                                
+                                // Show results
+                                let message = `Processing complete<br>
+                                    Total Records: ${frm.doc.total_records || 0}<br>
+                                    New Records: ${frm.doc.new_records || 0}<br>
+                                    Duplicates: ${frm.doc.duplicate_records || 0}`;
+                                
+                                frappe.msgprint({
+                                    title: __('Processing Complete'),
+                                    message: message,
                                     indicator: 'green'
                                 });
                             },
                             error: function(r) {
-                                dialog.hide();
+                                d.hide();
                                 frappe.msgprint({
                                     title: __('Processing Error'),
                                     message: __('Error processing document: ') + r.exc,
