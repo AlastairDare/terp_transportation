@@ -11,12 +11,26 @@ from ..utils.request import DocumentRequest
 from ..utils.exceptions import DocumentProcessingError
 
 class DocumentPreparationHandler(BaseHandler):
+    def handle(self, request: DocumentRequest) -> DocumentRequest:
+        """Required implementation of abstract handle method"""
+        try:
+            if request.method == "process_toll":
+                self._prepare_toll_document(request)
+            else:
+                self._prepare_delivery_note(request)
+            
+            return super().handle(request)
+        
+        except Exception as e:
+            request.set_error(e)
+            raise DocumentProcessingError(f"Document preparation failed: {str(e)}")
+
     def _optimize_image(self, image_path):
         """Optimize image size while maintaining readability"""
         try:
             with Image.open(image_path) as img:
                 # Calculate new size while maintaining aspect ratio
-                max_dimension = 1800  # Maximum dimension for either width or height
+                max_dimension = 1200  # Reduced maximum dimension
                 ratio = min(max_dimension / float(img.size[0]), 
                           max_dimension / float(img.size[1]))
                 new_size = tuple(int(dim * ratio) for dim in img.size)
@@ -26,7 +40,7 @@ class DocumentPreparationHandler(BaseHandler):
                 
                 # Save with reduced quality
                 temp_path = image_path.replace('.jpg', '_optimized.jpg')
-                optimized.save(temp_path, 'JPEG', quality=65, optimize=True)
+                optimized.save(temp_path, 'JPEG', quality=50, optimize=True)
                 return temp_path
         except Exception as e:
             frappe.log_error(f"Image optimization failed: {str(e)}", "Image Optimization Error")
@@ -55,7 +69,7 @@ class DocumentPreparationHandler(BaseHandler):
                 # Convert PDF to images with reduced DPI
                 images = convert_from_path(
                     pdf_path,
-                    dpi=200,  # Reduced from 300
+                    dpi=150,  # Reduced DPI
                     output_folder=temp_dir,
                     fmt="jpeg",
                     output_file="page",
@@ -88,7 +102,7 @@ class DocumentPreparationHandler(BaseHandler):
             
         except Exception as e:
             raise DocumentProcessingError(f"Failed to process PDF document: {str(e)}")
-    
+
     def _prepare_delivery_note(self, request):
         """Handle delivery note image preparation"""
         if not request.doc.delivery_note_image:
