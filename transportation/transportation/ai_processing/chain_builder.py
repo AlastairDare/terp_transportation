@@ -39,34 +39,18 @@ def process_toll_document(doc_name):
         # Get the document
         doc = frappe.get_doc("Toll Capture", doc_name)
         
-        # Update status to Processing
-        doc.processing_status = "Processing"
-        doc.save(ignore_permissions=True)
-        
-        # Build and execute the processing chain
-        chain = build_processing_chain()
-        request = DocumentRequest(doc, "process_toll")
-        chain.handle(request)
-        
-        # Update status to Completed
-        doc.processing_status = "Completed"
-        doc.save(ignore_permissions=True)
+        # Schedule the delayed processing job
+        from transportation.transportation.ai_processing.jobs.toll_manager_job import schedule_toll_processing
+        schedule_toll_processing(doc_name)
         
         return {
             "success": True,
-            "message": "Processing completed successfully",
-            "total_records": doc.total_records,
-            "new_records": doc.new_records,
-            "duplicate_records": doc.duplicate_records
+            "message": "Processing scheduled. Pages will be processed in background."
         }
         
     except Exception as e:
-        # Update status to Failed
-        doc.processing_status = "Failed"
-        doc.save(ignore_permissions=True)
-        
         frappe.log_error(
-            message=f"Toll Document Processing Failed: {str(e)}",
+            message=f"Failed to schedule toll processing: {str(e)}",
             title="Toll Processing Error"
         )
         raise

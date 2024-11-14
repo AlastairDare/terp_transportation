@@ -3,6 +3,7 @@
     "name": "Toll Page Result",
     "module": "Transportation",
     "custom": 1,
+    "autoname": "format:PAGE-{parent_document}-{page_number}-{#####}",
     "fields": [
         {
             "fieldname": "parent_document",
