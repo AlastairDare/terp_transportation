@@ -13,7 +13,3 @@ class ProviderError(AIProcessingError):
 class DocumentProcessingError(AIProcessingError):
     """Raised when there's an error processing the document"""
     pass
-
-class PDFProcessingError(DocumentProcessingError):
-    """Raised when there's an error processing a PDF document"""
-    pass

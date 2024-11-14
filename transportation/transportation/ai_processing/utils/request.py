@@ -15,10 +15,6 @@ class DocumentRequest:
         self.processed_data = None        # Final processed data
         self.error = None                 # Any error information
         self.trip_id = None               # Created trip document ID
-        # New fields for toll processing
-        self.total_records: int = 0
-        self.new_records: int = 0
-        self.duplicate_records: int = 0
 
     def set_error(self, error: Exception) -> None:
         self.error = str(error)

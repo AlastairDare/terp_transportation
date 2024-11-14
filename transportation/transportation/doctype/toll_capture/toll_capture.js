@@ -1,50 +1,22 @@
 frappe.ui.form.on('Toll Capture', {
+    // Triggers when the form is refreshed
     refresh: function(frm) {
-        if (frm.doc.processing_status !== 'Processing') {
-            frm.add_custom_button(__('Process Toll Document'), function() {
-                process_toll_document(frm);
-            }).addClass('btn-primary');
-        }
+        // Add custom buttons and functionality here
     }
 });
 
+/**
+ * Process the toll document
+ * @param {object} frm - The current form object
+ */
 function process_toll_document(frm) {
-    if (!frm.doc.toll_document) {
-        frappe.msgprint({
-            title: __('Missing Document'),
-            message: __('Please attach a Toll document first'),
-            indicator: 'red'
-        });
-        return;
-    }
+    // Validate document attachment
     
-    // Show a message that processing is starting
-    frappe.show_alert({
-        message: __('Starting document processing...'),
-        indicator: 'blue'
-    });
+    // Show processing message
     
-    frappe.call({
-        method: 'transportation.transportation.doctype.toll_capture.toll_capture.process_toll_document',
-        args: {
-            doc_name: frm.doc.name
-        },
-        callback: function(r) {
-            if (r.exc) {
-                // If there's an error, show it
-                frappe.msgprint({
-                    title: __('Processing Error'),
-                    message: r.exc,
-                    indicator: 'red'
-                });
-            } else {
-                // Success message
-                frappe.show_alert({
-                    message: __('Processing complete!'),
-                    indicator: 'green'
-                });
-                frm.reload_doc();
-            }
-        }
-    });
+    // Make API call to process document
+    
+    // Handle success/error responses
+    
+    // Refresh the form
 }
