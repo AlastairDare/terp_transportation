@@ -6,6 +6,10 @@ from frappe.model.document import Document
 
 class TollPageResult(Document):
     def after_insert(self):
+        frappe.log_error(
+            message=f"after_insert triggered for TollPageResult {self.name}",
+            title="Toll Debug Start"
+        )
         try:
             frappe.log_error("Starting toll processing", "Toll Debug")
             self._process_toll_page()
