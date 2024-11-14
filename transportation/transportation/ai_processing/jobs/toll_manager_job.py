@@ -15,16 +15,14 @@ def schedule_toll_processing(toll_capture_id: str) -> None:
         doc.processing_started = now_datetime()
         doc.save()
 
-        # Schedule the actual processing with a 1-minute delay
+        # Schedule the actual processing - removed nested kwargs
         enqueue(
             method=process_toll_capture,
             queue='default',
             timeout=3600,
             job_name=f'toll_processor_{toll_capture_id}_{frappe.generate_hash(length=8)}',
-            kwargs={
-                'toll_capture_id': toll_capture_id,
-                'retry_count': 0
-            },
+            toll_capture_id=toll_capture_id,
+            retry_count=0,
             at_front=False,
             now=False,
             enqueue_after=add_to_date(now_datetime(), minutes=1)
@@ -61,29 +59,24 @@ def process_toll_capture(toll_capture_id: str, retry_count: int = 0) -> None:
         if not pages and retry_count < 3:
             frappe.logger().debug(f"No completed pages found, scheduling retry {retry_count + 1}")
             
-            # Schedule retry with exponential backoff
-            delay_minutes = 2 ** retry_count  # 1st retry: 1 min, 2nd: 2 mins, 3rd: 4 mins
+            # Schedule retry with exponential backoff - direct parameters
+            delay_minutes = 2 ** retry_count
             
             enqueue(
                 method=process_toll_capture,
                 queue='default',
                 timeout=3600,
                 job_name=f'toll_processor_{toll_capture_id}_retry_{retry_count + 1}',
-                kwargs={
-                    'toll_capture_id': toll_capture_id,
-                    'retry_count': retry_count + 1
-                },
+                toll_capture_id=toll_capture_id,
+                retry_count=retry_count + 1,
                 enqueue_after=add_to_date(now_datetime(), minutes=delay_minutes)
             )
             return
 
-        # If no pages found after all retries, mark as failed
         if not pages:
             frappe.logger().error(f"No completed pages found after {retry_count} retries")
             update_document_status(toll_capture_id, "Failed")
             frappe.throw("No completed pages found to process after maximum retries")
-
-        frappe.logger().debug(f"Found {len(pages)} pages to process")
 
         # Get configurations
         ai_config = frappe.get_single("AI Config")
@@ -96,41 +89,35 @@ def process_toll_capture(toll_capture_id: str, retry_count: int = 0) -> None:
             "function": "Toll Capture Config"
         })
 
-        # Queue individual page processing jobs with delays
+        # Queue page processing jobs - passing configuration directly
         for index, page in enumerate(pages):
-            # Add progressive delay for each page
-            delay_minutes = index * 0.5  # 0.5 minute increment per page
+            delay_minutes = index * 0.5
             
             job = enqueue(
                 method='transportation.transportation.ai_processing.jobs.page_processor_job.process_single_page',
                 queue='default',
                 timeout=1200,
                 job_name=f'page_processor_{page.name}_{frappe.generate_hash(length=8)}',
-                kwargs={
-                    'page_id': page.name,
-                    'toll_capture_id': toll_capture_id,
-                    'config': {
-                        'ai_config': ai_config.as_dict(),
-                        'provider_settings': provider_settings.as_dict(),
-                        'ocr_settings': ocr_settings.as_dict()
-                    }
-                },
+                page_id=page.name,
+                toll_capture_id=toll_capture_id,
+                ai_config=ai_config.as_dict(),
+                provider_settings=provider_settings.as_dict(),
+                ocr_settings=ocr_settings.as_dict(),
                 enqueue_after=add_to_date(now_datetime(), minutes=delay_minutes),
                 is_async=True
             )
             
             frappe.logger().debug(f"Queued job {job.id} for page {page.name} with {delay_minutes}m delay")
 
-        # Schedule final aggregation job
-        total_pages = len(pages)
-        if total_pages > 0:
-            final_delay = (total_pages * 0.5) + 2  # Add 2 minutes buffer after last page
+        # Schedule final aggregation - direct parameters
+        if len(pages) > 0:
+            final_delay = (len(pages) * 0.5) + 2
             enqueue(
                 method='transportation.transportation.ai_processing.jobs.toll_creator_job.create_toll_records',
                 queue='default',
                 timeout=1200,
                 job_name=f'toll_creator_{toll_capture_id}_{frappe.generate_hash(length=8)}',
-                kwargs={'toll_capture_id': toll_capture_id},
+                toll_capture_id=toll_capture_id,
                 enqueue_after=add_to_date(now_datetime(), minutes=final_delay)
             )
 

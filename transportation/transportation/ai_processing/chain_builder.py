@@ -30,13 +30,13 @@ def process_toll_document(doc_name):
         if not frappe.db.exists("Toll Capture", doc_name):
             frappe.throw("Toll Capture document not found")
             
-        # Queue the job with explicit queue name and job ID
+        # Queue the job - removed nested kwargs
         job = enqueue(
             method='transportation.transportation.ai_processing.jobs.toll_manager_job.schedule_toll_processing',
             queue='default',
             timeout=3600,
             job_name=f'toll_processing_{doc_name}_{frappe.generate_hash(length=8)}',
-            kwargs={'toll_capture_id': doc_name},  # Changed to match the parameter name in schedule_toll_processing
+            toll_capture_id=doc_name,  # Direct parameter, not in kwargs
             is_async=True,
             now=False
         )
