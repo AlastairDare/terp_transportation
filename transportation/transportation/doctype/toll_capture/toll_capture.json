@@ -20,7 +20,7 @@
             "fieldname": "status",
             "label": "Status",
             "fieldtype": "Select",
-            "options": "\nUnprocessed\nProcessed",
+            "options": "Unprocessed\nProcessed",
             "default": "Unprocessed",
             "hidden":1
           }
