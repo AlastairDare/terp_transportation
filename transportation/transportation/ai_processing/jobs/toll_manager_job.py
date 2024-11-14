@@ -9,14 +9,14 @@ from datetime import datetime, timedelta
 def schedule_toll_processing(toll_capture_id: str) -> None:
     """Schedule the main toll processing job with 1-minute delay"""
     try:
-        # Calculate time 1 minute from now
-        start_time = datetime.now() + timedelta(minutes=1)
-        
-        # Use enqueue_at instead of enqueue
-        enqueue_at(
-            start_time,
-            process_toll_capture,  # The function to run
-            toll_capture_id=toll_capture_id  # Direct parameter passing
+        # Use delay parameter for 60 seconds
+        enqueue(
+            method=process_toll_capture,
+            queue='default',
+            timeout=3600,
+            job_name=f'toll_processor_{toll_capture_id}',
+            toll_capture_id=toll_capture_id,
+            delay=60  # 60 seconds = 1 minute
         )
         
     except Exception as e:
