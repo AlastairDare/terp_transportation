@@ -1,5 +1,4 @@
 import frappe
-from frappe.utils.background_jobs import enqueue
 from .handlers.config_handler import ConfigurationHandler
 from .handlers.document_handler import DocumentPreparationHandler
 from .handlers.ai_handler import AIProcessingHandler
@@ -23,10 +22,26 @@ def build_processing_chain():
 def process_delivery_note_capture(doc, method=None):
     """Main entry point for document processing"""
     try:
+        frappe.log_error(
+            message=f"1. Starting delivery note capture processing for doc: {doc.name}",
+            title="Process Debug"
+        )
+        
         chain = build_processing_chain()
-        # Use the existing interface with "delivery_note_capture" as the method
         request = DocumentRequest(doc, "delivery_note_capture")
+        
+        frappe.log_error(
+            message=f"2. Created request object and chain for doc: {doc.name}",
+            title="Process Debug"
+        )
+        
         chain.handle(request)
+        
+        frappe.log_error(
+            message=f"3. Chain handling completed for doc: {doc.name}",
+            title="Process Debug"
+        )
+        
     except Exception as e:
         frappe.log_error(
             message=f"Delivery Note Capture Processing Failed: {str(e)}",
