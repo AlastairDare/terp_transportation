@@ -6,19 +6,23 @@ def schedule_toll_processing(toll_capture_id: str) -> None:
     """Schedule the main toll processing job with 1 minute delay"""
     enqueue(
         process_toll_capture,
-        queue='long',  # Changed from 'toll_processing' to 'long'
+        queue='long',
         timeout=3600,
         job_name=f'toll_manager_{toll_capture_id}',
-        toll_capture_id=toll_capture_id,
+        kwargs={
+            'toll_capture_id': toll_capture_id
+        },
+        # Remove delay from here as it's part of enqueue kwargs
         now=False,
         at_front=False,
-        enqueue_after_commit=True,
-        delay=60
+        enqueue_after_commit=True
     )
 
 def process_toll_capture(toll_capture_id: str) -> None:
     """Main job that schedules individual page processing jobs"""
     try:
+        frappe.logger().debug(f"Starting toll capture processing for {toll_capture_id}")
+        
         # Get all configuration
         ai_config = frappe.get_single("AI Config")
         provider_settings = (
@@ -41,21 +45,26 @@ def process_toll_capture(toll_capture_id: str) -> None:
             order_by="page_number"
         )
 
+        frappe.logger().debug(f"Found {len(pages)} pages to process")
+
         # Schedule processing job for each page
         for page in pages:
             enqueue(
-                process_single_page,
-                queue='long',  # Changed from 'ai_processing' to 'long'
+                'transportation.transportation.ai_processing.jobs.page_processor_job.process_single_page',
+                queue='long',
                 timeout=1200,
                 job_name=f'page_processor_{page.name}',
-                toll_page_result_id=page.name,
-                toll_capture_id=toll_capture_id,
-                config={
-                    'ai_config': ai_config.as_dict(),
-                    'provider_settings': provider_settings.as_dict(),
-                    'ocr_settings': ocr_settings.as_dict()
+                kwargs={
+                    'toll_page_result_id': page.name,
+                    'toll_capture_id': toll_capture_id,
+                    'config': {
+                        'ai_config': ai_config.as_dict(),
+                        'provider_settings': provider_settings.as_dict(),
+                        'ocr_settings': ocr_settings.as_dict()
+                    }
                 }
             )
+            frappe.logger().debug(f"Queued processing for page {page.name}")
 
     except Exception as e:
         frappe.log_error(

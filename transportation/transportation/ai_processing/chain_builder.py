@@ -45,7 +45,7 @@ def process_toll_document(doc_name):
         
         return {
             "success": True,
-            "message": "Processing scheduled. Pages will be processed in background."
+            "message": "Processing has been scheduled and will begin shortly. Please check background jobs for progress."
         }
         
     except Exception as e:
