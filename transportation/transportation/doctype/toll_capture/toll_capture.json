@@ -21,7 +21,7 @@
             "label": "Status",
             "fieldtype": "Select",
             "options": "\nUnprocessed\nProcessed",
-            "default": "Draft",
+            "default": "Unprocessed",
             "hidden":1
           }
     ],
