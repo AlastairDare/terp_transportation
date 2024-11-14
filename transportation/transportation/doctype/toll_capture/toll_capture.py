@@ -19,7 +19,7 @@ class TollCapture(Document):
             return
             
         try:
-            file_path = frappe.get_site_path() + self.toll_document
+            file_path = frappe.get_site_path('public', self.toll_document.lstrip('/'))
             pdf_document = fitz.open(file_path)
             
             for page_num in range(len(pdf_document)):
