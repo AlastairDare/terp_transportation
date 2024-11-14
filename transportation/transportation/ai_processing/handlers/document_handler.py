@@ -1,150 +1,93 @@
-import frappe
-from frappe.utils.background_jobs import enqueue
 from frappe.utils import get_files_path
-import os
-import base64
-import tempfile
-from PIL import Image
+import frappe
 from PyPDF2 import PdfReader
 from pdf2image import convert_from_path
-from .base_handler import BaseHandler
+import base64
+from PIL import Image
+import tempfile
+import os
+from typing import List
 from ..utils.request import DocumentRequest
 from ..utils.exceptions import DocumentProcessingError
+from .base_handler import BaseHandler
 
-def optimize_image(image_path: str) -> str:
-    """Optimize image size while maintaining readability"""
-    try:
-        with Image.open(image_path) as img:
-            max_dimension = 1200
-            ratio = min(max_dimension / float(img.size[0]), 
-                      max_dimension / float(img.size[1]))
-            new_size = tuple(int(dim * ratio) for dim in img.size)
-            
-            optimized = img.resize(new_size, Image.Resampling.LANCZOS)
-            temp_path = image_path.replace('.jpg', '_optimized.jpg')
-            optimized.save(temp_path, 'JPEG', quality=50, optimize=True)
-            return temp_path
-    except Exception as e:
-        frappe.log_error(f"Image optimization failed: {str(e)}", "Image Optimization Error")
-        return image_path
-
-@frappe.whitelist()
-def process_toll_page(doc_name: str, page_num: int, total_pages: int, pdf_path: str):
-    """Process a single toll document page with timing checks"""
-    import time
-    start_time = time.time()
-    frappe.log_error(f"Starting page {page_num} processing at {start_time}", "PDF Debug")
-    
-    try:
-        frappe.log_error(f"Converting page {page_num} of PDF: {pdf_path}", "PDF Debug")
-        with tempfile.TemporaryDirectory() as temp_dir:
-            frappe.log_error(f"Using temp dir: {temp_dir}", "PDF Debug")
-            
-            # Verify the PDF exists
-            if not os.path.exists(pdf_path):
-                raise Exception(f"PDF file not found at path: {pdf_path}")
-                
-            # Check if poppler is installed
-            import subprocess
-            try:
-                subprocess.run(['pdftoppm', '-v'], capture_output=True)
-                frappe.log_error("Poppler is installed", "PDF Debug")
-            except FileNotFoundError:
-                frappe.log_error("Poppler is NOT installed", "PDF Debug")
-                raise Exception("Poppler (pdftoppm) is not installed")
-            
-            # Convert single page
-            frappe.log_error(f"Starting conversion for page {page_num}", "PDF Debug")
-            images = convert_from_path(
-                pdf_path,
-                dpi=150,
-                output_folder=temp_dir,
-                fmt="jpeg",
-                first_page=page_num,
-                last_page=page_num,
-                output_file=f"page_{page_num}",
-                paths_only=True,
-                poppler_path="/usr/bin"
-            )
-            
-            if not images:
-                raise Exception(f"Failed to convert page {page_num}")
-            
-            frappe.log_error(f"Page {page_num} converted, optimizing...", "PDF Debug")
-            optimized_path = optimize_image(images[0])
-            
-            frappe.log_error(f"Converting page {page_num} to base64", "PDF Debug")
-            with open(optimized_path, "rb") as img_file:
-                base64_image = base64.b64encode(img_file.read()).decode('utf-8')
-            
-            # Save page result
-            frappe.log_error(f"Saving result for page {page_num}", "PDF Debug")
-            frappe.get_doc({
-                "doctype": "Toll Page Result",
-                "parent_document": doc_name,
-                "page_number": page_num,
-                "base64_image": base64_image,
-                "status": "Completed"
-            }).insert(ignore_permissions=True)
-            
-            end_time = time.time()
-            frappe.log_error(f"Page {page_num} completed in {end_time - start_time} seconds", "PDF Debug")
-            
-    except Exception as e:
-        frappe.log_error(f"Error processing page {page_num}: {str(e)}", "PDF Debug")
-        frappe.get_doc({
-            "doctype": "Toll Page Result",
-            "parent_document": doc_name,
-            "page_number": page_num,
-            "status": "Failed",
-            "error_message": str(e)
-        }).insert(ignore_permissions=True)
-        raise
-    
 class DocumentPreparationHandler(BaseHandler):
     def handle(self, request: DocumentRequest) -> DocumentRequest:
-        """Handle document preparation with background processing"""
+        """Handle document preparation synchronously"""
         try:
             if request.method == "process_toll":
-                # Get total pages
+                # Get PDF path
                 pdf_path = get_files_path() + '/' + request.doc.toll_document.lstrip('/files/')
-                pdf = PdfReader(pdf_path)
-                total_pages = len(pdf.pages)
                 
-                # Initialize document state
-                frappe.db.set_value(
-                    "Toll Capture",
-                    request.doc.name,
-                    {
-                        "total_records": total_pages,
-                        "status": "Processing",
-                        "progress_count": "0"
-                    },
-                    update_modified=False
-                )
+                # Process PDF and save pages
+                page_records = self._process_pdf_pages(pdf_path, request.doc.name)
                 
-                # Queue jobs for each page
-                for page_num in range(1, total_pages + 1):
-                    enqueue(
-                        process_toll_page,
-                        queue='long',
-                        timeout=300,
-                        job_name=f'toll_processing_{request.doc.name}_page_{page_num}',
-                        doc_name=request.doc.name,
-                        page_num=page_num,
-                        total_pages=total_pages,
-                        pdf_path=pdf_path
-                    )
+                # Store page record IDs in request for later use
+                request.page_records = page_records
+                request.page_count = len(page_records)
                 
-                return request
-            else:
                 return super().handle(request)
+            else:
+                # Handle original delivery note logic
+                return self._prepare_delivery_note(request)
                 
         except Exception as e:
             request.set_error(e)
             raise DocumentProcessingError(f"Document preparation failed: {str(e)}")
 
-    # Keep the original delivery note methods unchanged
+    def _process_pdf_pages(self, pdf_path: str, doc_name: str) -> List[str]:
+        """Process PDF pages and return list of Toll Page Result IDs"""
+        page_records = []
+        
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Convert PDF pages to images
+            images = convert_from_path(
+                pdf_path,
+                dpi=150,
+                output_folder=temp_dir,
+                fmt="jpeg",
+                paths_only=True
+            )
+            
+            # Process each image
+            for idx, image_path in enumerate(images, 1):
+                # Optimize image
+                optimized_path = self._optimize_image(image_path)
+                
+                # Convert to base64
+                with open(optimized_path, "rb") as img_file:
+                    base64_image = base64.b64encode(img_file.read()).decode('utf-8')
+                
+                # Create Toll Page Result
+                page_doc = frappe.get_doc({
+                    "doctype": "Toll Page Result",
+                    "parent_document": doc_name,
+                    "page_number": idx,
+                    "base64_image": base64_image,
+                    "status": "Completed"
+                })
+                page_doc.insert(ignore_permissions=True)
+                page_records.append(page_doc.name)
+        
+        return page_records
+
+    def _optimize_image(self, image_path: str) -> str:
+        """Optimize image size while maintaining readability"""
+        with Image.open(image_path) as img:
+            # Resize if larger than max dimension
+            max_dimension = 1200
+            ratio = min(max_dimension / float(img.size[0]), 
+                       max_dimension / float(img.size[1]))
+            
+            if ratio < 1:
+                new_size = tuple(int(dim * ratio) for dim in img.size)
+                img = img.resize(new_size, Image.Resampling.LANCZOS)
+            
+            # Save optimized image
+            optimized_path = image_path.replace('.jpg', '_optimized.jpg')
+            img.save(optimized_path, 'JPEG', quality=50, optimize=True)
+            return optimized_path
+
     def _prepare_delivery_note(self, request: DocumentRequest) -> DocumentRequest:
         """Original delivery note method remains unchanged"""
         if not request.doc.delivery_note_image:
@@ -159,6 +102,7 @@ class DocumentPreparationHandler(BaseHandler):
         
         trip_doc = self._create_initial_trip(request.doc)
         request.trip_id = trip_doc.name
+        return request
 
     def _create_initial_trip(self, source_doc):
         """Original create_initial_trip method remains unchanged"""
