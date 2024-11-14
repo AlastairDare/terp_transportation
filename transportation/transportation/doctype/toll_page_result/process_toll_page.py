@@ -5,8 +5,8 @@ import time
 
 def process_toll_page(doc, method):
     try:
-        time.sleep(10)  # 10 second delay
-        frappe.log_error("Starting toll processing", "Toll Debug")
+        frappe.db.commit()  # Commit the transaction first
+        time.sleep(10)  # Then sleep
         _process_toll_page(doc)
     except Exception as e:
         _handle_error(doc, f"Toll processing failed: {str(e)}")
