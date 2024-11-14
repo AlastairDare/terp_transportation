@@ -7,13 +7,14 @@ from typing import Dict, Any
 def schedule_toll_processing(toll_capture_id: str) -> None:
     """Schedule the main toll processing job with 1-minute delay"""
     try:
-        enqueue(
-            method=process_toll_capture,
-            queue='default',
-            timeout=3600,
-            job_name=f'toll_processor_{toll_capture_id}',
-            toll_capture_id=toll_capture_id,
-            enqueue_in=60  # Queue to run in 60 seconds
+        # Calculate time 1 minute from now
+        start_time = datetime.now() + timedelta(minutes=1)
+        
+        # Use enqueue_at instead of enqueue
+        enqueue_at(
+            start_time,
+            process_toll_capture,  # The function to run
+            toll_capture_id=toll_capture_id  # Direct parameter passing
         )
         
     except Exception as e:
