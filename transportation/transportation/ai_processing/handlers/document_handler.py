@@ -15,8 +15,21 @@ class DocumentPreparationHandler(BaseHandler):
     def handle(self, request: DocumentRequest) -> DocumentRequest:
         """Handle document preparation synchronously"""
         try: 
-            return self._prepare_delivery_note(request)
-                
+            frappe.log_error(
+                message="1. Starting document preparation",
+                title="Document Handler Debug"
+            )
+            
+            request = self._prepare_delivery_note(request)
+            
+            frappe.log_error(
+                message="2. Document preparation completed, calling next handler",
+                title="Document Handler Debug"
+            )
+            
+            # Call the next handler in the chain
+            return super().handle(request)
+                    
         except Exception as e:
             frappe.log_error("Document Processing Error", str(e))
             frappe.throw(str(e))

@@ -17,6 +17,18 @@ def build_processing_chain():
                  .set_next(ai_handler)\
                  .set_next(response_handler)
     
+    # Debug the chain structure
+    current = config_handler
+    chain_str = []
+    while current:
+        chain_str.append(current.__class__.__name__)
+        current = current._next_handler
+    
+    frappe.log_error(
+        message=f"Chain structure: {' -> '.join(chain_str)}",
+        title="Chain Builder Debug"
+    )
+    
     return config_handler
 
 def process_delivery_note_capture(doc, method=None):

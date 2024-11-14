@@ -10,17 +10,18 @@ class BaseHandler(ABC):
         self._next_handler = handler
         return handler
     
-    def handle(self, request: DocumentRequest) -> DocumentRequest:
-        """Handle the request and pass to next handler if exists"""
-        # Call the derived class's handle method via super from their perspective
-        request = super(self.__class__, self).handle(request)
-        
-        # Continue the chain
-        if self._next_handler:
-            return self._next_handler.handle(request)
-        return request
-    
     @abstractmethod
     def handle(self, request: DocumentRequest) -> DocumentRequest:
-        """Handle method that derived classes will implement"""
+        """Handle the request and pass to next handler if exists"""
+        # Add debug log to see if we enter the base handle method
+        frappe.log_error(
+            message=f"Base handler called for {self.__class__.__name__}",
+            title="Base Handler Debug"
+        )
+        if self._next_handler:
+            frappe.log_error(
+                message=f"Calling next handler: {self._next_handler.__class__.__name__}",
+                title="Base Handler Debug"
+            )
+            return self._next_handler.handle(request)
         return request
