@@ -22,7 +22,7 @@ def _process_toll_page(doc):
         prompt = ocr_settings.language_prompt
         frappe.log_error(f"Using prompt: {prompt}", "Toll Debug")
 
-        response = _make_openai_request(doc, prompt, provider_settings, ai_config)
+        response = _make_openai_request(doc, prompt, provider_settings)
         frappe.log_error(f"OpenAI Response: {response}", "Toll Debug")
 
         _create_toll_records(response)
@@ -35,14 +35,14 @@ def _process_toll_page(doc):
         _handle_error(doc, str(e))
         raise
 
-def _make_openai_request(doc, prompt, provider_settings, ai_config):
+def _make_openai_request(doc, prompt, provider_settings):
     headers = {
         "Authorization": f"Bearer {provider_settings.get_password('api_key')}",
         "Content-Type": "application/json"
     }
 
     data = {
-        "model": ai_config.default_model,
+        "model": provider_settings.default_model,
         "messages": [
             {
                 "role": "system",
@@ -65,7 +65,7 @@ def _make_openai_request(doc, prompt, provider_settings, ai_config):
             }
         ],
         "max_tokens": 4096,
-        "temperature": 0.3,
+        "temperature": float(provider_settings.temperature),
         "response_format": {"type": "json_object"}
     }
 
