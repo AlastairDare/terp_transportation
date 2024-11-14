@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from ..utils.request import DocumentRequest
+import frappe  
 
 class BaseHandler(ABC):
     def __init__(self):
