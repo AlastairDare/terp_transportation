@@ -36,12 +36,16 @@ def process_delivery_note_capture(doc, method):
 def process_toll_document(doc_name):
     """Process toll document when triggered by button click"""
     try:
+        frappe.logger().debug(f"Starting process_toll_document for {doc_name}")
+        
         # Get the document
         doc = frappe.get_doc("Toll Capture", doc_name)
         
         # Schedule the delayed processing job
         from transportation.transportation.ai_processing.jobs.toll_manager_job import schedule_toll_processing
         schedule_toll_processing(doc_name)
+        
+        frappe.logger().debug(f"Scheduled toll processing for {doc_name}")
         
         return {
             "success": True,
