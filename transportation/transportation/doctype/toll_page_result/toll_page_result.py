@@ -7,6 +7,7 @@ from frappe.model.document import Document
 class TollPageResult(Document):
     def after_insert(self):
         try:
+            frappe.log_error("Starting toll processing", "Toll Debug")
             self._process_toll_page()
         except Exception as e:
             self._handle_error(f"Toll processing failed: {str(e)}")
@@ -22,11 +23,9 @@ class TollPageResult(Document):
             ocr_settings = frappe.get_doc("OCR Settings", "Toll Capture Config")
 
             # Format prompt
-            prompt = (
-                f"{ocr_settings.language_prompt}\n"
-                "IMPORTANT: Ensure your response is a complete, valid JSON array. "
-                "If no toll records are found, return {'transactions': []}."
-            )
+            prompt = ocr_settings.language_prompt
+
+            frappe.log_error(f"Using prompt: {prompt}", "Toll Debug")
 
             # Make OpenAI request
             response = self._make_openai_request(
@@ -34,6 +33,8 @@ class TollPageResult(Document):
                 provider_settings,
                 ai_config
             )
+
+            frappe.log_error(f"OpenAI Response: {response}", "Toll Debug")
 
             # Process response and create tolls
             self._create_toll_records(response)
@@ -43,6 +44,7 @@ class TollPageResult(Document):
             self.save()
 
         except Exception as e:
+            frappe.log_error(f"Error in _process_toll_page: {str(e)}", "Toll Debug")
             self._handle_error(str(e))
             raise
 
@@ -57,10 +59,7 @@ class TollPageResult(Document):
             "messages": [
                 {
                     "role": "system",
-                    "content": (
-                        "You are a JSON-only response bot. Respond with transaction data "
-                        "or empty transactions array if no data found."
-                    )
+                    "content": "You are an expert at analyzing toll transaction tables. Return data as an array of transactions."
                 },
                 {
                     "role": "user",
@@ -97,22 +96,25 @@ class TollPageResult(Document):
                     content = result['choices'][0]['message']['content']
                     return json.loads(content)
                 
+                frappe.log_error(f"API Response: {response.status_code} - {response.text}", "Toll Debug")
                 if response.status_code >= 400:
                     raise Exception(f"API error {response.status_code}: {response.text}")
                     
             except Exception as e:
+                frappe.log_error(f"Request attempt {attempt + 1} failed: {str(e)}", "Toll Debug")
                 if attempt == 2:
                     raise Exception(f"OpenAI request failed: {str(e)}")
                     
             time.sleep(2 ** attempt)
 
     def _create_toll_records(self, response):
-        if not isinstance(response.get('transactions', []), list):
-            frappe.log_error("Invalid response format", "Toll Processing Error")
+        if not isinstance(response, list):
+            frappe.log_error(f"Invalid response format: {response}", "Toll Debug")
             raise Exception("Invalid response format from AI")
 
-        for transaction in response.get('transactions', []):
+        for transaction in response:
             if self._validate_transaction(transaction):
+                frappe.log_error(f"Creating toll record: {transaction}", "Toll Debug")
                 toll = frappe.get_doc({
                     "doctype": "Tolls",
                     "transaction_date": transaction['transaction_date'],
