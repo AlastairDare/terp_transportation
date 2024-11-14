@@ -27,7 +27,7 @@
             "fieldname": "status",
             "fieldtype": "Select",
             "label": "Status",
-            "options": "Unprocessed/nProcessed/nError",
+            "options": "Unprocessed\nProcessed\nError",
             "default": "Unprocessed",
             "reqd": 1
         }
