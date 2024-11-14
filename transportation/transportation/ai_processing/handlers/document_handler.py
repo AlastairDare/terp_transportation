@@ -30,10 +30,31 @@ def optimize_image(image_path: str) -> str:
 
 @frappe.whitelist()
 def process_toll_page(doc_name: str, page_num: int, total_pages: int, pdf_path: str):
-    """Process a single toll document page"""
+    """Process a single toll document page with timing checks"""
+    import time
+    start_time = time.time()
+    frappe.log_error(f"Starting page {page_num} processing at {start_time}", "PDF Debug")
+    
     try:
+        frappe.log_error(f"Converting page {page_num} of PDF: {pdf_path}", "PDF Debug")
         with tempfile.TemporaryDirectory() as temp_dir:
+            frappe.log_error(f"Using temp dir: {temp_dir}", "PDF Debug")
+            
+            # Verify the PDF exists
+            if not os.path.exists(pdf_path):
+                raise Exception(f"PDF file not found at path: {pdf_path}")
+                
+            # Check if poppler is installed
+            import subprocess
+            try:
+                subprocess.run(['pdftoppm', '-v'], capture_output=True)
+                frappe.log_error("Poppler is installed", "PDF Debug")
+            except FileNotFoundError:
+                frappe.log_error("Poppler is NOT installed", "PDF Debug")
+                raise Exception("Poppler (pdftoppm) is not installed")
+            
             # Convert single page
+            frappe.log_error(f"Starting conversion for page {page_num}", "PDF Debug")
             images = convert_from_path(
                 pdf_path,
                 dpi=150,
@@ -49,12 +70,15 @@ def process_toll_page(doc_name: str, page_num: int, total_pages: int, pdf_path: 
             if not images:
                 raise Exception(f"Failed to convert page {page_num}")
             
+            frappe.log_error(f"Page {page_num} converted, optimizing...", "PDF Debug")
             optimized_path = optimize_image(images[0])
             
+            frappe.log_error(f"Converting page {page_num} to base64", "PDF Debug")
             with open(optimized_path, "rb") as img_file:
                 base64_image = base64.b64encode(img_file.read()).decode('utf-8')
             
-            # Save page result only
+            # Save page result
+            frappe.log_error(f"Saving result for page {page_num}", "PDF Debug")
             frappe.get_doc({
                 "doctype": "Toll Page Result",
                 "parent_document": doc_name,
@@ -63,27 +87,11 @@ def process_toll_page(doc_name: str, page_num: int, total_pages: int, pdf_path: 
                 "status": "Completed"
             }).insert(ignore_permissions=True)
             
-            # Check if this is the last page and update parent only once
-            completed_pages = frappe.db.count(
-                "Toll Page Result",
-                {"parent_document": doc_name, "status": "Completed"}
-            )
+            end_time = time.time()
+            frappe.log_error(f"Page {page_num} completed in {end_time - start_time} seconds", "PDF Debug")
             
-            if completed_pages == total_pages:
-                frappe.db.set_value(
-                    "Toll Capture",
-                    doc_name,
-                    {
-                        "status": "Completed",
-                        "progress_count": f"Processed {completed_pages} of {total_pages} pages"
-                    },
-                    update_modified=False
-                )
-                
     except Exception as e:
-        error_msg = f"Page {page_num} failed: {str(e)[:50]}..."
-        frappe.log_error(error_msg, "Toll Processing Error")
-        
+        frappe.log_error(f"Error processing page {page_num}: {str(e)}", "PDF Debug")
         frappe.get_doc({
             "doctype": "Toll Page Result",
             "parent_document": doc_name,
