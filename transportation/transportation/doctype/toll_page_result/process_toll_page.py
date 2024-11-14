@@ -46,7 +46,7 @@ def _make_openai_request(doc, prompt, provider_settings):
         "messages": [
             {
                 "role": "system",
-                "content": "You are an expert at analyzing toll transaction tables. Return data as an array of transactions."
+                "content": "You are an expert at analyzing toll transaction tables. Return data as a valid JSON array of transactions."
             },
             {
                 "role": "user",
@@ -81,7 +81,14 @@ def _make_openai_request(doc, prompt, provider_settings):
             if response.status_code == 200:
                 result = response.json()
                 content = result['choices'][0]['message']['content']
-                return json.loads(content)
+                parsed_content = json.loads(content)
+                # Handle both array and object with transactions array
+                if isinstance(parsed_content, list):
+                    return parsed_content
+                elif isinstance(parsed_content, dict) and 'transactions' in parsed_content:
+                    return parsed_content['transactions']
+                else:
+                    raise Exception("Unexpected response format")
             
             frappe.log_error(f"API Response: {response.status_code} - {response.text}", "Toll Debug")
             if response.status_code >= 400:
