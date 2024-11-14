@@ -1,36 +1,42 @@
 import frappe
 from frappe.utils.background_jobs import enqueue
+from frappe.utils import now_datetime
 from typing import Dict, Any
 
-def schedule_toll_processing(toll_capture_id: str) -> None:
-    """Schedule the main toll processing job with 1 minute delay"""
-    frappe.logger().debug(f"Attempting to schedule toll processing for {toll_capture_id}")
+def schedule_toll_processing(doc_name: str) -> None:
+    """Schedule the main toll processing job"""
+    frappe.logger().debug(f"Scheduling toll processing for {doc_name}")
     
     try:
-        enqueue(
-            method=process_toll_capture,
-            queue='long',
-            timeout=3600,
-            job_name=f'toll_manager_{toll_capture_id}',
-            toll_capture_id=toll_capture_id,
-            # Let's try with immediate execution first to debug
-            now=True  # Changed to True for testing
-        )
-        frappe.logger().debug(f"Successfully queued toll manager job for {toll_capture_id}")
+        # Update document status
+        doc = frappe.get_doc("Toll Capture", doc_name)
+        doc.processing_status = "Processing"
+        doc.processing_started = now_datetime()
+        doc.save()
+        
+        # Process immediately instead of scheduling another job
+        process_toll_capture(doc_name)
         
     except Exception as e:
         frappe.log_error(
-            message=f"Failed to queue toll manager job: {str(e)}",
-            title="Queue Error"
+            message=f"Failed in toll manager job: {str(e)}",
+            title="Toll Manager Error"
         )
+        # Update document status on failure
+        try:
+            doc = frappe.get_doc("Toll Capture", doc_name)
+            doc.processing_status = "Failed"
+            doc.save()
+        except:
+            pass
         raise
 
-def process_toll_capture(toll_capture_id: str) -> None:
-    """Main job that schedules individual page processing jobs"""
-    frappe.logger().debug(f"Process toll capture started for {toll_capture_id}")
+def process_toll_capture(doc_name: str) -> None:
+    """Process all pages for a toll capture document"""
+    frappe.logger().debug(f"Processing toll capture: {doc_name}")
     
     try:
-        # Get all configuration
+        # Get configurations
         ai_config = frappe.get_single("AI Config")
         provider_settings = (
             frappe.get_single("ChatGPT Settings") 
@@ -41,46 +47,50 @@ def process_toll_capture(toll_capture_id: str) -> None:
             "function": "Toll Capture Config"
         })
 
-        # Get all completed page results
+        # Get pages and verify we have some
         pages = frappe.get_all(
             "Toll Page Result",
             filters={
-                "parent_document": toll_capture_id,
+                "parent_document": doc_name,
                 "status": "Completed"
             },
             fields=["name", "page_number"],
             order_by="page_number"
         )
 
-        frappe.logger().debug(f"Found {len(pages)} pages to process for {toll_capture_id}")
+        if not pages:
+            frappe.throw("No completed pages found to process")
 
-        # Schedule processing job for each page
+        frappe.logger().debug(f"Found {len(pages)} pages to process")
+
+        # Queue individual page processing jobs
         for page in pages:
-            try:
-                enqueue(
-                    method='transportation.transportation.ai_processing.jobs.page_processor_job.process_single_page',
-                    queue='long',
-                    timeout=1200,
-                    job_name=f'page_processor_{page.name}',
-                    toll_page_result_id=page.name,
-                    toll_capture_id=toll_capture_id,
-                    config={
+            job = enqueue(
+                method='transportation.transportation.ai_processing.jobs.page_processor_job.process_single_page',
+                queue='default',
+                timeout=1200,
+                job_name=f'page_processor_{page.name}_{frappe.generate_hash(length=8)}',
+                kwargs={
+                    'page_id': page.name,
+                    'doc_name': doc_name,
+                    'config': {
                         'ai_config': ai_config.as_dict(),
                         'provider_settings': provider_settings.as_dict(),
                         'ocr_settings': ocr_settings.as_dict()
                     }
-                )
-                frappe.logger().debug(f"Queued processing for page {page.name}")
-                
-            except Exception as e:
-                frappe.log_error(
-                    message=f"Failed to queue page processor job for page {page.name}: {str(e)}",
-                    title="Page Queue Error"
-                )
+                },
+                is_async=True
+            )
+            
+            frappe.logger().debug(f"Queued job {job.id} for page {page.name}")
 
     except Exception as e:
         frappe.log_error(
-            title=f"Toll Processing Manager Failed - {toll_capture_id}",
+            title=f"Toll Processing Failed - {doc_name}",
             message=str(e)
         )
+        # Update document status
+        doc = frappe.get_doc("Toll Capture", doc_name)
+        doc.processing_status = "Failed"
+        doc.save()
         raise

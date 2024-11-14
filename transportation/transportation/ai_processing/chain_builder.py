@@ -1,4 +1,5 @@
 import frappe
+from frappe.utils.background_jobs import enqueue
 from .handlers.config_handler import ConfigurationHandler
 from .handlers.document_handler import DocumentPreparationHandler
 from .handlers.ai_handler import AIProcessingHandler
@@ -19,6 +20,47 @@ def build_processing_chain():
     
     return config_handler
 
+@frappe.whitelist()
+def process_toll_document(doc_name):
+    """Process toll document when triggered by button click"""
+    try:
+        frappe.logger().debug(f"Starting process_toll_document for {doc_name}")
+        
+        # Verify document exists
+        if not frappe.db.exists("Toll Capture", doc_name):
+            frappe.throw("Toll Capture document not found")
+            
+        # Add a status field update to show processing has started
+        doc = frappe.get_doc("Toll Capture", doc_name)
+        doc.processing_status = "Queued"
+        doc.save()
+        
+        # Queue the job with explicit queue name and job ID
+        job = enqueue(
+            method='transportation.transportation.ai_processing.jobs.toll_manager_job.schedule_toll_processing',
+            queue='default',  # Use 'default' queue for better visibility
+            timeout=3600,
+            job_name=f'toll_processing_{doc_name}_{frappe.generate_hash(length=8)}',
+            doc_name=doc_name,
+            is_async=True,  # Ensure async execution
+            now=False  # Don't execute immediately
+        )
+        
+        frappe.logger().debug(f"Queued job with ID: {job.id} for {doc_name}")
+        
+        return {
+            "success": True,
+            "message": "Processing has been scheduled. Check background jobs for progress.",
+            "job_id": job.id
+        }
+        
+    except Exception as e:
+        frappe.log_error(
+            message=f"Failed to schedule toll processing: {str(e)}",
+            title="Toll Processing Error"
+        )
+        raise
+    
 def process_delivery_note_capture(doc, method):
     """Main entry point for document processing"""
     try:
@@ -29,32 +71,5 @@ def process_delivery_note_capture(doc, method):
         frappe.log_error(
             message=f"Delivery Note Capture Processing Failed: {str(e)}",
             title="Document Processing Error"
-        )
-        raise
-
-@frappe.whitelist()
-def process_toll_document(doc_name):
-    """Process toll document when triggered by button click"""
-    try:
-        frappe.logger().debug(f"Starting process_toll_document for {doc_name}")
-        
-        # Get the document
-        doc = frappe.get_doc("Toll Capture", doc_name)
-        
-        # Schedule the delayed processing job
-        from transportation.transportation.ai_processing.jobs.toll_manager_job import schedule_toll_processing
-        schedule_toll_processing(doc_name)
-        
-        frappe.logger().debug(f"Scheduled toll processing for {doc_name}")
-        
-        return {
-            "success": True,
-            "message": "Processing has been scheduled and will begin shortly. Please check background jobs for progress."
-        }
-        
-    except Exception as e:
-        frappe.log_error(
-            message=f"Failed to schedule toll processing: {str(e)}",
-            title="Toll Processing Error"
         )
         raise
