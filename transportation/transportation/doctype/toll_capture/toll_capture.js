@@ -18,31 +18,33 @@ function process_toll_document(frm) {
         return;
     }
     
-    frappe.confirm(
-        __('Are you sure you want to process this document?'),
-        function() {
-            frappe.call({
-                method: 'transportation.transportation.doctype.toll_capture.toll_capture.process_toll_document_handler',
-                args: {
-                    doc_name: frm.doc.name
-                },
-                callback: function(r) {
-                    if (r.exc) {
-                        frappe.msgprint({
-                            title: __('Processing Error'),
-                            message: __('Error processing document: ') + r.exc,
-                            indicator: 'red'
-                        });
-                    } else {
-                        frm.reload_doc();
-                        frappe.msgprint({
-                            title: __('Processing Complete'),
-                            message: __(`${r.message.page_count} pages optimized and saved to Toll Page Result`),
-                            indicator: 'green'
-                        });
-                    }
-                }
-            });
+    // Show a message that processing is starting
+    frappe.show_alert({
+        message: __('Starting document processing...'),
+        indicator: 'blue'
+    });
+    
+    frappe.call({
+        method: 'transportation.transportation.doctype.toll_capture.toll_capture.process_toll_document',
+        args: {
+            doc_name: frm.doc.name
+        },
+        callback: function(r) {
+            if (r.exc) {
+                // If there's an error, show it
+                frappe.msgprint({
+                    title: __('Processing Error'),
+                    message: r.exc,
+                    indicator: 'red'
+                });
+            } else {
+                // Success message
+                frappe.show_alert({
+                    message: __('Processing complete!'),
+                    indicator: 'green'
+                });
+                frm.reload_doc();
+            }
         }
-    );
+    });
 }
