@@ -20,11 +20,12 @@ def build_processing_chain():
     
     return config_handler
 
-def process_delivery_note_capture(doc, method):
+def process_delivery_note_capture(doc, method=None):
     """Main entry point for document processing"""
     try:
         chain = build_processing_chain()
-        request = DocumentRequest(doc, method)
+        # Create request with explicit process type
+        request = DocumentRequest(doc, process_type="delivery_note_capture")
         chain.handle(request)
     except Exception as e:
         frappe.log_error(
