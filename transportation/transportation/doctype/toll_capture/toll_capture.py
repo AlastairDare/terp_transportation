@@ -44,6 +44,14 @@ def after_insert(doc, method):
         if 'pdf_document' in locals():
             pdf_document.close()
             
+            
+def validate(doc, method):
+    if doc.status != "Unprocessed":
+        return
+        
+    if not doc.toll_document:
+        frappe.throw(_("Toll document is required"))
+        
 class TollCapture():
     def validate(self):
         """
