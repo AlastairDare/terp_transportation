@@ -5,15 +5,15 @@ from typing import Dict, Any
 
 
 def schedule_toll_processing(toll_capture_id: str) -> None:
-    """Schedule the main toll processing job"""
+    """Schedule the main toll processing job with 1-minute delay"""
     try:
-        # Direct enqueue without kwargs nesting
         enqueue(
             method=process_toll_capture,
             queue='default',
             timeout=3600,
             job_name=f'toll_processor_{toll_capture_id}',
-            toll_capture_id=toll_capture_id  # Direct parameter, not in kwargs
+            toll_capture_id=toll_capture_id,
+            enqueue_in=60  # Queue to run in 60 seconds
         )
         
     except Exception as e:
