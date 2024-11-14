@@ -3,13 +3,20 @@ import json
 import requests
 import time
 
-def process_toll_page(doc, method):
-    try:
-        frappe.db.commit()  # Commit the transaction first
-        time.sleep(10)  # Then sleep
-        _process_toll_page(doc)
-    except Exception as e:
-        _handle_error(doc, f"Toll processing failed: {str(e)}")
+@frappe.whitelist()
+def process_toll_pages(toll_capture_id):
+    toll_pages = frappe.get_all(
+        "Toll Page Result",
+        filters={"parent_document": toll_capture_id, "status": "Unprocessed"},
+        fields=["name"]
+    )
+    
+    for page in toll_pages:
+        try:
+            doc = frappe.get_doc("Toll Page Result", page.name)
+            _process_toll_page(doc)
+        except Exception as e:
+            _handle_error(doc, f"Toll processing failed: {str(e)}")
 
 def _process_toll_page(doc):
     try:
@@ -20,20 +27,16 @@ def _process_toll_page(doc):
         provider_settings = frappe.get_single("ChatGPT Settings")
         ocr_settings = frappe.get_doc("OCR Settings", "Toll Capture Config")
 
-        prompt = ocr_settings.language_prompt
-        frappe.log_error(f"Using prompt: {prompt}", "Toll Debug")
-
-        response = _make_openai_request(doc, prompt, provider_settings)
-        frappe.log_error("OpenAI Response received", "Toll Debug")
-
-        _create_toll_records(response)
+        response = _make_openai_request(doc, ocr_settings.language_prompt, provider_settings)
+        frappe.log_error("Processing page: " + doc.name, "Toll Debug")
         
+        _create_toll_records(response)
         doc.status = "Processed"
         doc.save()
+        frappe.db.commit()
 
     except Exception as e:
-        frappe.log_error(f"Error in _process_toll_page: {str(e)}", "Toll Debug")
-        _handle_error(doc, str(e))
+        frappe.log_error(f"Error processing page {doc.name}: {str(e)}", "Toll Debug")
         raise
 
 def _make_openai_request(doc, prompt, provider_settings):
@@ -90,12 +93,10 @@ def _make_openai_request(doc, prompt, provider_settings):
                 else:
                     raise Exception("Unexpected response format")
             
-            frappe.log_error(f"API Response: {response.status_code} - {response.text}", "Toll Debug")
             if response.status_code >= 400:
                 raise Exception(f"API error {response.status_code}: {response.text}")
                 
         except Exception as e:
-            frappe.log_error(f"Request attempt {attempt + 1} failed: {str(e)}", "Toll Debug")
             if attempt == 2:
                 raise Exception(f"OpenAI request failed: {str(e)}")
                 
@@ -103,12 +104,10 @@ def _make_openai_request(doc, prompt, provider_settings):
 
 def _create_toll_records(response):
     if not isinstance(response, list):
-        frappe.log_error(f"Invalid response format: {response}", "Toll Debug")
         raise Exception("Invalid response format from AI")
 
     for transaction in response:
         if _validate_transaction(transaction):
-            frappe.log_error(f"Creating toll record: {transaction}", "Toll Debug")
             toll = frappe.get_doc({
                 "doctype": "Tolls",
                 "transaction_date": transaction['transaction_date'],
@@ -124,9 +123,7 @@ def _validate_transaction(transaction):
     return all(transaction.get(field) for field in required_fields)
 
 def _handle_error(doc, error_message):
-    frappe.log_error(
-        message=f"Toll Page {doc.name} processing failed: {error_message}",
-        title="Toll Processing Error"
-    )
     doc.status = "Error"
     doc.save()
+    frappe.db.commit()
+    frappe.log_error(message=error_message, title=f"Toll Page {doc.name} Error")
