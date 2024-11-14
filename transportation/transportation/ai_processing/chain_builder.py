@@ -30,20 +30,15 @@ def process_toll_document(doc_name):
         if not frappe.db.exists("Toll Capture", doc_name):
             frappe.throw("Toll Capture document not found")
             
-        # Add a status field update to show processing has started
-        doc = frappe.get_doc("Toll Capture", doc_name)
-        doc.processing_status = "Queued"
-        doc.save()
-        
         # Queue the job with explicit queue name and job ID
         job = enqueue(
             method='transportation.transportation.ai_processing.jobs.toll_manager_job.schedule_toll_processing',
-            queue='default',  # Use 'default' queue for better visibility
+            queue='default',
             timeout=3600,
             job_name=f'toll_processing_{doc_name}_{frappe.generate_hash(length=8)}',
-            doc_name=doc_name,
-            is_async=True,  # Ensure async execution
-            now=False  # Don't execute immediately
+            kwargs={'toll_capture_id': doc_name},  # Changed to match the parameter name in schedule_toll_processing
+            is_async=True,
+            now=False
         )
         
         frappe.logger().debug(f"Queued job with ID: {job.id} for {doc_name}")

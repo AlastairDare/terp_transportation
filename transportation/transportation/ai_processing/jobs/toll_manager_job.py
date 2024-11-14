@@ -25,7 +25,6 @@ def schedule_toll_processing(toll_capture_id: str) -> None:
                 'toll_capture_id': toll_capture_id,
                 'retry_count': 0
             },
-            # Schedule for 1 minute later
             at_front=False,
             now=False,
             enqueue_after=add_to_date(now_datetime(), minutes=1)
