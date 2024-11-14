@@ -42,5 +42,18 @@ def after_insert(doc, method):
         if 'pdf_document' in locals():
             pdf_document.close()
             
-
+class TollCapture():
+    def validate(self):
+        """
+        Validate required fields and conditions before saving
+        """
+        # Add validation logic here
+        pass
+            
+    def before_save(self):
+        """
+        Actions to perform before the document is saved
+        """
+        # Add pre-save processing logic here
+        pass
 
