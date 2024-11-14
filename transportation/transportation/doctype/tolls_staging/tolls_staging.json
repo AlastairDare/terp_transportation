@@ -29,7 +29,7 @@
             "fieldname": "status",
             "fieldtype": "Select",
             "label": "Status",
-            "options": "Pending\nProcessing\nCompleted\nFailed",
+            "options": "Pending\nProcessing\nCompleted\nFailed\nQueued",
             "default": "Pending"
         },
         {

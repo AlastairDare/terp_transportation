@@ -25,7 +25,7 @@
             "fieldname": "processing_status",
             "fieldtype": "Select",
             "label": "Status",
-            "options": "Pending\nProcessing\nCompleted\nFailed",
+            "options": "Pending\nProcessing\nCompleted\nFailed\nQueued",
             "default": "Pending",
             "read_only": 1
         },
