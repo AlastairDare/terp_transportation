@@ -6,11 +6,10 @@ def schedule_toll_processing(toll_capture_id: str) -> None:
     """Schedule the main toll processing job with 1 minute delay"""
     enqueue(
         process_toll_capture,
-        queue='toll_processing',
+        queue='long',  # Changed from 'toll_processing' to 'long'
         timeout=3600,
         job_name=f'toll_manager_{toll_capture_id}',
         toll_capture_id=toll_capture_id,
-        # 1 minute delay
         now=False,
         at_front=False,
         enqueue_after_commit=True,
@@ -46,7 +45,7 @@ def process_toll_capture(toll_capture_id: str) -> None:
         for page in pages:
             enqueue(
                 process_single_page,
-                queue='ai_processing',
+                queue='long',  # Changed from 'ai_processing' to 'long'
                 timeout=1200,
                 job_name=f'page_processor_{page.name}',
                 toll_page_result_id=page.name,
