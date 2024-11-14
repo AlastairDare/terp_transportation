@@ -17,54 +17,12 @@
             "allowed_file_types": ["pdf"]
         },
         {
-            "fieldname": "process_section",
-            "fieldtype": "Section Break",
-            "label": "Processing Status"
-        },
-        {
-            "fieldname": "processing_status",
-            "fieldtype": "Select",
-            "label": "Status",
-            "options": "Pending\nProcessing\nCompleted\nFailed\nQueued",
-            "default": "Pending",
-            "read_only": 1
-        },
-        {
-            "fieldname": "progress_count",
-            "fieldtype": "Data",
-            "label": "Progress",
-            "read_only": 1
-        },
-        {
-            "fieldname": "total_records",
-            "fieldtype": "Int",
-            "label": "Total Records Found",
-            "read_only": 1
-        },
-        {
-            "fieldname": "new_records",
-            "fieldtype": "Int",
-            "label": "New Records",
-            "read_only": 1
-        },
-        {
-            "fieldname": "duplicate_records",
-            "fieldtype": "Int",
-            "label": "Duplicate Records",
-            "read_only": 1
-        },
-        {
             "fieldname": "status",
             "label": "Status",
             "fieldtype": "Select",
-            "options": "\nDraft\nProcessing\nCompleted\nFailed",
-            "default": "Draft"
-          },
-          {
-            "fieldname": "processed_pages",
-            "label": "Processed Pages",
-            "fieldtype": "Long Text",
-            "hidden": 1  
+            "options": "\nUnprocessed\nProcessed",
+            "default": "Draft",
+            "hidden":1
           }
     ],
     "permissions": [

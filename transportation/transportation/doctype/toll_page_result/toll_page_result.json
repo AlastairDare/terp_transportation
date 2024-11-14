@@ -27,15 +27,9 @@
             "fieldname": "status",
             "fieldtype": "Select",
             "label": "Status",
-            "options": "Completed\nFailed",
+            "options": "Unprocessed/nProcessed/nError",
             "default": "Completed",
             "reqd": 1
-        },
-        {
-            "fieldname": "error_message",
-            "fieldtype": "Long Text",
-            "label": "Error Message",
-            "depends_on": "eval:doc.status=='Failed'"
         }
     ],
     "permissions": [
