@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 import fitz
 import io
 import base64
