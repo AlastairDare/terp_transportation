@@ -81,6 +81,9 @@ doc_events = {
     },
     "Tolls": {
         "before_save": "transportation.transportation.doctype.tolls.tolls.validate",
+    },
+    "Toll Page Result": {
+        "after_insert": "transportation.transportation.doctype.toll_page_result.process_toll_page.process_toll_page"
     }
 
 }
