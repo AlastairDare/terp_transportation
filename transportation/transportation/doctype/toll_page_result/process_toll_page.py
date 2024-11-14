@@ -2,27 +2,14 @@ import frappe
 import json
 import requests
 import time
-from frappe.utils.background_jobs import enqueue
 
 def process_toll_page(doc, method):
-    # Enqueue the processing with a delay
-    enqueue(
-        '_delayed_process_toll_page',
-        doc=doc,
-        queue='long',
-        timeout=1200,
-        now=False,
-        enqueue_after_commit=True,
-        job_name=f"toll_processing_{doc.name}"
-    )
- 
-def _delayed_process_toll_page(doc):
-    time.sleep(10)  # 10 second delay
     try:
+        time.sleep(10)  # 10 second delay
         frappe.log_error("Starting toll processing", "Toll Debug")
         _process_toll_page(doc)
     except Exception as e:
-        _handle_error(doc, f"Toll processing failed: {str(e)}")    
+        _handle_error(doc, f"Toll processing failed: {str(e)}")
 
 def _process_toll_page(doc):
     try:
@@ -37,9 +24,7 @@ def _process_toll_page(doc):
         frappe.log_error(f"Using prompt: {prompt}", "Toll Debug")
 
         response = _make_openai_request(doc, prompt, provider_settings)
-        # Log response in chunks to avoid truncation
-        for i in range(0, len(str(response)), 1000):
-            frappe.log_error(f"OpenAI Response Part {i//1000 + 1}: {str(response)[i:i+1000]}", "Toll Debug")
+        frappe.log_error("OpenAI Response received", "Toll Debug")
 
         _create_toll_records(response)
         
@@ -98,7 +83,6 @@ def _make_openai_request(doc, prompt, provider_settings):
                 result = response.json()
                 content = result['choices'][0]['message']['content']
                 parsed_content = json.loads(content)
-                # Handle both array and object with transactions array
                 if isinstance(parsed_content, list):
                     return parsed_content
                 elif isinstance(parsed_content, dict) and 'transactions' in parsed_content:
@@ -129,7 +113,7 @@ def _create_toll_records(response):
                 "doctype": "Tolls",
                 "transaction_date": transaction['transaction_date'],
                 "tolling_point": transaction['tolling_point'],
-                "etag_id": transaction['etag_id'],
+                "etag_id": transaction['etag_id'].replace(" ", ""),
                 "net_amount": transaction['net_amount'],
                 "process_status": "Unprocessed"
             })
