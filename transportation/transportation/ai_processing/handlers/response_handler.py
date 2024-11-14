@@ -75,8 +75,17 @@ class ResponseProcessingHandler(BaseHandler):
     def _update_documents(self, request: DocumentRequest):
         """Update ERPNext documents with AI response for delivery notes"""
         try:
-            # Get trip document
-            trip_doc = frappe.get_doc("Trip", request.trip_id)
+            # Create Trip document if it doesn't exist
+            if not hasattr(request, 'trip_id') or not request.trip_id:
+                trip_doc = frappe.new_doc("Trip")
+                trip_doc.document_type = "Delivery Note Capture"
+                trip_doc.document_id = request.doc.name
+                trip_doc.employee = request.doc.employee
+                trip_doc.employee_name = request.doc.employee_name
+                trip_doc.insert(ignore_permissions=True)
+                request.trip_id = trip_doc.name
+            else:
+                trip_doc = frappe.get_doc("Trip", request.trip_id)
             
             # Update trip fields from AI response
             field_mappings = {
