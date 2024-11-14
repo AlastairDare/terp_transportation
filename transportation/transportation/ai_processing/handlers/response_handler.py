@@ -75,17 +75,19 @@ class ResponseProcessingHandler(BaseHandler):
     def _update_documents(self, request: DocumentRequest):
         """Update ERPNext documents with AI response for delivery notes"""
         try:
-            # Create Trip document if it doesn't exist
-            if not hasattr(request, 'trip_id') or not request.trip_id:
-                trip_doc = frappe.new_doc("Trip")
-                trip_doc.document_type = "Delivery Note Capture"
-                trip_doc.document_id = request.doc.name
-                trip_doc.employee = request.doc.employee
-                trip_doc.employee_name = request.doc.employee_name
-                trip_doc.insert(ignore_permissions=True)
-                request.trip_id = trip_doc.name
+            frappe.log_error(
+                message=f"Starting response handler with AI response: {request.ai_response}",
+                title="Response Handler Debug"
+            )
+
+            # Get the first transaction from the response
+            if 'transactions' in request.ai_response:
+                transaction_data = request.ai_response['transactions'][0]
             else:
-                trip_doc = frappe.get_doc("Trip", request.trip_id)
+                transaction_data = request.ai_response  # fallback to original format
+
+            # Get trip document
+            trip_doc = frappe.get_doc("Trip", request.trip_id)
             
             # Update trip fields from AI response
             field_mappings = {
@@ -98,8 +100,8 @@ class ResponseProcessingHandler(BaseHandler):
             }
 
             # Handle truck number and Transportation Asset linking first
-            if 'truck_number' in request.ai_response:
-                truck_number = request.ai_response['truck_number']
+            if 'truck_number' in transaction_data:
+                truck_number = transaction_data['truck_number']
                 matching_truck = self._find_matching_truck(truck_number)
                 
                 if matching_truck:
@@ -119,8 +121,8 @@ class ResponseProcessingHandler(BaseHandler):
 
             # Handle other fields
             for api_field, mapping in field_mappings.items():
-                if api_field in request.ai_response:
-                    value = request.ai_response[api_field]
+                if api_field in transaction_data:
+                    value = transaction_data[api_field]
                     if isinstance(mapping, tuple):
                         doc_field, transform_func = mapping
                         value = transform_func(value)
@@ -130,8 +132,8 @@ class ResponseProcessingHandler(BaseHandler):
 
             # Handle odometer readings
             trip_doc.drop_details_odo = []
-            if 'drop_details_odo' in request.ai_response:
-                for odo_reading in request.ai_response['drop_details_odo']:
+            if 'drop_details_odo' in transaction_data:
+                for odo_reading in transaction_data['drop_details_odo']:
                     trip_doc.append('drop_details_odo', {
                         'odometer_reading': cint(odo_reading),
                         'parent_trip': trip_doc.name
@@ -142,13 +144,22 @@ class ResponseProcessingHandler(BaseHandler):
             trip_doc.save(ignore_permissions=True)
 
             # Update source document if needed
-            if 'delivery_note_number' in request.ai_response:
-                request.doc.delivery_note_number = request.ai_response['delivery_note_number']
+            if 'delivery_note_number' in transaction_data:
+                request.doc.delivery_note_number = transaction_data['delivery_note_number']
                 request.doc.save(ignore_permissions=True)
 
             frappe.db.commit()
 
+            frappe.log_error(
+                message="Response handler completed successfully",
+                title="Response Handler Debug"
+            )
+
         except Exception as e:
+            frappe.log_error(
+                message=f"Failed to update documents: {str(e)}",
+                title="Response Handler Error"
+            )
             raise DocumentProcessingError(f"Failed to update documents: {str(e)}")
 
     def _handle_error(self, request: DocumentRequest):
