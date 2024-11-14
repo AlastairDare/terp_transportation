@@ -18,12 +18,12 @@
         },
         {
             "fieldname": "status",
-            "label": "Status",
             "fieldtype": "Select",
-            "options": "Unprocessed\nProcessed",
+            "label": "Status",
+            "options": "Unprocessed\nProcessed\nError",
             "default": "Unprocessed",
-            "hidden":1
-          }
+            "reqd": 1
+        }
     ],
     "permissions": [
         {
