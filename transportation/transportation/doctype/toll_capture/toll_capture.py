@@ -33,25 +33,19 @@ class TollCapture(Document):
                 
                 # Calculate section boundaries
                 height = img.height
-                # Section 1: 0% to 15%
-                first_crop = (0, 0, img.width, int(height * 0.15))
-                # Section 2: 12.5% to 27.5%
-                second_crop = (0, int(height * 0.125), img.width, int(height * 0.275))
-                # Section 3: 25% to 40%
-                third_crop = (0, int(height * 0.25), img.width, int(height * 0.40))
-                # Section 4: 37.5% to 52.5%
-                fourth_crop = (0, int(height * 0.375), img.width, int(height * 0.525))
-                # Section 5: 50% to 65%
-                fifth_crop = (0, int(height * 0.50), img.width, int(height * 0.65))
-                # Section 6: 62.5% to 77.5%
-                sixth_crop = (0, int(height * 0.625), img.width, int(height * 0.775))
-                # Section 7: 75% to 90%
-                seventh_crop = (0, int(height * 0.75), img.width, int(height * 0.90))
-                # Section 8: 87.5% to 100%
-                eighth_crop = (0, int(height * 0.875), img.width, height)
+                # Section 1: 0% to 25%
+                first_crop = (0, 0, img.width, int(height * 0.25))
+                # Section 2: 20% to 45%
+                second_crop = (0, int(height * 0.20), img.width, int(height * 0.45))
+                # Section 3: 40% to 65%
+                third_crop = (0, int(height * 0.40), img.width, int(height * 0.65))
+                # Section 4: 60% to 85%
+                fourth_crop = (0, int(height * 0.60), img.width, int(height * 0.85))
+                # Section 5: 80% to 100%
+                fifth_crop = (0, int(height * 0.80), img.width, height)
 
                 # Process each section
-                for crop_box in [first_crop, second_crop, third_crop, fourth_crop, fifth_crop, sixth_crop, seventh_crop, eighth_crop]:
+                for crop_box in [first_crop, second_crop, third_crop, fourth_crop, fifth_crop]:
                     # Crop the image to the current section
                     section_img = img.crop(crop_box)
                     
