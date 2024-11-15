@@ -33,17 +33,19 @@ class TollCapture(Document):
                 
                 # Calculate section boundaries
                 height = img.height
-                # Section 1: 0 to 35%
-                top_crop = (0, 0, img.width, int(height * 0.35))
-                # Section 2: 25% to 65%
-                upper_middle_crop = (0, int(height * 0.25), img.width, int(height * 0.65))
-                # Section 3: 50% to 90%
-                lower_middle_crop = (0, int(height * 0.50), img.width, int(height * 0.90))
-                # Section 4: 75% to 100%
-                bottom_crop = (0, int(height * 0.75), img.width, height)
+                # Section 1: 0 to 30%
+                first_crop = (0, 0, img.width, int(height * 0.30))
+                # Section 2: 20% to 50%
+                second_crop = (0, int(height * 0.20), img.width, int(height * 0.50))
+                # Section 3: 40% to 70%
+                third_crop = (0, int(height * 0.40), img.width, int(height * 0.70))
+                # Section 4: 60% to 90%
+                fourth_crop = (0, int(height * 0.60), img.width, int(height * 0.90))
+                # Section 5: 80% to 100%
+                fifth_crop = (0, int(height * 0.80), img.width, height)
 
                 # Process each section
-                for crop_box in [top_crop, upper_middle_crop, lower_middle_crop, bottom_crop]:
+                for crop_box in [first_crop, second_crop, third_crop, fourth_crop,fifth_crop]:
                     # Crop the image to the current section
                     section_img = img.crop(crop_box)
                     
