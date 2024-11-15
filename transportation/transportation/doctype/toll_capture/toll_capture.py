@@ -41,11 +41,11 @@ class TollCapture(Document):
             crop_right = int(original_width * 0.87)     # 88% from left
             
             if is_first_page:
-                crop_top = int(original_height * 0.61)    # 59% from top
-                crop_bottom = int(original_height * 0.83) # 100% - 14.1% from bottom
+                crop_top = int(original_height * 0.605)    # 59% from top
+                crop_bottom = int(original_height * 0.845) # 100% - 14.1% from bottom
             else:
-                crop_top = int(original_height * 0.23)    # 22% from top
-                crop_bottom = int(original_height * 0.86) # 100% - 12.3% from bottom
+                crop_top = int(original_height * 0.225)    # 22% from top
+                crop_bottom = int(original_height * 0.865) # 100% - 12.3% from bottom
             
             # Perform the crop operation
             cropped_image = image.crop(
