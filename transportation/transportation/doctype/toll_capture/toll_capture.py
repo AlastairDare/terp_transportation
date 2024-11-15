@@ -14,40 +14,24 @@ class TollCapture(Document):
         super(TollCapture, self).__init__(*args, **kwargs)
         
     def format_image(self, image, is_first_page=False):
-        """Apply white space and cropping based on page position"""
+        """Apply cropping and middle section removal based on page position"""
         try:
             # Get original dimensions
             original_width = image.width
             original_height = image.height
             
-            # Calculate white space boundaries (vertical strip)
-            white_start_x = int(original_width * 0.55)  # 55% from left
-            white_end_x = int(original_width * 0.78)    # 78% from left
-            
-            # Create drawing object for white space
-            draw = ImageDraw.Draw(image)
-            
-            # Fill white space region
-            draw.rectangle(
-                [
-                    (white_start_x, 0),           
-                    (white_end_x, original_height)
-                ],
-                fill='white'
-            )
-            
-            # Calculate crop boundaries
-            crop_left = int(original_width * 0.10)      # 10% from left
-            crop_right = int(original_width * 0.87)     # 88% from left
+            # Calculate initial crop boundaries
+            crop_left = int(original_width * 0.10)    
+            crop_right = int(original_width * 0.87)   
             
             if is_first_page:
-                crop_top = int(original_height * 0.605)    # 59% from top
-                crop_bottom = int(original_height * 0.845) # 100% - 14.1% from bottom
+                crop_top = int(original_height * 0.605)   
+                crop_bottom = int(original_height * 0.845)
             else:
-                crop_top = int(original_height * 0.225)    # 22% from top
-                crop_bottom = int(original_height * 0.87) # 100% - 12.3% from bottom
+                crop_top = int(original_height * 0.225)    
+                crop_bottom = int(original_height * 0.87)
             
-            # Perform the crop operation
+            # Perform initial crop operation
             cropped_image = image.crop(
                 (
                     crop_left,    
@@ -57,7 +41,23 @@ class TollCapture(Document):
                 )
             )
             
-            return cropped_image
+            # Calculate middle section boundaries
+            middle_start = int(cropped_image.width * 0.585)
+            middle_end = int(cropped_image.width * 0.92)
+            
+            # Create left and right sections
+            left_section = cropped_image.crop((0, 0, middle_start, cropped_image.height))
+            right_section = cropped_image.crop((middle_end, 0, cropped_image.width, cropped_image.height))
+            
+            # Create new image to hold combined sections
+            final_width = middle_start + (cropped_image.width - middle_end)
+            final_image = Image.new('RGB', (final_width, cropped_image.height))
+            
+            # Paste sections
+            final_image.paste(left_section, (0, 0))
+            final_image.paste(right_section, (middle_start, 0))
+            
+            return final_image
             
         except Exception as e:
             frappe.log_error(f"Error formatting image: {str(e)}")
