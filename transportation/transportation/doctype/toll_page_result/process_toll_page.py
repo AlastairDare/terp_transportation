@@ -102,21 +102,43 @@ def _make_openai_request(doc, prompt, provider_settings):
                 
         time.sleep(2 ** attempt)
 
+def _check_duplicate_toll(transaction_date, etag_id):
+    """
+    Check if a toll record with the same transaction_date and etag_id combination exists
+    Returns True if duplicate exists, False otherwise
+    """
+    existing_toll = frappe.get_all(
+        "Tolls",
+        filters={
+            "transaction_date": transaction_date,
+            "etag_id": etag_id.replace(" ", "")
+        },
+        limit=1
+    )
+    return len(existing_toll) > 0
+
 def _create_toll_records(response):
     if not isinstance(response, list):
         raise Exception("Invalid response format from AI")
 
     for transaction in response:
         if _validate_transaction(transaction):
-            toll = frappe.get_doc({
-                "doctype": "Tolls",
-                "transaction_date": transaction['transaction_date'],
-                "tolling_point": transaction['tolling_point'],
-                "etag_id": transaction['etag_id'].replace(" ", ""),
-                "net_amount": transaction['net_amount'],
-                "process_status": "Unprocessed"
-            })
-            toll.insert()
+            # Check for duplicates before creating new record
+            if not _check_duplicate_toll(transaction['transaction_date'], transaction['etag_id']):
+                toll = frappe.get_doc({
+                    "doctype": "Tolls",
+                    "transaction_date": transaction['transaction_date'],
+                    "tolling_point": transaction['tolling_point'],
+                    "etag_id": transaction['etag_id'].replace(" ", ""),
+                    "net_amount": transaction['net_amount'],
+                    "process_status": "Unprocessed"
+                })
+                toll.insert()
+            else:
+                frappe.log_error(
+                    message=f"Duplicate toll entry skipped - Date: {transaction['transaction_date']}, ETag: {transaction['etag_id']}",
+                    title="Duplicate Toll Entry"
+                )
 
 def _validate_transaction(transaction):
     required_fields = ['transaction_date', 'tolling_point', 'etag_id', 'net_amount']

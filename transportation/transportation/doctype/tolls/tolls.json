@@ -1,5 +1,5 @@
 {
-    "autoname": "format:TOLL-{transaction_date.split('-')[0]}-{transaction_date.split('-')[1]}-{transaction_date.split('-')[2].split(' ')[0]}-{############}",
+    "autoname": "format:TOLL-{transaction_date.strftime('%Y')}-{transaction_date.strftime('%m')}-{transaction_date.strftime('%d')}-{############}",
     "module": "Transportation",
     "name": "Tolls",
     "doctype": "DocType",
