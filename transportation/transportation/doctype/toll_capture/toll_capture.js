@@ -8,7 +8,7 @@ frappe.ui.form.on('Toll Capture', {
                         toll_capture_id: frm.doc.name
                     },
                     freeze: true,
-                    freeze_message: __('Processing Toll Document...'),
+                    freeze_message: __('Extracting and creating Tolls...'),
                     callback: function(r) {
                         frappe.show_alert({
                             message: __('Toll document processed'),

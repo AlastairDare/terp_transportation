@@ -27,15 +27,12 @@ class TollCapture(Document):
             
             current_page_number = 1  # This will track our sequential page numbers for sections
             
-            frappe.publish_progress(
-                0,
-                "Evaluating pages...",
-                doctype="Toll Capture",
-                docname=self.name
-            )
+            # Start with evaluation message
+            frappe.publish_realtime("freeze", {"message": "Evaluating PDF pages for valid transactions..."})
             
             # First pass: evaluate each page
             valid_pages = []
+            invalid_pages = []
             for pdf_page_num in range(len(pdf_document)):
                 page = pdf_document[pdf_page_num]
                 pix = page.get_pixmap()
@@ -47,26 +44,24 @@ class TollCapture(Document):
                 img_buffer.seek(0)
                 base64_image = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
                 
-                if self._check_page_validity(base64_image, pdf_page_num + 1):
-                    valid_pages.append(pdf_page_num)
-                
-                frappe.publish_progress(
-                    ((pdf_page_num + 1) / len(pdf_document)) * 50,
-                    "Evaluating pages...",
-                    doctype="Toll Capture",
-                    docname=self.name
-                )
+                current_page = pdf_page_num + 1
+                if self._check_page_validity(base64_image, current_page):
+                    valid_pages.append(current_page)
+                else:
+                    invalid_pages.append(current_page)
+
+            # Show notification about valid/invalid pages
+            valid_pages_str = ", ".join(str(x) for x in sorted(valid_pages))
+            invalid_pages_str = ", ".join(str(x) for x in sorted(invalid_pages))
+            message = f"Pages {valid_pages_str} contain transactions. Pages {invalid_pages_str} omitted"
+            frappe.show_alert({"message": message, "indicator": "green"}, 5)
+            
+            # Change message for processing phase
+            frappe.publish_realtime("freeze", {"message": "Staging document for processing..."})
             
             # Second pass: process valid pages
-            frappe.publish_progress(
-                50,
-                "Saving formatted documents...",
-                doctype="Toll Capture",
-                docname=self.name
-            )
-            
-            for idx, pdf_page_num in enumerate(valid_pages):
-                page = pdf_document[pdf_page_num]
+            for valid_page_num in valid_pages:
+                page = pdf_document[valid_page_num - 1]  # Adjust for 0-based index
                 pix = page.get_pixmap()
                 img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
                 
@@ -104,13 +99,6 @@ class TollCapture(Document):
                     }).insert()
                     
                     current_page_number += 1
-                
-                frappe.publish_progress(
-                    50 + ((idx + 1) / len(valid_pages)) * 50,
-                    "Saving formatted documents...",
-                    doctype="Toll Capture",
-                    docname=self.name
-                )
             
             self.status = "Processed"
             self.save()
