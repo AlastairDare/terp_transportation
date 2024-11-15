@@ -4,7 +4,7 @@ from frappe.model.document import Document
 import fitz
 import io
 import base64
-from PIL import Image
+from PIL import Image, ImageDraw
 import json
 import requests
 import time
@@ -12,7 +12,7 @@ import time
 class TollCapture(Document):
     def __init__(self, *args, **kwargs):
         super(TollCapture, self).__init__(*args, **kwargs)
-        self.header_image = None  # Will store the processed header image
+        self.header_image = None
         
     def set_header_image(self, header_base64):
         """Process and store the header image at the correct width"""
@@ -38,9 +38,52 @@ class TollCapture(Document):
         except Exception as e:
             frappe.log_error(f"Error processing header image: {str(e)}")
             raise e
+        
+    def format_final_image(self, combined_image):
+        """Apply white space and cropping to the combined image"""
+        try:
+            # Get original dimensions for all calculations
+            original_width = combined_image.width
+            original_height = combined_image.height
+            
+            # Calculate white space boundaries (vertical strip)
+            white_start_x = int(original_width * 0.55)  # 55% from left
+            white_end_x = int(original_width * 0.78)    # 78% from left
+            
+            # Calculate final crop boundaries
+            crop_left = int(original_width * 0.10)      # 10% from left
+            crop_right = int(original_width * 0.88)     # 88% from left
+            
+            # Create a drawing object for white space
+            draw = ImageDraw.Draw(combined_image)
+            
+            # Fill white space region
+            draw.rectangle(
+                [
+                    (white_start_x, 0),           # top-left of white space
+                    (white_end_x, original_height) # bottom-right of white space
+                ],
+                fill='white'
+            )
+            
+            # Perform the crop operation
+            cropped_image = combined_image.crop(
+                (
+                    crop_left,        # left
+                    0,                # top
+                    crop_right,       # right
+                    original_height   # bottom
+                )
+            )
+            
+            return cropped_image
+            
+        except Exception as e:
+            frappe.log_error(f"Error formatting final image: {str(e)}")
+            raise e
 
     def combine_header_with_section(self, section_base64):
-        """Combine the stored header with a section image"""
+        """Combine the stored header with a section image and apply formatting"""
         try:
             # Convert both images from base64
             header_bytes = base64.b64decode(self.header_image)
@@ -57,9 +100,12 @@ class TollCapture(Document):
             combined_img.paste(header_img, (0, 0))
             combined_img.paste(section_img, (0, header_img.height))
             
+            # Apply white space and cropping
+            final_img = self.format_final_image(combined_img)
+            
             # Convert back to base64
             buffer = io.BytesIO()
-            combined_img.save(buffer, format='JPEG', quality=85)
+            final_img.save(buffer, format='JPEG', quality=85)
             buffer.seek(0)
             return base64.b64encode(buffer.getvalue()).decode('utf-8')
             
