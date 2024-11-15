@@ -5,6 +5,9 @@ import fitz
 import io
 import base64
 from PIL import Image
+import json
+import requests
+import time
 
 class TollCapture(Document):
     def validate(self):
@@ -24,11 +27,47 @@ class TollCapture(Document):
             
             current_page_number = 1  # This will track our sequential page numbers for sections
             
+            frappe.publish_progress(
+                0,
+                "Evaluating pages...",
+                doctype="Toll Capture",
+                docname=self.name
+            )
+            
+            # First pass: evaluate each page
+            valid_pages = []
             for pdf_page_num in range(len(pdf_document)):
                 page = pdf_document[pdf_page_num]
                 pix = page.get_pixmap()
                 
-                # Convert pixmap to PIL Image
+                # Convert pixmap to PIL Image for AI evaluation
+                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                img_buffer = io.BytesIO()
+                img.save(img_buffer, format='JPEG', quality=85)
+                img_buffer.seek(0)
+                base64_image = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
+                
+                if self._check_page_validity(base64_image, pdf_page_num + 1):
+                    valid_pages.append(pdf_page_num)
+                
+                frappe.publish_progress(
+                    ((pdf_page_num + 1) / len(pdf_document)) * 50,
+                    "Evaluating pages...",
+                    doctype="Toll Capture",
+                    docname=self.name
+                )
+            
+            # Second pass: process valid pages
+            frappe.publish_progress(
+                50,
+                "Saving formatted documents...",
+                doctype="Toll Capture",
+                docname=self.name
+            )
+            
+            for idx, pdf_page_num in enumerate(valid_pages):
+                page = pdf_document[pdf_page_num]
+                pix = page.get_pixmap()
                 img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
                 
                 # Calculate section boundaries
@@ -66,6 +105,13 @@ class TollCapture(Document):
                     
                     current_page_number += 1
                 
+                frappe.publish_progress(
+                    50 + ((idx + 1) / len(valid_pages)) * 50,
+                    "Saving formatted documents...",
+                    doctype="Toll Capture",
+                    docname=self.name
+                )
+            
             self.status = "Processed"
             self.save()
             frappe.db.commit()
@@ -76,3 +122,81 @@ class TollCapture(Document):
         finally:
             if 'pdf_document' in locals():
                 pdf_document.close()
+
+    def _check_page_validity(self, base64_image, page_number):
+        """Check if a page contains valid toll transactions using OpenAI's vision API"""
+        provider_settings = frappe.get_single("ChatGPT Settings")
+        
+        headers = {
+            "Authorization": f"Bearer {provider_settings.get_password('api_key')}",
+            "Content-Type": "application/json"
+        }
+
+        prompt = """Analyze this image and determine if it contains a table with toll transactions. 
+                   A valid table must have at least one record with both a "Transaction Date & Time" column 
+                   and an "e-tag ID" column with data in them. Respond with a JSON object containing a single 
+                   key "contains_valid_toll_transactions" with value "yes" or "no"."""
+
+        data = {
+            "model": provider_settings.default_model,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are an expert at analyzing toll transaction tables."
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": prompt
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "max_tokens": 4096,
+            "temperature": 0,
+            "response_format": {"type": "json_object"}
+        }
+
+        for attempt in range(3):
+            try:
+                response = requests.post(
+                    f"{provider_settings.base_url.rstrip('/')}/chat/completions",
+                    headers=headers,
+                    json=data,
+                    timeout=300
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    content = result['choices'][0]['message']['content']
+                    parsed_content = json.loads(content)
+                    
+                    is_valid = parsed_content.get('contains_valid_toll_transactions') == 'yes'
+                    frappe.log_error(
+                        f"Page {page_number} validity check: {is_valid}",
+                        "Toll Page Validation"
+                    )
+                    return is_valid
+                
+                if response.status_code >= 400:
+                    raise Exception(f"API error {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                if attempt == 2:
+                    frappe.log_error(
+                        f"Failed to check page {page_number} validity: {str(e)}",
+                        "Toll Page Validation Error"
+                    )
+                    return False  # Assume invalid on error
+                    
+            time.sleep(2 ** attempt)
+        
+        return False  # Default to invalid if all attempts fail
