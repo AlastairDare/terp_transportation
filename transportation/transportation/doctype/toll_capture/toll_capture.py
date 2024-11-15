@@ -14,9 +14,8 @@ class TollCapture(Document):
         super(TollCapture, self).__init__(*args, **kwargs)
         
     def format_image(self, image, is_first_page=False):
-        """Apply cropping and middle section removal based on page position"""
+        """Apply cropping excluding middle section in one operation"""
         try:
-            # Get original dimensions
             original_width = image.width
             original_height = image.height
             
@@ -31,31 +30,20 @@ class TollCapture(Document):
                 crop_top = int(original_height * 0.225)    
                 crop_bottom = int(original_height * 0.87)
             
-            # Perform initial crop operation
-            cropped_image = image.crop(
-                (
-                    crop_left,    
-                    crop_top,     
-                    crop_right,   
-                    crop_bottom   
-                )
-            )
+            # Initial crop to get working dimensions
+            cropped_image = image.crop((crop_left, crop_top, crop_right, crop_bottom))
             
-            # Calculate middle section boundaries
-            middle_start = int(cropped_image.width * 0.585)
-            middle_end = int(cropped_image.width * 0.92)
+            # Calculate split point for middle section
+            split_point = int(cropped_image.width * 0.585)
+            join_point = int(cropped_image.width * 0.92)
             
-            # Create left and right sections
-            left_section = cropped_image.crop((0, 0, middle_start, cropped_image.height))
-            right_section = cropped_image.crop((middle_end, 0, cropped_image.width, cropped_image.height))
-            
-            # Create new image to hold combined sections
-            final_width = middle_start + (cropped_image.width - middle_end)
+            # Create final image excluding middle section
+            final_width = split_point + (cropped_image.width - join_point)
             final_image = Image.new('RGB', (final_width, cropped_image.height))
             
-            # Paste sections
-            final_image.paste(left_section, (0, 0))
-            final_image.paste(right_section, (middle_start, 0))
+            # Copy left and right sections in one operation
+            final_image.paste(cropped_image.crop((0, 0, split_point, cropped_image.height)), (0, 0))
+            final_image.paste(cropped_image.crop((join_point, 0, cropped_image.width, cropped_image.height)), (split_point, 0))
             
             return final_image
             
