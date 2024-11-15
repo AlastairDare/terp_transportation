@@ -19,7 +19,6 @@ class TollCapture(Document):
             original_width = image.width
             original_height = image.height
             
-            # Calculate initial crop boundaries
             crop_left = int(original_width * 0.10)    
             crop_right = int(original_width * 0.87)   
             
@@ -30,18 +29,14 @@ class TollCapture(Document):
                 crop_top = int(original_height * 0.225)    
                 crop_bottom = int(original_height * 0.865)
             
-            # Initial crop to get working dimensions
             cropped_image = image.crop((crop_left, crop_top, crop_right, crop_bottom))
             
-            # Calculate split point for middle section
             split_point = int(cropped_image.width * 0.585)
             join_point = int(cropped_image.width * 0.92)
             
-            # Create final image excluding middle section
             final_width = split_point + (cropped_image.width - join_point)
             final_image = Image.new('RGB', (final_width, cropped_image.height))
             
-            # Copy left and right sections in one operation
             final_image.paste(cropped_image.crop((0, 0, split_point, cropped_image.height)), (0, 0))
             final_image.paste(cropped_image.crop((join_point, 0, cropped_image.width, cropped_image.height)), (split_point, 0))
             
@@ -50,6 +45,26 @@ class TollCapture(Document):
         except Exception as e:
             frappe.log_error(f"Error formatting image: {str(e)}")
             raise e
+
+    def create_sections(self, image, is_first_page=False):
+        """Split image into sections based on page position"""
+        sections = []
+        height = image.height
+        
+        if is_first_page:
+            # Page 1 sections
+            split_point = int(height * 0.424)
+            sections.append(image.crop((0, 0, image.width, split_point)))
+            sections.append(image.crop((0, split_point, image.width, height)))
+        else:
+            # Non-page 1 sections
+            splits = [0, 0.222, 0.445, 0.668, 0.89, 1.0]
+            for i in range(len(splits) - 1):
+                top = int(height * splits[i])
+                bottom = int(height * splits[i + 1])
+                sections.append(image.crop((0, top, image.width, bottom)))
+                
+        return sections
 
     def validate(self):
         if self.status != "Unprocessed":
@@ -66,47 +81,44 @@ class TollCapture(Document):
             file_path = frappe.get_site_path('public', self.toll_document.lstrip('/'))
             pdf_document = fitz.open(file_path)
             
-            # First pass: evaluate each page
             valid_pages = []
             for pdf_page_num in range(len(pdf_document)):
                 page = pdf_document[pdf_page_num]
-                pix = page.get_pixmap()
+                pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # 2x resolution
                 
                 img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
                 img_buffer = io.BytesIO()
-                img.save(img_buffer, format='JPEG', quality=85)
+                img.save(img_buffer, format='JPEG', quality=95)
                 img_buffer.seek(0)
                 base64_image = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
                 
                 if self._check_page_validity(base64_image, pdf_page_num + 1):
                     valid_pages.append(pdf_page_num)
             
-            # Process valid pages
+            current_page = 1
             for idx, valid_page_num in enumerate(valid_pages):
                 page = pdf_document[valid_page_num]
-                pix = page.get_pixmap()
+                pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # 2x resolution
                 img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
                 
-                # Check if this is the first page of the PDF
                 is_first_page = valid_page_num == 0
+                processed_img = self.format_image(img, is_first_page)
+                sections = self.create_sections(processed_img, is_first_page)
                 
-                # Apply formatting
-                final_img = self.format_image(img, is_first_page)
-                
-                # Convert to base64
-                buffer = io.BytesIO()
-                final_img.save(buffer, format='JPEG', quality=85)
-                buffer.seek(0)
-                final_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-                
-                # Create Toll Page Result
-                frappe.get_doc({
-                    "doctype": "Toll Page Result",
-                    "parent_document": self.name,
-                    "page_number": idx + 1,
-                    "base64_image": final_base64,
-                    "status": "Unprocessed"
-                }).insert()
+                for section in sections:
+                    buffer = io.BytesIO()
+                    section.save(buffer, format='JPEG', quality=95)
+                    buffer.seek(0)
+                    section_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+                    
+                    frappe.get_doc({
+                        "doctype": "Toll Page Result",
+                        "parent_document": self.name,
+                        "page_number": current_page,
+                        "base64_image": section_base64,
+                        "status": "Unprocessed"
+                    }).insert()
+                    current_page += 1
             
             self.status = "Processed"
             self.save()
@@ -191,8 +203,8 @@ class TollCapture(Document):
                         f"Failed to check page {page_number} validity: {str(e)}",
                         "Toll Page Validation Error"
                     )
-                    return False  # Assume invalid on error
+                    return False
                     
             time.sleep(2 ** attempt)
         
-        return False  # Default to invalid if all attempts fail
+        return False
