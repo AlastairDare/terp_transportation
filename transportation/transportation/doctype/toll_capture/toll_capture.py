@@ -25,10 +25,13 @@ class TollCapture(Document):
             file_path = frappe.get_site_path('public', self.toll_document.lstrip('/'))
             pdf_document = fitz.open(file_path)
             
-            current_page_number = 1  # This will track our sequential page numbers for sections
+            current_page_number = 1
             
-            # Start with evaluation message
-            frappe.publish_realtime("freeze", {"message": "Evaluating PDF pages for valid transactions..."})
+            # Show initial message
+            frappe.publish_realtime('toll_capture_status', {
+                'type': 'freeze',
+                'message': 'Evaluating PDF pages for valid transactions...'
+            }, user=frappe.session.user)
             
             # First pass: evaluate each page
             valid_pages = []
@@ -37,7 +40,6 @@ class TollCapture(Document):
                 page = pdf_document[pdf_page_num]
                 pix = page.get_pixmap()
                 
-                # Convert pixmap to PIL Image for AI evaluation
                 img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
                 img_buffer = io.BytesIO()
                 img.save(img_buffer, format='JPEG', quality=85)
@@ -50,46 +52,44 @@ class TollCapture(Document):
                 else:
                     invalid_pages.append(current_page)
 
-            # Show notification about valid/invalid pages
+            # Send notification about valid/invalid pages
             valid_pages_str = ", ".join(str(x) for x in sorted(valid_pages))
             invalid_pages_str = ", ".join(str(x) for x in sorted(invalid_pages))
             message = f"Pages {valid_pages_str} contain transactions. Pages {invalid_pages_str} omitted"
-            frappe.show_alert({"message": message, "indicator": "green"}, 5)
+            frappe.publish_realtime('toll_capture_status', {
+                'type': 'alert',
+                'message': message,
+                'indicator': 'green'
+            }, user=frappe.session.user)
             
-            # Change message for processing phase
-            frappe.publish_realtime("freeze", {"message": "Staging document for processing..."})
+            # Show processing message
+            frappe.publish_realtime('toll_capture_status', {
+                'type': 'freeze',
+                'message': 'Staging document for processing...'
+            }, user=frappe.session.user)
             
-            # Second pass: process valid pages
+            # Process valid pages
             for valid_page_num in valid_pages:
-                page = pdf_document[valid_page_num - 1]  # Adjust for 0-based index
+                page = pdf_document[valid_page_num - 1]
                 pix = page.get_pixmap()
                 img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
                 
-                # Calculate section boundaries
                 height = img.height
-                # Section 1: 0% to 25%
-                first_crop = (0, 0, img.width, int(height * 0.25))
-                # Section 2: 20% to 45%
-                second_crop = (0, int(height * 0.20), img.width, int(height * 0.45))
-                # Section 3: 40% to 65%
-                third_crop = (0, int(height * 0.40), img.width, int(height * 0.65))
-                # Section 4: 60% to 85%
-                fourth_crop = (0, int(height * 0.60), img.width, int(height * 0.85))
-                # Section 5: 80% to 100%
-                fifth_crop = (0, int(height * 0.80), img.width, height)
+                crops = [
+                    (0, 0, img.width, int(height * 0.25)),              # 0-25%
+                    (0, int(height * 0.20), img.width, int(height * 0.45)),  # 20-45%
+                    (0, int(height * 0.40), img.width, int(height * 0.65)),  # 40-65%
+                    (0, int(height * 0.60), img.width, int(height * 0.85)),  # 60-85%
+                    (0, int(height * 0.80), img.width, height)          # 80-100%
+                ]
 
-                # Process each section
-                for crop_box in [first_crop, second_crop, third_crop, fourth_crop, fifth_crop]:
-                    # Crop the image to the current section
+                for crop_box in crops:
                     section_img = img.crop(crop_box)
-                    
-                    # Convert section to base64
                     img_buffer = io.BytesIO()
                     section_img.save(img_buffer, format='JPEG', quality=85)
                     img_buffer.seek(0)
                     base64_image = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
                     
-                    # Create Toll Page Result record for this section
                     frappe.get_doc({
                         "doctype": "Toll Page Result",
                         "parent_document": self.name,
