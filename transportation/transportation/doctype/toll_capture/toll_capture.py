@@ -45,7 +45,7 @@ class TollCapture(Document):
                 crop_bottom = int(original_height * 0.845) # 100% - 14.1% from bottom
             else:
                 crop_top = int(original_height * 0.225)    # 22% from top
-                crop_bottom = int(original_height * 0.865) # 100% - 12.3% from bottom
+                crop_bottom = int(original_height * 0.87) # 100% - 12.3% from bottom
             
             # Perform the crop operation
             cropped_image = image.crop(
