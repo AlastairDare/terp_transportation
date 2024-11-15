@@ -27,15 +27,8 @@ class TollCapture(Document):
             
             current_page_number = 1
             
-            # Show initial message
-            frappe.publish_realtime('toll_capture_status', {
-                'type': 'freeze',
-                'message': 'Evaluating PDF pages for valid transactions...'
-            }, user=frappe.session.user)
-            
             # First pass: evaluate each page
             valid_pages = []
-            invalid_pages = []
             for pdf_page_num in range(len(pdf_document)):
                 page = pdf_document[pdf_page_num]
                 pix = page.get_pixmap()
@@ -46,31 +39,12 @@ class TollCapture(Document):
                 img_buffer.seek(0)
                 base64_image = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
                 
-                current_page = pdf_page_num + 1
-                if self._check_page_validity(base64_image, current_page):
-                    valid_pages.append(current_page)
-                else:
-                    invalid_pages.append(current_page)
-
-            # Send notification about valid/invalid pages
-            valid_pages_str = ", ".join(str(x) for x in sorted(valid_pages))
-            invalid_pages_str = ", ".join(str(x) for x in sorted(invalid_pages))
-            message = f"Pages {valid_pages_str} contain transactions. Pages {invalid_pages_str} omitted"
-            frappe.publish_realtime('toll_capture_status', {
-                'type': 'alert',
-                'message': message,
-                'indicator': 'green'
-            }, user=frappe.session.user)
-            
-            # Show processing message
-            frappe.publish_realtime('toll_capture_status', {
-                'type': 'freeze',
-                'message': 'Staging document for processing...'
-            }, user=frappe.session.user)
+                if self._check_page_validity(base64_image, pdf_page_num + 1):
+                    valid_pages.append(pdf_page_num)
             
             # Process valid pages
             for valid_page_num in valid_pages:
-                page = pdf_document[valid_page_num - 1]
+                page = pdf_document[valid_page_num]
                 pix = page.get_pixmap()
                 img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
                 
