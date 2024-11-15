@@ -25,10 +25,10 @@ class TollCapture(Document):
             
             if is_first_page:
                 crop_top = int(original_height * 0.605)   
-                crop_bottom = int(original_height * 0.845)
+                crop_bottom = int(original_height * 0.85)
             else:
                 crop_top = int(original_height * 0.225)    
-                crop_bottom = int(original_height * 0.87)
+                crop_bottom = int(original_height * 0.865)
             
             # Initial crop to get working dimensions
             cropped_image = image.crop((crop_left, crop_top, crop_right, crop_bottom))
