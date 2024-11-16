@@ -46,7 +46,7 @@ def _make_openai_request(doc, prompt, provider_settings):
     }
 
     data = {
-        "model": provider_settings.default_model,
+        "model": provider_settings.heavy_lifter_model,
         "messages": [
             {
                 "role": "system",
