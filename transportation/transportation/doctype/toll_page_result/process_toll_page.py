@@ -30,7 +30,7 @@ def _process_toll_page(doc):
         response = _make_openai_request(doc, ocr_settings.language_prompt, provider_settings)
         frappe.log_error("Processing page: " + doc.name, "Toll Debug")
         
-        _create_toll_records(response)
+        _create_toll_records(response, doc)
         doc.status = "Processed"
         doc.save()
         frappe.db.commit()
@@ -117,7 +117,7 @@ def _check_duplicate_toll(transaction_date, etag_id):
     )
     return len(existing_toll) > 0
 
-def _create_toll_records(response):
+def _create_toll_records(response, doc):
     if not isinstance(response, list):
         raise Exception("Invalid response format from AI")
 
