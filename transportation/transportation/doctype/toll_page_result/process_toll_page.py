@@ -131,7 +131,8 @@ def _create_toll_records(response):
                     "tolling_point": transaction['tolling_point'],
                     "etag_id": transaction['etag_id'].replace(" ", ""),
                     "net_amount": transaction['net_amount'],
-                    "process_status": "Unprocessed"
+                    "process_status": "Unprocessed",
+                    "parent_document": doc.name  # Add this line to set the parent document
                 })
                 toll.insert()
             else:

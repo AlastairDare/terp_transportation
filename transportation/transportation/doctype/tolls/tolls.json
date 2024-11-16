@@ -1,5 +1,5 @@
 {
-    "autoname": "format:TOLL-{transaction_date}-{############}",
+    "autoname": "format:TOLL-{transaction_date}-{###############}",
     "module": "Transportation",
     "name": "Tolls",
     "doctype": "DocType",
@@ -8,6 +8,12 @@
     "custom": 1,
     "public": 1,
     "fields": [
+        {
+            "fieldname": "parent_document",
+            "fieldtype": "Link",
+            "label": "Parent Document",
+            "options": "Toll Page Result"
+        },
         {
             "fieldname": "transaction_date",
             "fieldtype": "Datetime",
