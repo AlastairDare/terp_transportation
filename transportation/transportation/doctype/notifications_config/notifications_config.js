@@ -81,7 +81,7 @@ frappe.ui.form.on('Notifications Config', {
 
         if (!frm.is_new()) {
             // Check if notifications exist to determine button label
-            frappe.db.count('Schedule_Notification')
+            frappe.db.count('Schedule Notification')
                 .then(count => {
                     const button_label = count > 0 ? 'Update Schedule Notifications' : 'Create Schedule Notifications';
                     
