@@ -79,26 +79,22 @@ frappe.ui.form.on('Notifications Config', {
             });
         });
 
-        // Add the process schedule notifications button
         if (!frm.is_new()) {
-            let button_label = 'Create Scheduled Notifications';
-            
             // Check if notifications exist to determine button label
-            frappe.db.count('Schedule Notification')
+            frappe.db.count('Schedule_Notification')
                 .then(count => {
-                    if (count > 0) {
-                        button_label = 'Update Scheduled Notifications';
-                    }
+                    const button_label = count > 0 ? 'Update Schedule Notifications' : 'Create Schedule Notifications';
                     
-                    frm.add_custom_button(__(button_label), function() {
+                    // Set up primary button
+                    frm.page.set_primary_action(__(button_label), function() {
                         frappe.show_alert({
                             message: __('Setting up notifications...'),
                             indicator: 'blue'
                         });
 
-                        // Call the schedule notification processing
+                        // Call the notification processing
                         frappe.call({
-                            method: 'transportation.notifications_config.process_schedule_notifications',
+                            method: 'transportation.transportation.doctype.notifications_config.notifications_config.process_schedule_notifications',
                             callback: function(r) {
                                 if (!r.exc) {
                                     if (r.message.assets > 0) {
@@ -120,13 +116,11 @@ frappe.ui.form.on('Notifications Config', {
                                 }
                             }
                         });
-                    }, __('Actions'));
+                    });
 
-                    // Grey out button if no changes made since last process
+                    // Disable button if no changes and notifications exist
                     if (count > 0 && !frm.doc.__unsaved) {
-                        frm.get_custom_button(__(button_label), __('Actions'))
-                            .addClass('btn-default')
-                            .prop('disabled', true);
+                        frm.page.btn_primary.addClass('btn-default').prop('disabled', true);
                     }
                 });
         }
@@ -134,10 +128,8 @@ frappe.ui.form.on('Notifications Config', {
 
     // Enable button when form is changed
     validate: function(frm) {
-        if (frm.get_custom_button(__('Update Scheduled Notifications'), __('Actions'))) {
-            frm.get_custom_button(__('Update Scheduled Notifications'), __('Actions'))
-                .removeClass('btn-default')
-                .prop('disabled', false);
+        if (frm.page.btn_primary) {
+            frm.page.btn_primary.removeClass('btn-default').prop('disabled', false);
         }
     }
 });
