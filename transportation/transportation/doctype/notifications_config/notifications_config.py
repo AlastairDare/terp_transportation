@@ -26,7 +26,7 @@ def process_schedule_notifications():
     config = frappe.get_single('Notifications Config')
     return config.process_schedule_notifications()
 
-class ScheduleNotificationsConfig(Document):
+class NotificationsConfig(Document):
     def validate(self):
         """Validate the schedule notification settings"""
         self.validate_time_remaining_values()
