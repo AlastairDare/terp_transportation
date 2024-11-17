@@ -1,4 +1,4 @@
-frappe.listview_settings['Notification'] = {
+frappe.listview_settings['Schedule Notification'] = {
     get_indicator: function(doc) {
         // Check for distance-based notifications with missing data
         if (doc.threshold_type === 'Distance' && 

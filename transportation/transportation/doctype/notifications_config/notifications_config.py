@@ -21,14 +21,14 @@ def get_week_days(week_option):
     return week_map.get(week_option, 0)
 
 @frappe.whitelist()
-def process_notifications():
-    """Process notifications based on current configuration"""
+def process_schedule_notifications():
+    """Process schedule notifications based on current configuration"""
     config = frappe.get_single('Notifications Config')
-    return config.process_notifications()
+    return config.process_schedule_notifications()
 
-class NotificationsConfig(Document):
+class ScheduleNotificationsConfig(Document):
     def validate(self):
-        """Validate the notification settings"""
+        """Validate the schedule notification settings"""
         self.validate_time_remaining_values()
     
     def validate_time_remaining_values(self):
@@ -94,10 +94,10 @@ class NotificationsConfig(Document):
                     f"{fields[i]} must be greater than {fields[i + 1]}"
                 )
     
-    def process_notifications(self):
-        """Main function to process notifications based on current configuration"""
-        # Track which notification types were previously configured
-        previous_types = set(frappe.get_all('Notification', 
+    def process_schedule_notifications(self):
+        """Main function to process schedule notifications based on current configuration"""
+        # Track which schedule notification types were previously configured
+        previous_types = set(frappe.get_all('Schedule Notification', 
                                           fields=['notification_type'], 
                                           distinct=True, 
                                           pluck='notification_type'))
@@ -121,20 +121,20 @@ class NotificationsConfig(Document):
         if self.track_vehicles_upcoming_service_by_kilometres:
             current_types.add('Transportation Asset Service Distance')
         
-        # Remove notifications for disabled types
+        # Remove schedule notifications for disabled types
         types_to_remove = previous_types - current_types
         if types_to_remove:
             frappe.db.sql("""
-                DELETE FROM `tabNotification` 
+                DELETE FROM `tabSchedule_Notification` 
                 WHERE notification_type IN %(types)s
             """, {'types': tuple(types_to_remove)})
         
-        # Process notifications
+        # Process schedule notifications
         asset_count = 0
         driver_count = 0
         
         if self.track_driver_license_expiry_date or self.track_driver_prdp_expiry_date:
-            driver_count = self._process_driver_notifications()
+            driver_count = self._process_driver_schedule_notifications()
         
         if (self.track_transportation_assets_registration_expiry_date or
             self.track_transportation_assets_warranty_expiry_date or
@@ -142,7 +142,7 @@ class NotificationsConfig(Document):
             self.track_transportation_assets_cbrta_expiry_date or
             self.track_vehicles_upcoming_service_by_time or
             self.track_vehicles_upcoming_service_by_kilometres):
-            asset_count = self._process_asset_notifications()
+            asset_count = self._process_asset_schedule_notifications()
         
         frappe.db.commit()
         
@@ -151,17 +151,17 @@ class NotificationsConfig(Document):
             "drivers": driver_count
         }
 
-    def _process_driver_notifications(self):
-        """Process all driver-related notifications"""
+    def _process_driver_schedule_notifications(self):
+        """Process all driver-related schedule notifications"""
         drivers = frappe.get_all('Driver', fields=['name', 'license_expiry_date', 'prdp_expiration_date'])
         driver_count = 0
 
         for driver in drivers:
-            notifications_created = False
+            schedule_notifications_created = False
             
-            # Process driver's license notifications
+            # Process driver's license schedule notifications
             if self.track_driver_license_expiry_date and driver.license_expiry_date:
-                self._create_time_based_notification(
+                self._create_time_based_schedule_notification(
                     driver=driver.name,
                     notification_type='Driver License',
                     expiry_date=driver.license_expiry_date,
@@ -169,11 +169,11 @@ class NotificationsConfig(Document):
                     level_2_threshold=self.driver_license_level_2_time_remaining,
                     level_3_threshold=self.driver_license_level_3_time_remaining
                 )
-                notifications_created = True
+                schedule_notifications_created = True
             
-            # Process PrDP notifications
+            # Process PrDP schedule notifications
             if self.track_driver_prdp_expiry_date and driver.prdp_expiration_date:
-                self._create_time_based_notification(
+                self._create_time_based_schedule_notification(
                     driver=driver.name,
                     notification_type='Driver PrDP',
                     expiry_date=driver.prdp_expiration_date,
@@ -181,15 +181,15 @@ class NotificationsConfig(Document):
                     level_2_threshold=self.prdp_level_2_time_remaining,
                     level_3_threshold=self.prdp_level_3_time_remaining
                 )
-                notifications_created = True
+                schedule_notifications_created = True
             
-            if notifications_created:
+            if schedule_notifications_created:
                 driver_count += 1
         
         return driver_count
 
-    def _process_asset_notifications(self):
-        """Process all asset-related notifications"""
+    def _process_asset_schedule_notifications(self):
+        """Process all asset-related schedule notifications"""
         assets = frappe.get_all(
             'Transportation Asset',
             fields=[
@@ -202,11 +202,11 @@ class NotificationsConfig(Document):
         asset_count = 0
 
         for asset in assets:
-            notifications_created = False
+            schedule_notifications_created = False
             
-            # Process registration notifications
+            # Process registration schedule notifications
             if self.track_transportation_assets_registration_expiry_date and asset.registration_expiry:
-                self._create_time_based_notification(
+                self._create_time_based_schedule_notification(
                     transportation_asset=asset.name,
                     notification_type='Transportation Asset Registration',
                     expiry_date=asset.registration_expiry,
@@ -214,11 +214,11 @@ class NotificationsConfig(Document):
                     level_2_threshold=self.transportation_asset_registration_level_2_time_remaining,
                     level_3_threshold=self.transportation_asset_registration_level_3_time_remaining
                 )
-                notifications_created = True
+                schedule_notifications_created = True
 
-            # Process warranty notifications
+            # Process warranty schedule notifications
             if self.track_transportation_assets_warranty_expiry_date and asset.warranty_expiration:
-                self._create_time_based_notification(
+                self._create_time_based_schedule_notification(
                     transportation_asset=asset.name,
                     notification_type='Transportation Asset Warranty',
                     expiry_date=asset.warranty_expiration,
@@ -226,11 +226,11 @@ class NotificationsConfig(Document):
                     level_2_threshold=self.transportation_asset_warranty_level_2_time_remaining,
                     level_3_threshold=self.transportation_asset_warranty_level_3_time_remaining
                 )
-                notifications_created = True
+                schedule_notifications_created = True
 
-            # Process CRW notifications
+            # Process CRW schedule notifications
             if self.track_transportation_assets_crw_expiry_date and asset.certificate_of_roadworthiness_expiration:
-                self._create_time_based_notification(
+                self._create_time_based_schedule_notification(
                     transportation_asset=asset.name,
                     notification_type='Transportation Asset CRW',
                     expiry_date=asset.certificate_of_roadworthiness_expiration,
@@ -238,11 +238,11 @@ class NotificationsConfig(Document):
                     level_2_threshold=self.transportation_asset_crw_level_2_time_remaining,
                     level_3_threshold=self.transportation_asset_crw_level_3_time_remaining
                 )
-                notifications_created = True
+                schedule_notifications_created = True
 
-            # Process C-BRTA notifications
+            # Process C-BRTA schedule notifications
             if self.track_transportation_assets_cbrta_expiry_date and asset.cross_border_road_transport_permit_expiration:
-                self._create_time_based_notification(
+                self._create_time_based_schedule_notification(
                     transportation_asset=asset.name,
                     notification_type='Transportation Asset C-BRTA',
                     expiry_date=asset.cross_border_road_transport_permit_expiration,
@@ -250,15 +250,15 @@ class NotificationsConfig(Document):
                     level_2_threshold=self.transportation_asset_cbrta_level_2_time_remaining,
                     level_3_threshold=self.transportation_asset_cbrta_level_3_time_remaining
                 )
-                notifications_created = True
+                schedule_notifications_created = True
 
-            # Process service notifications
+            # Process service schedule notifications
             if asset.most_recent_service:
                 service_doc = frappe.get_doc('Asset Unified Maintenance', asset.most_recent_service)
                 
-                # Time-based service notifications
+                # Time-based service schedule notifications
                 if self.track_vehicles_upcoming_service_by_time and service_doc.complete_date:
-                    self._create_time_based_notification(
+                    self._create_time_based_schedule_notification(
                         transportation_asset=asset.name,
                         notification_type='Transportation Asset Service Time',
                         expiry_date=service_doc.complete_date,
@@ -267,11 +267,11 @@ class NotificationsConfig(Document):
                         level_3_threshold=self.track_vehicles_service_by_time_level_3_time_remaining,
                         asset_unified_maintenance=asset.most_recent_service
                     )
-                    notifications_created = True
+                    schedule_notifications_created = True
 
-                # Distance-based service notifications
+                # Distance-based service schedule notifications
                 if self.track_vehicles_upcoming_service_by_kilometres and service_doc.odometer_reading is not None and asset.current_mileage is not None:
-                    self._create_distance_based_notification(
+                    self._create_distance_based_schedule_notification(
                         transportation_asset=asset.name,
                         notification_type='Transportation Asset Service Distance',
                         current_odometer=asset.current_mileage,
@@ -281,18 +281,18 @@ class NotificationsConfig(Document):
                         level_3_threshold=self.track_vehicles_service_by_kilometres_level_3_distance_remaining,
                         asset_unified_maintenance=asset.most_recent_service
                     )
-                    notifications_created = True
+                    schedule_notifications_created = True
 
-            if notifications_created:
+            if schedule_notifications_created:
                 asset_count += 1
 
         return asset_count
 
-    def _create_time_based_notification(self, notification_type, expiry_date, 
+    def _create_time_based_schedule_notification(self, notification_type, expiry_date, 
                                       level_1_threshold, level_2_threshold, level_3_threshold,
                                       transportation_asset=None, driver=None, 
                                       asset_unified_maintenance=None):
-        """Create a time-based notification"""
+        """Create a time-based schedule notification"""
         remaining_days = date_diff(expiry_date, nowdate())
         
         # Convert week thresholds to days
@@ -308,19 +308,19 @@ class NotificationsConfig(Document):
         elif remaining_days <= level_1_days:
             severity = 'Level 1'
         else:
-            return  # No notification needed
+            return  # No schedule notification needed
         
-        # Delete existing notification if any
-        existing = frappe.db.exists('Notification', {
+        # Delete existing schedule notification if any
+        existing = frappe.db.exists('Schedule Notification', {
             'notification_type': notification_type,
             'transportation_asset': transportation_asset,
             'driver': driver
         })
         if existing:
-            frappe.delete_doc('Notification', existing)
+            frappe.delete_doc('Schedule Notification', existing)
             
-        notification = frappe.get_doc({
-            'doctype': 'Notification',
+        schedule_notification = frappe.get_doc({
+            'doctype': 'Schedule Notification',
             'notification_type': notification_type,
             'threshold_type': 'Time',
             'transportation_asset': transportation_asset,
@@ -335,13 +335,13 @@ class NotificationsConfig(Document):
             'last_processed': frappe.utils.now()
         })
         
-        notification.insert()
+        schedule_notification.insert()
     
-    def _create_distance_based_notification(self, notification_type, current_odometer, 
+    def _create_distance_based_schedule_notification(self, notification_type, current_odometer, 
                                          last_service_odometer, level_1_threshold, 
                                          level_2_threshold, level_3_threshold,
                                          transportation_asset, asset_unified_maintenance):
-        """Create a distance-based notification"""
+        """Create a distance-based schedule notification"""
         distance_since_service = current_odometer - last_service_odometer
         
         # Determine severity level based on kilometers traveled since last service
@@ -352,18 +352,18 @@ class NotificationsConfig(Document):
         elif distance_since_service >= level_1_threshold:
             severity = 'Level 1'
         else:
-            return  # No notification needed
+            return  # No schedule notification needed
         
-        # Delete existing notification if any
-        existing = frappe.db.exists('Notification', {
+        # Delete existing schedule notification if any
+        existing = frappe.db.exists('Schedule Notification', {
             'notification_type': notification_type,
             'transportation_asset': transportation_asset
         })
         if existing:
-            frappe.delete_doc('Notification', existing)
+            frappe.delete_doc('Schedule Notification', existing)
         
-        notification = frappe.get_doc({
-            'doctype': 'Notification',
+        schedule_notification = frappe.get_doc({
+            'doctype': 'Schedule Notification',
             'notification_type': notification_type,
             'threshold_type': 'Distance',
             'transportation_asset': transportation_asset,
@@ -378,7 +378,7 @@ class NotificationsConfig(Document):
             'last_processed': frappe.utils.now()
         })
         
-        notification.insert()
+        schedule_notification.insert()
     
     def before_save(self):
         """

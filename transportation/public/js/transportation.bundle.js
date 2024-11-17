@@ -9,5 +9,5 @@ import '../../transportation/doctype/refuel/refuel.js';
 import '../../transportation/doctype/notifications_config/notifications_config.js';
 import '../../transportation/doctype/toll_capture/toll_capture.js';
 import '../../transportation/doctype/tolls/tolls.js';
-import '../../transportation/doctype/notification/notification_list.js';
+import '../../transportation/doctype/schedule_notification/schedule_notification_list.js';
 

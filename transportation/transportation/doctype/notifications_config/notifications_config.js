@@ -79,12 +79,12 @@ frappe.ui.form.on('Notifications Config', {
             });
         });
 
-        // Add the process notifications button
+        // Add the process schedule notifications button
         if (!frm.is_new()) {
             let button_label = 'Create Scheduled Notifications';
             
             // Check if notifications exist to determine button label
-            frappe.db.count('Notification')
+            frappe.db.count('Schedule Notification')
                 .then(count => {
                     if (count > 0) {
                         button_label = 'Update Scheduled Notifications';
@@ -96,9 +96,9 @@ frappe.ui.form.on('Notifications Config', {
                             indicator: 'blue'
                         });
 
-                        // Call the notification processing
+                        // Call the schedule notification processing
                         frappe.call({
-                            method: 'transportation.notifications_config.process_notifications',
+                            method: 'transportation.notifications_config.process_schedule_notifications',
                             callback: function(r) {
                                 if (!r.exc) {
                                     if (r.message.assets > 0) {

@@ -1,6 +1,6 @@
 {
     "actions": [],
-    "autoname": "NOT.####",
+    "autoname": "SCHD.#######",
     "creation": "2024-11-17",
     "doctype": "DocType",
     "engine": "InnoDB",
@@ -163,7 +163,7 @@
     "links": [],
     "modified": "2024-11-17",
     "module": "Transportation",
-    "name": "Notification",
+    "name": "Schedule Notification",
     "name_case": "Title Case",
     "owner": "Administrator",
     "permissions": [
