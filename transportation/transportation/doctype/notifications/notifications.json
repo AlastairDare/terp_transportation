@@ -1,0 +1,184 @@
+{
+    "actions": [],
+    "autoname": "NOT.####",
+    "creation": "2024-11-17",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "driver",
+        "transportation_asset",
+        "asset_unified_maintenance",
+        "notification_type",
+        "threshold_type",
+        "column_break_1",
+        "expiry_date",
+        "current_odometer_reading",
+        "last_service_odometer_reading",
+        "last_service_date",
+        "section_break_1",
+        "level_1_time_threshold",
+        "level_2_time_threshold",
+        "level_3_time_threshold",
+        "column_break_2",
+        "level_1_distance_threshold",
+        "level_2_distance_threshold",
+        "level_3_distance_threshold",
+        "section_break_2",
+        "remaining_time",
+        "remaining_distance",
+        "current_severity_level",
+        "last_processed"
+    ],
+    "fields": [
+        {
+            "fieldname": "driver",
+            "fieldtype": "Link",
+            "label": "Driver",
+            "options": "Driver"
+        },
+        {
+            "fieldname": "transportation_asset",
+            "fieldtype": "Link",
+            "label": "Transportation Asset",
+            "options": "Transportation Asset"
+        },
+        {
+            "fieldname": "asset_unified_maintenance",
+            "fieldtype": "Link",
+            "label": "Asset Unified Maintenance",
+            "options": "Asset Unified Maintenance"
+        },
+        {
+            "fieldname": "notification_type",
+            "fieldtype": "Select",
+            "label": "Notification Type",
+            "options": "Driver License\nDriver PrDP\nTransportation Asset Registration\nTransportation Asset Warranty\nTransportation Asset CRW\nTransportation Asset C-BRTA\nTransportation Asset Service Time\nTransportation Asset Service Distance",
+            "reqd": 1
+        },
+        {
+            "fieldname": "threshold_type",
+            "fieldtype": "Select",
+            "label": "Threshold Type",
+            "options": "Time\nDistance",
+            "reqd": 1
+        },
+        {
+            "fieldname": "column_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "expiry_date",
+            "fieldtype": "Date",
+            "label": "Expiry Date"
+        },
+        {
+            "fieldname": "current_odometer_reading",
+            "fieldtype": "Int",
+            "label": "Current Odometer Reading"
+        },
+        {
+            "fieldname": "last_service_odometer_reading",
+            "fieldtype": "Int",
+            "label": "Last Service Odometer Reading"
+        },
+        {
+            "fieldname": "last_service_date",
+            "fieldtype": "Date",
+            "label": "Last Service Date"
+        },
+        {
+            "fieldname": "section_break_1",
+            "fieldtype": "Section Break",
+            "label": "Thresholds"
+        },
+        {
+            "fieldname": "level_1_time_threshold",
+            "fieldtype": "Select",
+            "label": "Level 1 Time Threshold",
+            "options": "One Week\nTwo Weeks\nThree Weeks\nFour Weeks\nFive Weeks\nSix Weeks\nSeven Weeks\nEight Weeks\nNine Weeks\nTen Weeks\nEleven Weeks\nTwelve Weeks"
+        },
+        {
+            "fieldname": "level_2_time_threshold",
+            "fieldtype": "Select",
+            "label": "Level 2 Time Threshold",
+            "options": "One Week\nTwo Weeks\nThree Weeks\nFour Weeks\nFive Weeks\nSix Weeks\nSeven Weeks\nEight Weeks\nNine Weeks\nTen Weeks\nEleven Weeks\nTwelve Weeks"
+        },
+        {
+            "fieldname": "level_3_time_threshold",
+            "fieldtype": "Select",
+            "label": "Level 3 Time Threshold",
+            "options": "One Week\nTwo Weeks\nThree Weeks\nFour Weeks\nFive Weeks\nSix Weeks\nSeven Weeks\nEight Weeks\nNine Weeks\nTen Weeks\nEleven Weeks\nTwelve Weeks"
+        },
+        {
+            "fieldname": "column_break_2",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "level_1_distance_threshold",
+            "fieldtype": "Int",
+            "label": "Level 1 Distance Threshold"
+        },
+        {
+            "fieldname": "level_2_distance_threshold",
+            "fieldtype": "Int",
+            "label": "Level 2 Distance Threshold"
+        },
+        {
+            "fieldname": "level_3_distance_threshold",
+            "fieldtype": "Int",
+            "label": "Level 3 Distance Threshold"
+        },
+        {
+            "fieldname": "section_break_2",
+            "fieldtype": "Section Break",
+            "label": "Calculated Values"
+        },
+        {
+            "fieldname": "remaining_time",
+            "fieldtype": "Int",
+            "label": "Remaining Time (Days)",
+            "read_only": 1
+        },
+        {
+            "fieldname": "remaining_distance",
+            "fieldtype": "Int",
+            "label": "Remaining Distance (KM)",
+            "read_only": 1
+        },
+        {
+            "fieldname": "current_severity_level",
+            "fieldtype": "Select",
+            "label": "Current Severity Level",
+            "options": "Level 1\nLevel 2\nLevel 3",
+            "read_only": 1
+        },
+        {
+            "fieldname": "last_processed",
+            "fieldtype": "Datetime",
+            "label": "Last Processed",
+            "read_only": 1
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-11-17",
+    "module": "Transportation",
+    "name": "Notification",
+    "name_case": "Title Case",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "print": 1,
+            "read": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "track_changes": 1
+}

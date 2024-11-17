@@ -78,6 +78,67 @@ frappe.ui.form.on('Notifications Config', {
                 set_fields_read_only(frm, section.fields, !frm.doc[section.toggle]);
             });
         });
+
+        // Add the process notifications button
+        if (!frm.is_new()) {
+            let button_label = 'Create Scheduled Notifications';
+            
+            // Check if notifications exist to determine button label
+            frappe.db.count('Notification')
+                .then(count => {
+                    if (count > 0) {
+                        button_label = 'Update Scheduled Notifications';
+                    }
+                    
+                    frm.add_custom_button(__(button_label), function() {
+                        frappe.show_alert({
+                            message: __('Setting up notifications...'),
+                            indicator: 'blue'
+                        });
+
+                        // Call the notification processing
+                        frappe.call({
+                            method: 'transportation.notifications_config.process_notifications',
+                            callback: function(r) {
+                                if (!r.exc) {
+                                    if (r.message.assets > 0) {
+                                        frappe.show_alert({
+                                            message: __(`Created scheduled notifications for ${r.message.assets} transportation assets`),
+                                            indicator: 'green'
+                                        });
+                                    }
+                                    
+                                    if (r.message.drivers > 0) {
+                                        frappe.show_alert({
+                                            message: __(`Created scheduled notifications for ${r.message.drivers} drivers`),
+                                            indicator: 'green'
+                                        });
+                                    }
+
+                                    // Refresh the form
+                                    frm.reload_doc();
+                                }
+                            }
+                        });
+                    }, __('Actions'));
+
+                    // Grey out button if no changes made since last process
+                    if (count > 0 && !frm.doc.__unsaved) {
+                        frm.get_custom_button(__(button_label), __('Actions'))
+                            .addClass('btn-default')
+                            .prop('disabled', true);
+                    }
+                });
+        }
+    },
+
+    // Enable button when form is changed
+    validate: function(frm) {
+        if (frm.get_custom_button(__('Update Scheduled Notifications'), __('Actions'))) {
+            frm.get_custom_button(__('Update Scheduled Notifications'), __('Actions'))
+                .removeClass('btn-default')
+                .prop('disabled', false);
+        }
     }
 });
 

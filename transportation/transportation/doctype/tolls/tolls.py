@@ -51,7 +51,7 @@ def create_expense_record(toll_doc, transport_asset_id):
         expense_date = toll_doc.transaction_date.date() if isinstance(toll_doc.transaction_date, datetime) else toll_doc.transaction_date
         
         # Create expense notes
-        expense_notes = f"{toll_doc.name} Toll incurred by {toll_doc.license_plate} on the date of {expense_date} for a total cost of {toll_doc.net_amount}"
+        expense_notes = f"{toll_doc.name} Toll incurred by {transport_asset_id} on the date of {expense_date} for a total cost of {toll_doc.net_amount}"
         
         # Create new Expense document
         expense = frappe.get_doc({
