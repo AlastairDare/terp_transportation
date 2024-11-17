@@ -337,7 +337,7 @@ class NotificationsConfig(Document):
         
         notification.insert()
     
-     def _create_distance_based_notification(self, notification_type, current_odometer, 
+    def _create_distance_based_notification(self, notification_type, current_odometer, 
                                          last_service_odometer, level_1_threshold, 
                                          level_2_threshold, level_3_threshold,
                                          transportation_asset, asset_unified_maintenance):
