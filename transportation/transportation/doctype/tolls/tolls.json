@@ -12,7 +12,23 @@
             "fieldname": "parent_document",
             "fieldtype": "Link",
             "label": "Parent Document",
-            "options": "Toll Page Result"
+            "options": "Toll Page Result",
+            "hidden":1
+        },
+        {
+            "fieldname": "transportation_asset",
+            "fieldtype": "Link",
+            "label": "Truck",
+            "options": "Transportation Asset",
+            "hidden":1
+        },
+        {
+            "fetch_from": "transportation_asset.license_plate",
+            "fieldname": "license_plate",
+            "fieldtype": "Data",
+            "label": "License Plate",
+            "hidden": 1,
+            "read_only": 1
         },
         {
             "fieldname": "transaction_date",
@@ -50,13 +66,11 @@
             "default": "Unprocessed"
         },
         {
-            "fieldname": "vehicle",
+            "fieldname": "expense_link",
             "fieldtype": "Link",
-            "label": "Vehicle",
-            "options": "Transportation Asset",
-            "in_list_view": 1,
-            "reqd": 0,
-            "hidden":1
+            "label": "Expense",
+            "options": "Expense",
+            "hidden": 1
         }
     ],
     "unique_fields": ["transaction_date", "etag_id"],
