@@ -1,27 +1,25 @@
 frappe.listview_settings['Schedule Notification'] = {
-    add_fields: [
-        "name",
-        "current_severity_level"
-    ],
+    refresh: function(listview) {
+        // Ensure our custom columns show up
+        frappe.meta.get_docfield('Schedule Notification', 'current_severity_level', listview.doctype).in_list_view = 1;
+    },
 
-    formatters: {
-        name: function(value, df, doc) {
-            let bgcolor = '';
-            switch (doc.current_severity_level) {
-                case 'Level 1':
-                    bgcolor = 'var(--yellow-100)';
-                    break;
-                case 'Level 2':
-                    bgcolor = 'var(--orange-100)';
-                    break;
-                case 'Level 3':
-                    bgcolor = 'var(--red-100)';
-                    break;
-                default:
-                    bgcolor = 'var(--blue-100)';
-            }
-            $(cur_list.page.container).find(`[data-name="${doc.name}"]`).css('background-color', bgcolor);
-            return value;
+    // Ensure we have the data we need
+    list_view_doc: "Schedule Notification",
+    
+    get_indicator: function(doc) {
+        let color = 'blue';
+        switch (doc.current_severity_level) {
+            case 'Level 1':
+                color = 'yellow';
+                break;
+            case 'Level 2':
+                color = 'orange';
+                break;
+            case 'Level 3':
+                color = 'red';
+                break;
         }
+        return [__(doc.current_severity_level), color, `current_severity_level,=,${doc.current_severity_level}`];
     }
 };
