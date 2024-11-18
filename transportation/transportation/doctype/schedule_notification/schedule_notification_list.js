@@ -7,6 +7,34 @@ frappe.listview_settings['Schedule Notification'] = {
         "remaining_distance"
     ],
 
+    columns: [
+        {
+            label: "ID",
+            fieldname: "name",
+            fieldtype: "Data"
+        },
+        {
+            label: "Severity Level",
+            fieldname: "current_severity_level",
+            fieldtype: "Select"
+        },
+        {
+            label: "Notification Type",
+            fieldname: "notification_type",
+            fieldtype: "Select"
+        },
+        {
+            label: "Remaining Time",
+            fieldname: "remaining_time",
+            fieldtype: "Int"
+        },
+        {
+            label: "Remaining Distance",
+            fieldname: "remaining_distance",
+            fieldtype: "Int"
+        }
+    ],
+
     formatters: {
         name: function(value, df, doc) {
             let bgcolor = '';
@@ -23,7 +51,6 @@ frappe.listview_settings['Schedule Notification'] = {
                 default:
                     bgcolor = 'var(--blue-100)';
             }
-            // Apply the background color to the entire row
             $(cur_list.page.container).find(`[data-name="${doc.name}"]`).css('background-color', bgcolor);
             return value;
         }
