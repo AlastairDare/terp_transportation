@@ -1,25 +1,37 @@
 frappe.listview_settings['Schedule Notification'] = {
-    refresh: function(listview) {
-        // Ensure our custom columns show up
-        frappe.meta.get_docfield('Schedule Notification', 'current_severity_level', listview.doctype).in_list_view = 1;
+    add_fields: ['current_severity_level', 'status'],  // Add fields we want to fetch
+    
+    onload: function(listview) {
+        // Set up columns that should appear in the list view
+        listview.page.add_inner_button(__('Refresh'), function() {
+            listview.refresh();
+        });
     },
-
-    // Ensure we have the data we need
-    list_view_doc: "Schedule Notification",
+    
+    refresh: function(listview) {
+        // Configure which fields should appear in the list view
+        if (!listview.fields_dict.current_severity_level) {
+            listview.settings.add_fields.push('current_severity_level');
+        }
+    },
     
     get_indicator: function(doc) {
-        let color = 'blue';
-        switch (doc.current_severity_level) {
-            case 'Level 1':
-                color = 'yellow';
-                break;
-            case 'Level 2':
-                color = 'orange';
-                break;
-            case 'Level 3':
-                color = 'red';
-                break;
-        }
+        // Define color coding based on severity level
+        if (!doc.current_severity_level) return [__('Unknown'), 'gray', 'current_severity_level,=,""'];
+        
+        let colors = {
+            'Level 1': 'yellow',
+            'Level 2': 'orange',
+            'Level 3': 'red'
+        };
+        
+        let color = colors[doc.current_severity_level] || 'blue';
         return [__(doc.current_severity_level), color, `current_severity_level,=,${doc.current_severity_level}`];
+    },
+
+    formatters: {
+        current_severity_level: function(value) {
+            return value || '';
+        }
     }
 };
