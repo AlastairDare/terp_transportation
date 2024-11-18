@@ -116,3 +116,11 @@ doctype_properties = {
         "allow_rename": 0,
     }
 }
+
+scheduler_events = {
+    "cron": {
+        "15 10 * * *": [
+            "transportation.transportation.doctype.schedule_notification.notification_processor.process_schedule_notifications"
+        ]
+    }
+}
