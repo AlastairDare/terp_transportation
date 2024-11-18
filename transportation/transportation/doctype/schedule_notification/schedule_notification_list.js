@@ -1,38 +1,32 @@
 frappe.listview_settings['Schedule Notification'] = {
-    add_fields: ['current_severity_level', 'status'],
+    add_fields: ['current_severity_level', 'status'],  // Add fields we want to fetch
     
     onload: function(listview) {
-        // Add custom CSS for row coloring
-        const style = document.createElement('style');
-        style.textContent = `
-            .level-1-row { background-color: rgba(255, 255, 0, 0.1) !important; }
-            .level-2-row { background-color: rgba(255, 165, 0, 0.1) !important; }
-            .level-3-row { background-color: rgba(255, 0, 0, 0.1) !important; }
-        `;
-        document.head.appendChild(style);
-        
+        // Set up columns that should appear in the list view
         listview.page.add_inner_button(__('Refresh'), function() {
             listview.refresh();
         });
     },
     
     refresh: function(listview) {
+        // Configure which fields should appear in the list view
         if (!listview.fields_dict.current_severity_level) {
             listview.settings.add_fields.push('current_severity_level');
         }
     },
-
-    // Override the standard row rendering
-    prepare_data: function(data) {
-        // Remove any existing level classes
-        const levelClasses = ['level-1-row', 'level-2-row', 'level-3-row'];
-        data.$row.removeClass(levelClasses.join(' '));
+    
+    get_indicator: function(doc) {
+        // Define color coding based on severity level
+        if (!doc.current_severity_level) return [__('Unknown'), 'gray', 'current_severity_level,=,""'];
         
-        // Add appropriate class based on severity level
-        if (data.current_severity_level) {
-            const level = data.current_severity_level.split(' ')[1]; // Gets "1" from "Level 1"
-            data.$row.addClass(`level-${level}-row`);
-        }
+        let colors = {
+            'Level 1': 'yellow',
+            'Level 2': 'orange',
+            'Level 3': 'red'
+        };
+        
+        let color = colors[doc.current_severity_level] || 'blue';
+        return [__(doc.current_severity_level), color, `current_severity_level,=,${doc.current_severity_level}`];
     },
 
     formatters: {
