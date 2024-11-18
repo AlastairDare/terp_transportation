@@ -5,6 +5,7 @@
     "custom": 1,
     "title_field": "employee_name",
     "public": 1,
+    "autoname": "format:DRV-{employee_name}-{########}",
     "fields": [
         {
             "fieldname": "employee",

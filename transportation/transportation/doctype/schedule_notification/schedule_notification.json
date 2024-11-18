@@ -1,6 +1,6 @@
 {
     "actions": [],
-    "autoname": "SCHD.#######",
+    "autoname": "format:SCHD-{###########}",
     "creation": "2024-11-17",
     "doctype": "DocType",
     "engine": "InnoDB",
