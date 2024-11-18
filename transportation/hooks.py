@@ -119,7 +119,7 @@ doctype_properties = {
 
 scheduler_events = {
     "cron": {
-        "15 10 * * *": [
+        "30 10 * * *": [
             "transportation.transportation.doctype.schedule_notification.notification_processor.process_schedule_notifications"
         ]
     }
