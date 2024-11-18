@@ -1,4 +1,12 @@
 frappe.listview_settings['Schedule Notification'] = {
+    add_fields: [
+        "name",  // this is for the ID column
+        "current_severity_level",
+        "notification_type",
+        "remaining_time",
+        "remaining_distance"
+    ],
+
     get_indicator: function(doc) {
         // Check for distance-based schedule notifications with missing data
         if (doc.threshold_type === 'Distance' && 

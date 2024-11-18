@@ -18,19 +18,27 @@ frappe.ui.form.on('Schedule Notification', {
     }
 });
 
-// Function to toggle driver and transportation asset fields
+// Function to toggle driver and transportation asset related fields
 function toggleDriverAndAsset(frm) {
-    // If driver has value, hide transportation_asset and vice versa
     if (frm.doc.driver) {
+        // If driver has value, hide transportation asset and related fields
         frm.set_df_property('transportation_asset', 'hidden', 1);
         frm.set_df_property('transportation_asset', 'reqd', 0);
+        frm.set_df_property('asset_unified_maintenance', 'hidden', 1);
+        frm.set_df_property('last_service_date', 'hidden', 1);
     } else if (frm.doc.transportation_asset) {
+        // If transportation asset has value, hide driver and show related fields
         frm.set_df_property('driver', 'hidden', 1);
         frm.set_df_property('driver', 'reqd', 0);
+        frm.set_df_property('asset_unified_maintenance', 'hidden', 0);
+        frm.set_df_property('last_service_date', 'hidden', 0);
     } else {
-        // If neither has a value, show both
+        // If neither has a value, show driver and transportation asset
+        // but hide asset-related fields
         frm.set_df_property('driver', 'hidden', 0);
         frm.set_df_property('transportation_asset', 'hidden', 0);
+        frm.set_df_property('asset_unified_maintenance', 'hidden', 1);
+        frm.set_df_property('last_service_date', 'hidden', 1);
     }
 }
 
