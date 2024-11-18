@@ -1,29 +1,31 @@
 frappe.listview_settings['Schedule Notification'] = {
     add_fields: [
-        "name",  // this is for the ID column
+        "name",
         "current_severity_level",
         "notification_type",
         "remaining_time",
         "remaining_distance"
     ],
 
-    get_indicator: function(doc) {
-        // Check for distance-based schedule notifications with missing data
-        if (doc.threshold_type === 'Distance' && 
-            (!doc.current_odometer_reading || !doc.last_service_date || !doc.last_service_odometer_reading)) {
-            return [doc.notification_type, 'purple', 'data_missing,=,1'];
-        }
-        
-        // Regular severity-based coloring
-        switch (doc.current_severity_level) {
-            case 'Level 1':
-                return [doc.notification_type, 'yellow', 'current_severity_level,=,Level 1'];
-            case 'Level 2':
-                return [doc.notification_type, 'orange', 'current_severity_level,=,Level 2'];
-            case 'Level 3':
-                return [doc.notification_type, 'red', 'current_severity_level,=,Level 3'];
-            default:
-                return [doc.notification_type, 'blue', ''];
+    formatters: {
+        name: function(value, df, doc) {
+            let bgcolor = '';
+            switch (doc.current_severity_level) {
+                case 'Level 1':
+                    bgcolor = 'var(--yellow-100)';
+                    break;
+                case 'Level 2':
+                    bgcolor = 'var(--orange-100)';
+                    break;
+                case 'Level 3':
+                    bgcolor = 'var(--red-100)';
+                    break;
+                default:
+                    bgcolor = 'var(--blue-100)';
+            }
+            // Apply the background color to the entire row
+            $(cur_list.page.container).find(`[data-name="${doc.name}"]`).css('background-color', bgcolor);
+            return value;
         }
     }
 };
