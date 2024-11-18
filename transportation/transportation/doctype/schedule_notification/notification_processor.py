@@ -88,14 +88,16 @@ def convert_weeks_to_days(weeks_string):
 def determine_severity_level(remaining_time, thresholds):
     """
     Determine the current severity level based on remaining time and thresholds
+    Level 0 means normal state (most time remaining)
+    Level 1 has the second most time remaining (lowest severity)
+    Level 2 is medium severity with less time
+    Level 3 has the least time remaining (highest severity)
     """
-    if remaining_time <= 0:
-        return "Expired"
-    elif remaining_time > thresholds["level_2"] and remaining_time <= thresholds["level_3"]:
-        return "Level 3"
-    elif remaining_time > thresholds["level_1"] and remaining_time <= thresholds["level_2"]:
-        return "Level 2"
-    elif remaining_time <= thresholds["level_1"]:
+    if remaining_time > thresholds["level_1"]:
+        return "Level 0"
+    elif remaining_time > thresholds["level_2"]:
         return "Level 1"
+    elif remaining_time > thresholds["level_3"]:
+        return "Level 2"
     else:
-        return "Normal"
+        return "Level 3"

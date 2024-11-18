@@ -149,7 +149,7 @@
             "fieldname": "current_severity_level",
             "fieldtype": "Select",
             "label": "Current Severity Level",
-            "options": "Level 1\nLevel 2\nLevel 3",
+            "options": "Level 0\nLevel 1\nLevel 2\nLevel 3",
             "read_only": 1
         },
         {
