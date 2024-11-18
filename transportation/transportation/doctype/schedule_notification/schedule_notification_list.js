@@ -1,29 +1,8 @@
 frappe.listview_settings['Schedule Notification'] = {
     add_fields: [
         "name",
-        "current_severity_level",
-        "notification_type",
-        "remaining_time",
-        "remaining_distance"
+        "current_severity_level"
     ],
-
-    onload: function(listview) {
-        listview.page.fields_dict.name.df.in_list_view = 1;
-        listview.page.fields_dict.current_severity_level.df.in_list_view = 1;
-        listview.page.fields_dict.notification_type.df.in_list_view = 1;
-        listview.page.fields_dict.remaining_time.df.in_list_view = 1;
-        listview.page.fields_dict.remaining_distance.df.in_list_view = 1;
-    },
-
-    get_fields: function() {
-        return [
-            "name",
-            "current_severity_level",
-            "notification_type",
-            "remaining_time",
-            "remaining_distance"
-        ];
-    },
 
     formatters: {
         name: function(value, df, doc) {
