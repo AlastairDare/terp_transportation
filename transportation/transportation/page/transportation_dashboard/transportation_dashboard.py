@@ -1,9 +1,13 @@
 import frappe
 from frappe import _
 from datetime import datetime, timedelta
+import json
 
 @frappe.whitelist()
 def get_dashboard_data(filters=None):
+    if isinstance(filters, str):
+        filters = json.loads(filters)
+    
     if not filters:
         filters = {
             'from_date': datetime.now().date() - timedelta(days=30),
