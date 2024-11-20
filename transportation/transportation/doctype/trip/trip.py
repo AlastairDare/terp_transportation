@@ -51,7 +51,7 @@ def before_save(doc, method):
                 "doctype": "Item",
                 "item_code": doc.name,
                 "item_name": f"{doc.name}",
-                "item_group": "Services",
+                "item_group": "Trips",
                 "stock_uom": "Each",
                 "is_stock_item": 0,
                 "is_fixed_asset": 0,
