@@ -33,18 +33,27 @@ def get_dashboard_data(filters=None):
         )
         
         trip_names = [t.name for t in trips]
-
-        # Calculate revenue and tons from Sales Invoices
-        si_data = frappe.db.sql("""
-            SELECT 
-                SUM(si.grand_total) as revenue,
-                SUM(si.total_qty) as tons
-            FROM 
-                `tabSales Invoice` si
-            WHERE 
-                si.docstatus = 1
-                AND si.trip IN %(trips)s
-        """, {'trips': trip_names}, as_dict=1)
+        
+        # Initialize revenue data
+        revenue = 0
+        tons = 0
+        
+        # Only query Sales Invoices if we have trips
+        if trip_names:
+            si_data = frappe.db.sql("""
+                SELECT 
+                    SUM(si.grand_total) as revenue,
+                    SUM(si.total_qty) as tons
+                FROM 
+                    `tabSales Invoice` si
+                WHERE 
+                    si.docstatus = 1
+                    AND si.trip IN %(trips)s
+            """, {'trips': trip_names}, as_dict=1)
+            
+            if si_data and si_data[0].revenue is not None:
+                revenue = si_data[0].revenue
+                tons = si_data[0].tons or 0
 
         # Calculate expenses by type
         expenses = frappe.db.sql("""
@@ -65,18 +74,17 @@ def get_dashboard_data(filters=None):
         }, as_dict=1)
 
         expense_by_type = {e.expense_type: e.total_cost for e in expenses}
-        total_revenue = si_data[0].revenue if si_data else 0
         total_expenses = sum(expense_by_type.values())
         
         row = {
             'transportation_asset': asset.name,
-            'revenue': total_revenue,
-            'tons': si_data[0].tons if si_data else 0,
+            'revenue': revenue,
+            'tons': tons,
             'total_expenses': total_expenses,
             'fuel_expenses': expense_by_type.get('Refuel', 0),
             'toll_expenses': expense_by_type.get('Toll', 0),
             'maintenance_expenses': expense_by_type.get('Unified Maintenance', 0),
-            'profit_loss': total_revenue - total_expenses
+            'profit_loss': revenue - total_expenses
         }
         
         data.append(row)
