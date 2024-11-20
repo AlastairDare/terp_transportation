@@ -39,11 +39,11 @@ def get_dashboard_data(filters=None):
         tons = 0
         
         if trip_names:
-            # First find matching invoices
             matching_invoices = frappe.db.sql("""
                 SELECT DISTINCT 
                     si.name,
                     si.grand_total,
+                    si.total_qty,
                     sii.item_code,
                     sii.item_name
                 FROM 
@@ -53,11 +53,9 @@ def get_dashboard_data(filters=None):
                     si.docstatus = 1
                     AND (sii.item_code IN %(trips)s OR sii.item_name IN %(trips)s)
             """, {'trips': trip_names}, as_dict=1)
-            
-            frappe.throw(
-                msg=f"Trip IDs: {trip_names}\n"
-                f"Found Invoices: {[{'name': i.name, 'total': i.grand_total, 'item': i.item_code} for i in matching_invoices]}"
-            )
+
+            revenue = sum(invoice.grand_total for invoice in matching_invoices)
+            tons = sum(invoice.total_qty for invoice in matching_invoices)
 
         # Calculate expenses by type
         expenses = frappe.db.sql("""
