@@ -46,9 +46,10 @@ def get_dashboard_data(filters=None):
                     SUM(si.total_qty) as tons
                 FROM 
                     `tabSales Invoice` si
+                    JOIN `tabSales Invoice Item` si_item ON si.name = si_item.parent
                 WHERE 
                     si.docstatus = 1
-                    AND si.trip IN %(trips)s
+                    AND si_item.trip IN %(trips)s
             """, {'trips': trip_names}, as_dict=1)
             
             if si_data and si_data[0].revenue is not None:
