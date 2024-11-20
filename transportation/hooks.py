@@ -83,7 +83,9 @@ has_permission = {
 }
 
 whitelisted_methods = {
-	"transportation.transportation.doctype.asset_unified_maintenance.asset_unified_maintenance.get_last_maintenance_dates": True
+	"transportation.transportation.doctype.asset_unified_maintenance.asset_unified_maintenance.get_last_maintenance_dates": True,
+        "transportation.transportation.page.transportation_dashboard.transportation_dashboard.get_dashboard_data": True,
+        "transportation.transportation.page.transportation_dashboard.transportation_dashboard.get_columns": True
 }
 
 
