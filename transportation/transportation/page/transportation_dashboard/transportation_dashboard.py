@@ -49,7 +49,7 @@ def get_dashboard_data(filters=None):
                     JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
                 WHERE 
                     si.docstatus = 1
-                    AND sii.`_trip` IN %(trips)s
+                    AND sii.item_code IN %(trips)s
             """, {'trips': trip_names}, as_dict=1)
 
         # Calculate expenses by type
