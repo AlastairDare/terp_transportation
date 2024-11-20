@@ -104,26 +104,20 @@ def get_columns():
             "width": 200
         },
         {
-            "label": _("Revenue"),
-            "fieldname": "revenue",
-            "fieldtype": "Currency",
-            "width": 120
-        },
-        {
             "label": _("Tons"),
             "fieldname": "tons",
             "fieldtype": "Float",
             "width": 100
         },
         {
-            "label": _("Total Expenses"),
-            "fieldname": "total_expenses",
+            "label": _("Revenue"),
+            "fieldname": "revenue",
             "fieldtype": "Currency",
             "width": 120
         },
         {
-            "label": _("Profit/Loss"),
-            "fieldname": "profit_loss",
+            "label": _("Total Expenses"),
+            "fieldname": "total_expenses",
             "fieldtype": "Currency",
             "width": 120
         },
@@ -142,6 +136,12 @@ def get_columns():
         {
             "label": _("Maintenance"),
             "fieldname": "maintenance_expenses",
+            "fieldtype": "Currency",
+            "width": 120
+        },
+        {
+            "label": _("Profit/Loss"),
+            "fieldname": "profit_loss",
             "fieldtype": "Currency",
             "width": 120
         }
