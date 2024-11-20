@@ -46,12 +46,10 @@ def get_dashboard_data(filters=None):
                     SUM(si.total_qty) as tons
                 FROM 
                     `tabSales Invoice` si
-                    JOIN `tabSales Invoice Item` si_item ON si.name = si_item.parent
-                    JOIN `tabCustom Field` cf ON cf.dt = 'Sales Invoice Item' 
-                    AND cf.fieldname = 'trip'
+                    JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
                 WHERE 
                     si.docstatus = 1
-                    AND si_item.`trip` IN %(trips)s
+                    AND sii.`_trip` IN %(trips)s
             """, {'trips': trip_names}, as_dict=1)
 
         # Calculate expenses by type
