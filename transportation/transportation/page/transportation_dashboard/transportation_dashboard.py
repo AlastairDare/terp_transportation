@@ -42,14 +42,14 @@ def get_dashboard_data(filters=None):
         if trip_names:
             si_data = frappe.db.sql("""
                 SELECT 
-                    SUM(si.grand_total) as revenue,
-                    SUM(si.total_qty) as tons
+                    SUM(DISTINCT si.grand_total) as revenue,
+                    SUM(DISTINCT si.total_qty) as tons
                 FROM 
                     `tabSales Invoice` si
                     JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
                 WHERE 
                     si.docstatus = 1
-                    AND sii.item_code IN %(trips)s
+                    AND (sii.item_code IN %(trips)s OR sii.item_name IN %(trips)s)
             """, {'trips': trip_names}, as_dict=1)
 
         # Calculate expenses by type
