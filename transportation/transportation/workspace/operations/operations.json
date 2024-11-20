@@ -1,5 +1,5 @@
 {
-  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Operations</b></span>\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Dashboard\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Completed Trips\",\"link_type\":\"DocType\",\"link_to\":\"Trip\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Expenses\",\"link_type\":\"DocType\",\"link_to\":\"Expense\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Capture\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Delivery Note Capture\",\"link_type\":\"DocType\",\"link_to\":\"Delivery Note Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"E-Toll Capture\",\"link_type\":\"DocType\",\"link_to\":\"Toll Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Refuel\",\"link_type\":\"DocType\",\"link_to\":\"Refuel\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Notifications\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Notifications\",\"link_type\":\"DocType\",\"link_to\":\"Schedule Notification\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Notifications Config\",\"link_type\":\"DocType\",\"link_to\":\"Notifications Config\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Vehicle Health\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Issues Capture\",\"link_type\":\"DocType\",\"link_to\":\"Issues\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Unified Maintenance\",\"link_type\":\"DocType\",\"link_to\":\"Asset Unified Maintenance\",\"type\":\"List\",\"onboard\":0,\"col\":4}}]",
+  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Operations</b></span>\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Overview\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Vehicle Panel\",\"link_type\":\"Page\",\"link_to\":\"transportation-dashboard\",\"type\":\"Link\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Completed Trips\",\"link_type\":\"DocType\",\"link_to\":\"Trip\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Expenses\",\"link_type\":\"DocType\",\"link_to\":\"Expense\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Capture\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Delivery Note Capture\",\"link_type\":\"DocType\",\"link_to\":\"Delivery Note Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"E-Toll Capture\",\"link_type\":\"DocType\",\"link_to\":\"Toll Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Refuel\",\"link_type\":\"DocType\",\"link_to\":\"Refuel\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Notifications\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Notifications\",\"link_type\":\"DocType\",\"link_to\":\"Schedule Notification\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Notifications Config\",\"link_type\":\"DocType\",\"link_to\":\"Notifications Config\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Vehicle Health\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Issues Capture\",\"link_type\":\"DocType\",\"link_to\":\"Issues\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Unified Maintenance\",\"link_type\":\"DocType\",\"link_to\":\"Asset Unified Maintenance\",\"type\":\"List\",\"onboard\":0,\"col\":4}}]",
   "doctype": "Workspace",
   "icon": "road",
   "label": "Operations",
@@ -8,10 +8,20 @@
     {
       "hidden": 0,
       "is_query_report": 0,
-      "label": "Dashboard",
-      "link_count": 2,
+      "label": "Overview",
+      "link_count": 3,
       "onboard": 0,
       "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Vehicle Panel",
+      "link_count": 0,
+      "link_to": "transportation-dashboard",
+      "link_type": "Page",
+      "onboard": 0,
+      "type": "Link"
     },
     {
       "hidden": 0,
