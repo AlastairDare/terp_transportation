@@ -2,6 +2,7 @@ import frappe
 from frappe import _
 from datetime import datetime, timedelta
 
+@frappe.whitelist()
 def get_dashboard_data(filters=None):
     if not filters:
         filters = {
@@ -78,6 +79,7 @@ def get_dashboard_data(filters=None):
     
     return data
 
+@frappe.whitelist()
 def get_columns():
     return [
         {
