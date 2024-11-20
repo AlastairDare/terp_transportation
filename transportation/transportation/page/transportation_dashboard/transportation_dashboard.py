@@ -40,12 +40,13 @@ def get_dashboard_data(filters=None):
         
         # Only query Sales Invoices if we have trips
         if trip_names:
-            frappe.logger().debug("Trip Names: %s", trip_names)
-            si_data = frappe.db.sql("""
-                SELECT 
-                    SUM(DISTINCT si.grand_total) as revenue,
-                    SUM(DISTINCT si.total_qty) as tons,
-                    GROUP_CONCAT(DISTINCT si.name) as invoices
+    # First find matching invoices
+            matching_invoices = frappe.db.sql("""
+                SELECT DISTINCT 
+                    si.name,
+                    si.grand_total,
+                    sii.item_code,
+                    sii.item_name
                 FROM 
                     `tabSales Invoice` si
                     JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
@@ -53,7 +54,11 @@ def get_dashboard_data(filters=None):
                     si.docstatus = 1
                     AND (sii.item_code IN %(trips)s OR sii.item_name IN %(trips)s)
             """, {'trips': trip_names}, as_dict=1)
-            frappe.logger().debug("SQL Result: %s", si_data)
+    
+    frappe.throw(
+        msg=f"Trip IDs: {trip_names}\n"
+        f"Found Invoices: {[{'name': i.name, 'total': i.grand_total, 'item': i.item_code} for i in matching_invoices]}"
+    )
 
         # Calculate expenses by type
         expenses = frappe.db.sql("""
