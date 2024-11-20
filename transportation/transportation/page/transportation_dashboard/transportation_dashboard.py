@@ -47,14 +47,12 @@ def get_dashboard_data(filters=None):
                 FROM 
                     `tabSales Invoice` si
                     JOIN `tabSales Invoice Item` si_item ON si.name = si_item.parent
+                    JOIN `tabCustom Field` cf ON cf.dt = 'Sales Invoice Item' 
+                    AND cf.fieldname = 'trip'
                 WHERE 
                     si.docstatus = 1
-                    AND si_item.trip IN %(trips)s
+                    AND si_item.`trip` IN %(trips)s
             """, {'trips': trip_names}, as_dict=1)
-            
-            if si_data and si_data[0].revenue is not None:
-                revenue = si_data[0].revenue
-                tons = si_data[0].tons or 0
 
         # Calculate expenses by type
         expenses = frappe.db.sql("""
