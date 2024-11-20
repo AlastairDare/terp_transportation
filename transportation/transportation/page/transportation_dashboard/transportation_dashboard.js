@@ -29,7 +29,7 @@ frappe.pages['transportation-dashboard'].on_page_load = function(wrapper) {
                 </div>
             </div>
         </div>
-        <div id="dashboard-data"></div>
+        <div class="dashboard-table"></div>
     `);
 
     // Initialize the dashboard
@@ -39,6 +39,7 @@ frappe.pages['transportation-dashboard'].on_page_load = function(wrapper) {
 class TransportationDashboard {
     constructor(page) {
         this.page = page;
+        this.datatable = null;
         this.setup_filters();
         this.refresh();
     }
@@ -73,12 +74,16 @@ class TransportationDashboard {
                 from_date = frappe.datetime.add_months(today, -1);
                 break;
             case 'last_month':
-                from_date = frappe.datetime.add_months(today, -2);
+                const last_month_start = frappe.datetime.add_months(today, -1);
+                from_date = frappe.datetime.get_first_day(last_month_start);
+                $('#to_date').val(frappe.datetime.get_last_day(last_month_start));
                 break;
         }
 
         $('#from_date').val(from_date);
-        $('#to_date').val(today);
+        if (period !== 'last_month') {
+            $('#to_date').val(today);
+        }
         this.refresh();
     }
 
@@ -92,25 +97,55 @@ class TransportationDashboard {
                 }
             },
             callback: (r) => {
-                this.render(r.message);
-            }
-        });
-    }
-
-    render(data) {
-        if (!data) return;
-
-        const columns = frappe.call({
-            method: 'transportation.transportation.page.transportation_dashboard.transportation_dashboard.get_columns',
-            callback: (r) => {
-                const columns = r.message;
-                
-                // Create datatable
-                new frappe.DataTable('#dashboard-data', {
-                    columns: columns,
-                    data: data
+                frappe.call({
+                    method: 'transportation.transportation.page.transportation_dashboard.transportation_dashboard.get_columns',
+                    callback: (c) => {
+                        this.render_table(c.message, r.message || []);
+                    }
                 });
             }
         });
     }
+
+    render_table(columns, data) {
+        if (this.datatable) {
+            this.datatable.destroy();
+        }
+
+        // Format the data
+        const formatted_data = data.map(d => {
+            return {
+                ...d,
+                revenue: format_currency(d.revenue),
+                total_expenses: format_currency(d.total_expenses),
+                fuel_expenses: format_currency(d.fuel_expenses),
+                toll_expenses: format_currency(d.toll_expenses),
+                maintenance_expenses: format_currency(d.maintenance_expenses),
+                profit_loss: format_currency(d.profit_loss),
+                tons: format_number(d.tons, { decimals: 2 })
+            };
+        });
+
+        this.datatable = new frappe.DataTable(
+            this.page.main.find('.dashboard-table').get(0),
+            {
+                columns: columns,
+                data: formatted_data,
+                layout: 'fluid',
+                cellHeight: 40,
+                serialNoColumn: false,
+                checkboxColumn: false,
+                dynamicRowHeight: false
+            }
+        );
+    }
+}
+
+// Helper functions
+function format_currency(value) {
+    return frappe.format(value, { fieldtype: 'Currency' });
+}
+
+function format_number(value, opts = {}) {
+    return frappe.format(value, { fieldtype: 'Float', decimals: opts.decimals || 0 });
 }
