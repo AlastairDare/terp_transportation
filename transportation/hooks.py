@@ -15,28 +15,20 @@ workspaces = [
         "label": "Transportation"
     },
     {
+        "name": "Operations",
+        "icon": "road",
+        "module": "Transportation",
+        "type": "page",
+        "link": "operations",
+        "label": "Operations"
+    },
+    {
         "name": "Fleet Manager",
         "icon": "fleet",
         "module": "Transportation",
         "type": "page",
         "link": "fleet_manager",
         "label": "Fleet Manager"
-    },
-    {
-        "name": "Driver Manager",
-        "icon": "users",
-        "module": "Transportation",
-        "type": "page",
-        "link": "driver_manager",
-        "label": "Driver Manager"
-    },
-    {
-        "name": "Trip Manager",
-        "icon": "smartphone",
-        "module": "Transportation",
-        "type": "page",
-        "link": "trip_manager",
-        "label": "Trip Manager"
     },
     {
         "name": "T-ERP Super Admin",
@@ -119,7 +111,7 @@ doctype_properties = {
 
 scheduler_events = {
     "cron": {
-        "30 10 * * *": [
+        "0 0 * * *": [
             "transportation.transportation.doctype.schedule_notification.notification_processor.process_schedule_notifications"
         ]
     }
