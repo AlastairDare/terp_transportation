@@ -7,51 +7,37 @@ def get_dashboard_data(filters=None):
     if isinstance(filters, str):
         filters = json.loads(filters)
     
-    if not filters:
-        filters = {}
-    
     conditions = []
     values = {}
     
-    # Handle severity level filtering
+    if filters.get('items'):
+        conditions.append("""
+            (driver IN %(selected_items)s OR 
+             transportation_asset IN %(selected_items)s)
+        """)
+        values['selected_items'] = tuple(filters.get('items'))
+    
     if filters.get('severity_levels'):
         conditions.append("current_severity_level IN %(severity_levels)s")
         values['severity_levels'] = tuple(filters.get('severity_levels'))
     
-    # In get_dashboard_data(), modify the category filtering:
     if filters.get('category'):
+        category_conditions = []
         if 'Driver' in filters['category']:
-            conditions.append("driver IS NOT NULL AND driver != ''")
+            category_conditions.append("driver IS NOT NULL AND driver != ''")
         if 'Vehicle' in filters['category']:
-            conditions.append("transportation_asset IS NOT NULL AND transportation_asset != ''")
-    
-    # Handle specific assets/drivers filtering
-    if filters.get('items'):
-        driver_conditions = []
-        asset_conditions = []
-        items = filters.get('items')
-        
-        if any('DR-' in item for item in items):  # Assuming DR- prefix for drivers
-            driver_conditions.append("driver IN %(drivers)s")
-            values['drivers'] = tuple(item for item in items if 'DR-' in item)
-        
-        if any('TA-' in item for item in items):  # Assuming TA- prefix for assets
-            asset_conditions.append("transportation_asset IN %(assets)s")
-            values['assets'] = tuple(item for item in items if 'TA-' in item)
-        
-        if driver_conditions or asset_conditions:
-            conditions.append(f"({' OR '.join(driver_conditions + asset_conditions)})")
+            category_conditions.append("transportation_asset IS NOT NULL AND transportation_asset != ''")
+        if category_conditions:
+            conditions.append(f"({' OR '.join(category_conditions)})")
     
     where_clause = " AND ".join(conditions) if conditions else "1=1"
     
-    data = frappe.db.sql(f"""
+    return frappe.db.sql(f"""
         SELECT 
             current_severity_level as severity,
             COALESCE(
-                (SELECT asset_number FROM `tabTransportation Asset` 
-                WHERE name = transportation_asset),
-                (SELECT employee_name FROM `tabDriver` 
-                WHERE name = driver)
+                (SELECT employee_name FROM `tabDriver` WHERE name = driver),
+                (SELECT asset_number FROM `tabTransportation Asset` WHERE name = transportation_asset)
             ) as item_name,
             notification_type as sub_type,
             threshold_type as type,
@@ -69,8 +55,6 @@ def get_dashboard_data(filters=None):
         ORDER BY 
             FIELD(current_severity_level, 'Level 3', 'Level 2', 'Level 1', 'Level 0')
     """, values, as_dict=1)
-    
-    return data
 
 @frappe.whitelist()
 def get_columns():
