@@ -24,7 +24,7 @@ def get_dashboard_data(filters=None):
     assets = frappe.get_all(
         "Transportation Asset",
         filters=asset_filters,
-        fields=["name", "license_plate", "asset_number"]
+        fields=["name", "asset_number"]
     )
 
     for asset in assets:
@@ -87,7 +87,6 @@ def get_dashboard_data(filters=None):
         row = {
             'transportation_asset': asset.name,
             'asset_number': asset.asset_number,
-            'license_plate': asset.license_plate,
             'revenue': revenue,
             'tons': tons,
             'total_expenses': total_expenses,
@@ -114,12 +113,6 @@ def get_columns():
         {
             "label": _("Asset Number"),
             "fieldname": "asset_number",
-            "fieldtype": "Data",
-            "width": 120
-        },
-        {
-            "label": _("License Plate"),
-            "fieldname": "license_plate",
             "fieldtype": "Data",
             "width": 120
         },
