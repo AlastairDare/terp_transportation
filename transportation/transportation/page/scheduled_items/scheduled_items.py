@@ -114,36 +114,22 @@ def get_columns():
 
 @frappe.whitelist()
 def get_items_for_filter():
-   # Get drivers
-   drivers = frappe.get_all(
-       "Driver",
-       fields=["name", "employee_name"],
-       filters={"docstatus": 1}
-   )
-   
-   # Get assets
-   assets = frappe.get_all(
-       "Transportation Asset",
-       fields=["name", "asset_number"],
-       filters={"docstatus": 1}
-   )
+   drivers = frappe.get_all("Driver", fields=["name", "employee_name"])
+   assets = frappe.get_all("Transportation Asset", fields=["name", "asset_number"])
    
    items = []
-   
-   # Format drivers
    for driver in drivers:
        items.append({
            "value": driver.name,
-           "description": f"{driver.employee_name}",
-           "searchtext": f"{driver.name} {driver.employee_name}"
+           "description": driver.employee_name,
+           "searchtext": driver.employee_name
        })
    
-   # Format assets 
    for asset in assets:
        items.append({
-           "value": asset.name,
-           "description": f"{asset.asset_number} ({asset.name})",
-           "searchtext": f"{asset.name} {asset.asset_number}"
+           "value": asset.name, 
+           "description": asset.asset_number,
+           "searchtext": asset.asset_number
        })
    
    return items
