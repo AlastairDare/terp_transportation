@@ -76,8 +76,17 @@ class ScheduledItems {
             df: {
                 fieldtype: 'MultiSelectPills',
                 fieldname: 'items',
-                placeholder: 'Search by Asset Number, License Plate, or Driver Name...',
-                get_data: () => this.get_items_for_filter(),
+                placeholder: 'Search by Asset Number or Driver Name...',
+                get_data: () => {
+                    return new Promise((resolve) => {
+                        frappe.call({
+                            method: 'transportation.transportation.page.scheduled_items.scheduled_items.get_items_for_filter',
+                            callback: function(r) {
+                                resolve(r.message || []);
+                            }
+                        });
+                    });
+                },
                 onchange: () => this.refresh()
             },
             render_input: true
