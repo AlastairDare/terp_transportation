@@ -18,11 +18,12 @@ def get_dashboard_data(filters=None):
         conditions.append("current_severity_level IN %(severity_levels)s")
         values['severity_levels'] = tuple(filters.get('severity_levels'))
     
-    # Handle asset/driver type filtering
-    if filters.get('category') == 'Driver':
-        conditions.append("driver IS NOT NULL")
-    elif filters.get('category') == 'Vehicle':
-        conditions.append("transportation_asset IS NOT NULL")
+    # In get_dashboard_data(), modify the category filtering:
+    if filters.get('category'):
+        if 'Driver' in filters['category']:
+            conditions.append("driver IS NOT NULL AND driver != ''")
+        if 'Vehicle' in filters['category']:
+            conditions.append("transportation_asset IS NOT NULL AND transportation_asset != ''")
     
     # Handle specific assets/drivers filtering
     if filters.get('items'):
@@ -114,22 +115,33 @@ def get_columns():
 
 @frappe.whitelist()
 def get_items_for_filter():
-   drivers = frappe.get_all("Driver", fields=["name", "employee_name"])
-   assets = frappe.get_all("Transportation Asset", fields=["name", "asset_number"])
-   
-   items = []
-   for driver in drivers:
-       items.append({
-           "value": driver.name,
-           "description": driver.employee_name,
-           "searchtext": driver.employee_name
-       })
-   
-   for asset in assets:
-       items.append({
-           "value": asset.name, 
-           "description": asset.asset_number,
-           "searchtext": asset.asset_number
-       })
-   
-   return items
+    # Get all drivers
+    drivers = frappe.db.sql("""
+        SELECT name, employee_name 
+        FROM `tabDriver` 
+        WHERE employee_name IS NOT NULL
+    """, as_dict=1)
+    
+    # Get all assets
+    assets = frappe.db.sql("""
+        SELECT name, asset_number 
+        FROM `tabTransportation Asset` 
+        WHERE asset_number IS NOT NULL
+    """, as_dict=1)
+    
+    items = []
+    for d in drivers:
+        items.append({
+            "value": d.name,
+            "description": d.employee_name,
+            "searchtext": d.employee_name
+        })
+    
+    for a in assets:
+        items.append({
+            "value": a.name,
+            "description": a.asset_number,
+            "searchtext": f"{a.asset_number} {a.name}"
+        })
+    
+    return items
