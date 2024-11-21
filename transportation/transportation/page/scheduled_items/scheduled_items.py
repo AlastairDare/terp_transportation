@@ -114,40 +114,36 @@ def get_columns():
 
 @frappe.whitelist()
 def get_items_for_filter():
-    # Get drivers
-    drivers = frappe.get_all(
-        "Driver",
-        fields=["name", "employee_name"],
-        as_list=0
-    )
-    
-    # Get assets
-    assets = frappe.get_all(
-        "Transportation Asset",
-        fields=["name", "asset_number", "license_plate"],
-        as_list=0
-    )
-    
-    items = []
-    
-    # Format drivers
-    for driver in drivers:
-        items.append({
-            "value": driver.name,
-            "description": f"{driver.employee_name} ({driver.name})",
-            "searchtext": f"{driver.name} {driver.employee_name}"
-        })
-    
-    # Format assets
-    for asset in assets:
-        search_text = f"{asset.name} {asset.asset_number}"
-        if asset.license_plate:
-            search_text += f" {asset.license_plate}"
-            
-        items.append({
-            "value": asset.name,
-            "description": f"{asset.asset_number} ({asset.name})",
-            "searchtext": search_text
-        })
-    
-    return items
+   # Get drivers
+   drivers = frappe.get_all(
+       "Driver",
+       fields=["name", "employee_name"],
+       filters={"docstatus": 1}
+   )
+   
+   # Get assets
+   assets = frappe.get_all(
+       "Transportation Asset",
+       fields=["name", "asset_number"],
+       filters={"docstatus": 1}
+   )
+   
+   items = []
+   
+   # Format drivers
+   for driver in drivers:
+       items.append({
+           "value": driver.name,
+           "description": f"{driver.employee_name}",
+           "searchtext": f"{driver.name} {driver.employee_name}"
+       })
+   
+   # Format assets 
+   for asset in assets:
+       items.append({
+           "value": asset.name,
+           "description": f"{asset.asset_number} ({asset.name})",
+           "searchtext": f"{asset.name} {asset.asset_number}"
+       })
+   
+   return items
