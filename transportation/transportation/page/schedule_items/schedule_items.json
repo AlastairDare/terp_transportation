@@ -1,0 +1,29 @@
+{
+    "content": null,
+    "creation": "2024-11-21 12:00:00.000000",
+    "docstatus": 0,
+    "doctype": "Page",
+    "idx": 0,
+    "modified": "2024-11-21 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Transportation",
+    "name": "scheduled-items",
+    "owner": "Administrator",
+    "page_name": "scheduled-items",
+    "roles": [
+        {
+            "role": "System Manager"
+        },
+        {
+            "role": "Fleet Manager"
+        },
+        {
+            "role": "Fleet User"
+        }
+    ],
+    "script": null,
+    "standard": "Yes",
+    "style": null,
+    "system_page": 0,
+    "title": "Scheduled Items"
+}
