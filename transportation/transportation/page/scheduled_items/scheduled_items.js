@@ -4,19 +4,13 @@ frappe.pages['scheduled-items'].on_page_load = function(wrapper) {
         title: 'Scheduled Items',
         single_column: true
     });
- 
-    // Add filters section
+
     page.main.html(`
         <div class="filter-section mb-4">
             <div class="row">
                 <div class="col-md-4">
-                    <div class="form-group">
+                    <div class="form-group category-select-wrapper">
                         <label>Category</label>
-                        <select class="form-control" id="category-filter">
-                            <option value="">All</option>
-                            <option value="Driver">Driver</option>
-                            <option value="Vehicle">Vehicle</option>
-                        </select>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -41,23 +35,20 @@ frappe.pages['scheduled-items'].on_page_load = function(wrapper) {
             </table>
         </div>
     `);
- 
+
     new ScheduledItems(page);
- }
- 
- class ScheduledItems {
+}
+
+class ScheduledItems {
     constructor(page) {
         this.page = page;
         this.sort_field = 'severity';
         this.sort_order = 'desc';
-        this.selected_items = [];
-        this.selected_severity_levels = [];
         this.setup_filters();
         this.refresh();
     }
- 
+
     setup_filters() {
-        // Setup severity level multiselect
         this.severity_select = frappe.ui.form.make_control({
             parent: $('.severity-select-wrapper'),
             df: {
@@ -68,8 +59,18 @@ frappe.pages['scheduled-items'].on_page_load = function(wrapper) {
             },
             render_input: true
         });
- 
-        // Setup item multiselect
+
+        this.category_select = frappe.ui.form.make_control({
+            parent: $('.category-select-wrapper'),
+            df: {
+                fieldtype: 'MultiSelectPills',
+                fieldname: 'category',
+                options: ['Driver', 'Vehicle'],
+                onchange: () => this.refresh()
+            },
+            render_input: true
+        });
+
         this.item_select = frappe.ui.form.make_control({
             parent: $('.item-select-wrapper'),
             df: {
@@ -81,20 +82,14 @@ frappe.pages['scheduled-items'].on_page_load = function(wrapper) {
             },
             render_input: true
         });
- 
-        // Setup category filter
-        $('#category-filter').on('change', () => this.refresh());
     }
- 
+
     get_items_for_filter() {
         return frappe.call({
-            method: 'transportation.transportation.page.scheduled_items.scheduled_items.get_items_for_filter',
-            callback: (r) => {
-                return r.message || [];
-            }
+            method: 'transportation.transportation.page.scheduled_items.scheduled_items.get_items_for_filter'
         });
     }
- 
+
     setup_header() {
         let header_html = '<tr>';
         this.columns.forEach(col => {
@@ -110,8 +105,7 @@ frappe.pages['scheduled-items'].on_page_load = function(wrapper) {
         header_html += '</tr>';
         
         $('#table-header').html(header_html);
- 
-        // Add click handlers for sorting
+
         $('.sortable-header').click((e) => {
             const fieldname = $(e.currentTarget).data('fieldname');
             if (this.sort_field === fieldname) {
@@ -123,7 +117,7 @@ frappe.pages['scheduled-items'].on_page_load = function(wrapper) {
             this.refresh();
         });
     }
- 
+
     refresh() {
         frappe.call({
             method: 'transportation.transportation.page.scheduled_items.scheduled_items.get_columns',
@@ -135,31 +129,26 @@ frappe.pages['scheduled-items'].on_page_load = function(wrapper) {
                     method: 'transportation.transportation.page.scheduled_items.scheduled_items.get_dashboard_data',
                     args: {
                         filters: {
-                            category: $('#category-filter').val(),
+                            category: this.category_select.get_value(),
                             severity_levels: this.severity_select.get_value(),
                             items: this.item_select.get_value()
                         }
                     },
                     callback: (r) => {
                         let data = r.message || [];
-                        
-                        // Sort data
-                        if (this.sort_field !== 'severity') {
-                            data.sort((a, b) => {
-                                const val_a = (a[this.sort_field] || '').toString().toLowerCase();
-                                const val_b = (b[this.sort_field] || '').toString().toLowerCase();
-                                const compare = val_a > val_b ? 1 : val_a < val_b ? -1 : 0;
-                                return this.sort_order === 'asc' ? compare : -compare;
-                            });
-                        }
- 
+                        data.sort((a, b) => {
+                            const val_a = (a[this.sort_field] || '').toString().toLowerCase();
+                            const val_b = (b[this.sort_field] || '').toString().toLowerCase();
+                            const compare = val_a > val_b ? 1 : val_a < val_b ? -1 : 0;
+                            return this.sort_order === 'asc' ? compare : -compare;
+                        });
                         this.render_data(data);
                     }
                 });
             }
         });
     }
- 
+
     render_data(data) {
         let body_html = '';
         data.forEach(row => {
@@ -170,7 +159,6 @@ frappe.pages['scheduled-items'].on_page_load = function(wrapper) {
                     value = frappe.datetime.str_to_user(value);
                 }
                 
-                // Add color coding for severity
                 let cell_class = '';
                 if (col.fieldname === 'severity') {
                     switch(value) {
@@ -195,4 +183,4 @@ frappe.pages['scheduled-items'].on_page_load = function(wrapper) {
         });
         $('#table-body').html(body_html || '<tr><td colspan="6" class="text-center">No records found</td></tr>');
     }
- }
+}
