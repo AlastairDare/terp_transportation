@@ -52,6 +52,28 @@
             "fieldname": "photo",
             "label": "Photo",
             "fieldtype": "Attach Image"
+        },
+        {
+            "fieldname": "medical_certificates_section",
+            "label": "Medical Certificates",
+            "fieldtype": "Section Break"
+        },
+        {
+            "fieldname": "medical_certificates",
+            "label": "Medical Certificates",
+            "fieldtype": "Table",
+            "options": "Medical Certificate"
+        },
+        {
+            "fieldname": "induction_certificates_section",
+            "label": "Induction Certificates",
+            "fieldtype": "Section Break"
+        },
+        {
+            "fieldname": "induction_certificates",
+            "label": "Induction Certificates",
+            "fieldtype": "Table",
+            "options": "Induction Certificate"
         }
     ],
     "permissions": [
