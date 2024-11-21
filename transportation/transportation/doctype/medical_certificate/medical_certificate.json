@@ -6,24 +6,6 @@
     "custom": 1,
     "fields": [
         {
-            "fieldname": "parent",
-            "fieldtype": "Link",
-            "label": "Parent",
-            "options": "Driver",
-            "in_list_view": 0,
-            "hidden": 1
-        },
-        {
-            "fieldname": "parenttype",
-            "fieldtype": "Data",
-            "hidden": 1
-        },
-        {
-            "fieldname": "parentfield",
-            "fieldtype": "Data",
-            "hidden": 1
-        },
-        {
             "fieldname": "certificate_name",
             "label": "Certificate Name",
             "fieldtype": "Data",
