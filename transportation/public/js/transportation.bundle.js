@@ -12,4 +12,4 @@ import '../../transportation/doctype/tolls/tolls.js';
 import '../../transportation/doctype/schedule_notification/schedule_notification_list.js';
 import '../../transportation/doctype/schedule_notification/schedule_notification.js';
 import '../../transportation/page/transportation_dashboard/transportation_dashboard.js';
-import '../../transportation/page/schedule_items/schedule_items.js';
+import '../../transportation/page/scheduled_items/scheduled_items.js';
