@@ -1,253 +1,285 @@
-frappe.pages['transportation-dashboard'].on_page_load = function(wrapper) {
-    var page = frappe.ui.make_app_page({
-        parent: wrapper,
-        title: 'Vehicle Panel',
-        single_column: true
-    });
+frappe.ui.form.on('Transportation Asset', {
+    refresh: function(frm) {
+        updateFieldLabels(frm);
+        setupFieldFilters(frm);
+        toggleSecondaryTrailer(frm);
+        setupFixedAssetFilter(frm);
+        toggleMostRecentService(frm);
+    },
 
-    // Add filters section with updated layout
-    page.main.html(`
-        <div class="filter-section mb-4">
-            <div class="row">
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <input class="form-control" id="from_date" type="date">
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <input class="form-control" id="to_date" type="date">
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="btn-group" role="group">
-                        <button class="btn btn-default" data-period="today">Today</button>
-                        <button class="btn btn-default" data-period="week">This Week</button>
-                        <button class="btn btn-default" data-period="month">This Month</button>
-                        <button class="btn btn-default" data-period="last_month">Last Month</button>
-                        <button class="btn btn-default" data-period="last_six_months">Last 6 Months</button>
-                        <button class="btn btn-default" data-period="last_year">Last Year</button>
-                    </div>
-                </div>
-            </div>
-            <div class="row mt-3">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label>Select Transportation Assets</label>
-                        <div class="asset-select-wrapper"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-bordered">
-                <thead id="table-header">
-                </thead>
-                <tbody id="table-body">
-                </tbody>
-                <tfoot id="table-footer">
-                </tfoot>
-            </table>
-        </div>
-    `);
+    transportation_asset_type: function(frm) {
+        updateFieldLabels(frm);
+        setupFieldFilters(frm);
+        clearTypeSpecificFields(frm);
+        toggleSecondaryTrailer(frm);
+        setupFixedAssetFilter(frm); // Add this line
+        
+        // Clear fixed asset when type changes
+        if (frm.doc.fixed_asset) {
+            frm.set_value('fixed_asset', '');
+        }
+    },
 
-    // Initialize the dashboard
-    new TransportationDashboard(page);
-}
-
-class TransportationDashboard {
-    constructor(page) {
-        this.page = page;
-        this.sort_field = 'transportation_asset';
-        this.sort_order = 'asc';
-        this.selected_assets = [];
-        this.setup_filters();
-        this.setup_asset_filter();
-        this.refresh();
-    }
-
-    setup_asset_filter() {
-        // Create multi-select dropdown for assets
-        this.asset_select = frappe.ui.form.make_control({
-            parent: $('.asset-select-wrapper'),
-            df: {
-                fieldtype: 'MultiSelectPills',
-                fieldname: 'assets',
-                placeholder: 'Select Assets...',
-                get_data: () => this.get_assets_for_filter(),
-                onchange: () => this.refresh()
-            },
-            render_input: true
-        });
-    }
-
-    async get_assets_for_filter() {
-        const assets = await frappe.db.get_list('Transportation Asset', {
-            fields: ['name', 'asset_number'],
-            filters: { transportation_asset_type: 'Truck' },
-            limit: 0
-        });
-
-        return assets.map(asset => ({
-            value: asset.name,
-            description: `${asset.asset_number} (${asset.name})`
-        }));
-    }
-
-    setup_filters() {
-        const today = frappe.datetime.get_today();
-        $('#from_date').val(frappe.datetime.add_days(today, -30));
-        $('#to_date').val(today);
-
-        $('.btn-group .btn').click((e) => {
-            const period = $(e.target).data('period');
-            this.set_date_filter(period);
-        });
-
-        $('#from_date, #to_date').change(() => this.refresh());
-    }
-
-    set_date_filter(period) {
-        const today = frappe.datetime.get_today();
-        let from_date = today;
-        let to_date = today;
-
-        switch(period) {
-            case 'today':
-                break;
-            case 'week':
-                from_date = frappe.datetime.add_days(today, -7);
-                break;
-            case 'month':
-                from_date = frappe.datetime.get_first_day(today);
-                break;
-            case 'last_month':
-                from_date = frappe.datetime.add_months(frappe.datetime.get_first_day(today), -1);
-                to_date = frappe.datetime.get_last_day(from_date);
-                break;
-            case 'last_six_months':
-                from_date = frappe.datetime.add_months(today, -6);
-                break;
-            case 'last_year':
-                from_date = frappe.datetime.add_months(today, -12);
-                break;
+    primary_trailer: function(frm) {
+        if (!frm.doc.primary_trailer) {
+            frm.set_value('secondary_trailer', '');
+            toggleSecondaryTrailer(frm);
+            return;
         }
 
-        $('#from_date').val(from_date);
-        $('#to_date').val(to_date);
-        this.refresh();
-    }
-
-    setup_header() {
-        let header_html = '<tr>';
-        this.columns.forEach(col => {
-            const sort_icon = col.fieldname === this.sort_field ? 
-                (this.sort_order === 'asc' ? '↑' : '↓') : '';
-            
-            header_html += `
-                <th class="sortable-header" data-fieldname="${col.fieldname}">
-                    ${col.label} ${sort_icon}
-                </th>`;
-        });
-        header_html += '</tr>';
-        
-        $('#table-header').html(header_html);
-
-        // Add click handlers for sorting
-        $('.sortable-header').click((e) => {
-            const fieldname = $(e.currentTarget).data('fieldname');
-            if (this.sort_field === fieldname) {
-                this.sort_order = this.sort_order === 'asc' ? 'desc' : 'asc';
-            } else {
-                this.sort_field = fieldname;
-                this.sort_order = 'asc';
-            }
-            this.refresh();
-        });
-    }
-
-    refresh() {
-        frappe.call({
-            method: 'transportation.transportation.page.transportation_dashboard.transportation_dashboard.get_columns',
-            callback: (c) => {
-                this.columns = c.message;
-                this.setup_header();
-                
-                frappe.call({
-                    method: 'transportation.transportation.page.transportation_dashboard.transportation_dashboard.get_dashboard_data',
-                    args: {
-                        filters: {
-                            from_date: $('#from_date').val(),
-                            to_date: $('#to_date').val(),
-                            assets: this.asset_select.get_value()
+        // Fetch the primary trailer's paired trailer
+        frappe.db.get_value('Transportation Asset', 
+            frm.doc.primary_trailer,
+            ['paired_trailer', 'status'],
+            function(data) {
+                if (data && data.paired_trailer) {
+                    // Check if the paired trailer is active
+                    frappe.db.get_value('Transportation Asset',
+                        data.paired_trailer,
+                        'status',
+                        function(trailer_data) {
+                            if (trailer_data && trailer_data.status === 'Active') {
+                                frm.set_value('secondary_trailer', data.paired_trailer);
+                            } else {
+                                frm.set_value('secondary_trailer', '');
+                                frappe.show_alert({
+                                    message: __('The paired trailer is not active and cannot be assigned'),
+                                    indicator: 'orange'
+                                });
+                            }
+                            toggleSecondaryTrailer(frm);
                         }
-                    },
-                    callback: (r) => {
-                        let data = r.message || [];
-                        
-                        // Sort data
-                        data.sort((a, b) => {
-                            const val_a = a[this.sort_field];
-                            const val_b = b[this.sort_field];
-                            const compare = val_a > val_b ? 1 : val_a < val_b ? -1 : 0;
-                            return this.sort_order === 'asc' ? compare : -compare;
-                        });
-
-                        this.render_data(data);
-                        this.render_totals(data);
-                    }
-                });
+                    );
+                } else {
+                    frm.set_value('secondary_trailer', '');
+                    toggleSecondaryTrailer(frm);
+                }
             }
+        );
+    }
+});
+
+function updateFieldLabels(frm) {
+    const assetType = frm.doc.transportation_asset_type;
+    if (!assetType) return;
+
+    const labels = {
+        'Truck': {
+            asset_name: 'Vehicle Name',
+            asset_number: 'Truck Number',
+            asset_mass: 'Vehicle Mass (KG)',
+            asset_class: 'Vehicle Class',
+            pairing_section: 'Trailer Assignment'
+        },
+        'Trailer': {
+            asset_name: 'Trailer Name',
+            asset_number: 'Trailer Number',
+            asset_mass: 'Trailer Mass (KG)',
+            asset_class: 'Trailer Class',
+            pairing_section: 'Trailer Pairing'
+        }
+    };
+
+    // Update labels based on asset type
+    Object.entries(labels[assetType]).forEach(([fieldname, label]) => {
+        frm.set_df_property(fieldname, 'label', label);
+    });
+
+    // Update description for cargo capacity based on asset type
+    if (assetType === 'Truck') {
+        frm.set_df_property('cargo_capacity', 'description', 
+            'Maximum combined mass of the trailers and cargo that the vehicle can reliably haul');
+    } else {
+        frm.set_df_property('cargo_capacity', 'description', 
+            'Maximum mass of the cargo that the trailer can reliably support');
+    }
+}
+
+function toggleMostRecentService(frm) {
+    frm.set_df_property('most_recent_service', 'hidden', !frm.doc.most_recent_service);
+}
+
+function setupFieldFilters(frm) {
+    const assetType = frm.doc.transportation_asset_type;
+    if (!assetType) return;
+
+    if (assetType === 'Truck') {
+        // Set filter for primary trailer selection
+        frm.set_query('primary_trailer', () => {
+            return {
+                filters: {
+                    'transportation_asset_type': 'Trailer',
+                    'status': 'Active'
+                }
+            };
+        });
+
+        // Set filter for secondary trailer (read-only, but still needs filter)
+        frm.set_query('secondary_trailer', () => {
+            return {
+                filters: {
+                    'transportation_asset_type': 'Trailer',
+                    'status': 'Active'
+                }
+            };
+        });
+    } else {
+        // Set filter for paired trailer selection
+        frm.set_query('paired_trailer', () => {
+            return {
+                filters: {
+                    'transportation_asset_type': 'Trailer',
+                    'name': ['!=', frm.doc.name] // Cannot pair with self
+                }
+            };
         });
     }
+}
 
-    render_data(data) {
-        let body_html = '';
-        data.forEach(row => {
-            body_html += '<tr>';
-            this.columns.forEach(col => {
-                let value = row[col.fieldname];
-                if (col.fieldtype === 'Currency') {
-                    value = frappe.format(value, { fieldtype: 'Currency' });
-                } else if (col.fieldtype === 'Float') {
-                    value = frappe.format(value, { fieldtype: 'Float', precision: 2 });
-                }
-                body_html += `<td>${value || ''}</td>`;
-            });
-            body_html += '</tr>';
-        });
-        $('#table-body').html(body_html);
+function clearTypeSpecificFields(frm) {
+    const assetType = frm.doc.transportation_asset_type;
+    if (!assetType) return;
+
+    const fieldsToCheck = {
+        'Truck': [
+            'paired_trailer',
+            'tipper_type',
+            'platform_type',
+            'trailer_class'
+        ],
+        'Trailer': [
+            'primary_trailer',
+            'secondary_trailer',
+            'fuel_type',
+            'etag_number',
+            'asset_class'
+        ]
+    };
+
+    // Clear fields not relevant to the current asset type
+    fieldsToCheck[assetType].forEach(fieldname => {
+        if (frm.doc[fieldname]) {
+            frm.set_value(fieldname, '');
+        }
+    });
+
+    // Refresh the form to ensure all field properties are updated
+    frm.refresh();
+}
+
+function toggleSecondaryTrailer(frm) {
+    if (frm.doc.transportation_asset_type !== 'Truck') {
+        frm.set_df_property('secondary_trailer', 'hidden', 1);
+        return;
     }
 
-    render_totals(data) {
-        let totals = {};
-        
-        // Calculate totals for numeric columns
-        this.columns.forEach(col => {
-            if (col.fieldtype === 'Currency' || col.fieldtype === 'Float') {
-                totals[col.fieldname] = data.reduce((sum, row) => sum + (row[col.fieldname] || 0), 0);
-            }
-        });
+    // If there's no primary trailer, hide secondary trailer
+    if (!frm.doc.primary_trailer) {
+        frm.set_df_property('secondary_trailer', 'hidden', 1);
+        return;
+    }
 
-        // Render totals row
-        let footer_html = '<tr class="table-active font-weight-bold">';
-        this.columns.forEach(col => {
-            let value = totals[col.fieldname];
-            if (col.fieldname === 'transportation_asset') {
-                value = 'Totals';
-            } else if (value !== undefined) {
-                if (col.fieldtype === 'Currency') {
-                    value = frappe.format(value, { fieldtype: 'Currency' });
-                } else if (col.fieldtype === 'Float') {
-                    value = frappe.format(value, { fieldtype: 'Float', precision: 2 });
-                }
+    // Check if primary trailer has a paired trailer
+    frappe.db.get_value('Transportation Asset',
+        frm.doc.primary_trailer,
+        'paired_trailer',
+        function(data) {
+            if (data && data.paired_trailer) {
+                frm.set_df_property('secondary_trailer', 'hidden', 0);
             } else {
-                value = '';
+                frm.set_df_property('secondary_trailer', 'hidden', 1);
             }
-            footer_html += `<td>${value}</td>`;
-        });
-        footer_html += '</tr>';
-        
-        $('#table-footer').html(footer_html);
+            frm.refresh_field('secondary_trailer');
+        }
+    );
+}
+
+// Add custom validations
+frappe.ui.form.on('Transportation Asset', 'validate', function(frm) {
+    // Ensure asset class is set based on type
+    if (frm.doc.transportation_asset_type === 'Truck' && !frm.doc.asset_class) {
+        frappe.msgprint(__('Please select a Vehicle Class'));
+        frappe.validated = false;
     }
+    
+    if (frm.doc.transportation_asset_type === 'Trailer' && !frm.doc.trailer_class) {
+        frappe.msgprint(__('Please select a Trailer Class'));
+        frappe.validated = false;
+    }
+
+    // Prevent self-pairing for trailers
+    if (frm.doc.transportation_asset_type === 'Trailer' && 
+        frm.doc.paired_trailer === frm.doc.name) {
+        frappe.msgprint(__('A trailer cannot be paired with itself'));
+        frappe.validated = false;
+    }
+});
+
+// Add event handlers for warranty dates
+frappe.ui.form.on('Transportation Asset', {
+    warranty: function(frm) {
+        if (!frm.doc.warranty) {
+            frm.set_value('warranty_expiration', '');
+        }
+    },
+    
+    certificate_of_roadworthiness: function(frm) {
+        if (!frm.doc.certificate_of_roadworthiness) {
+            frm.set_value('certificate_of_roadworthiness_expiration', '');
+        }
+    },
+    
+    cross_border_road_transport_permit: function(frm) {
+        if (!frm.doc.cross_border_road_transport_permit) {
+            frm.set_value('cross_border_road_transport_permit_expiration', '');
+        }
+    }
+});
+
+// Add utility functions for date validations
+frappe.ui.form.on('Transportation Asset', {
+    warranty_expiration: function(frm) {
+        validateFutureDate(frm, 'warranty_expiration');
+    },
+    
+    registration_expiry: function(frm) {
+        validateFutureDate(frm, 'registration_expiry');
+    },
+    
+    certificate_of_roadworthiness_expiration: function(frm) {
+        validateFutureDate(frm, 'certificate_of_roadworthiness_expiration');
+    },
+    
+    cross_border_road_transport_permit_expiration: function(frm) {
+        validateFutureDate(frm, 'cross_border_road_transport_permit_expiration');
+    }
+});
+
+function validateFutureDate(frm, fieldname) {
+    if (frm.doc[fieldname]) {
+        const date = frappe.datetime.str_to_obj(frm.doc[fieldname]);
+        const today = frappe.datetime.now_date();
+        
+        if (date < today) {
+            frappe.msgprint(__(`${frappe.meta.get_label(frm.doctype, fieldname, frm.doc.name)} cannot be in the past`));
+            frm.set_value(fieldname, '');
+        }
+    }
+}
+
+function setupFixedAssetFilter(frm) {
+    const assetType = frm.doc.transportation_asset_type;
+    if (!assetType) return;
+
+    const assetCategory = assetType === 'Truck' ? 'Trucks' : 'Trailers';
+    
+    frm.set_query('fixed_asset', () => {
+        return {
+            query: "transportation.transportation.doctype.transportation_asset.transportation_asset.get_available_fixed_assets",
+            filters: {
+                'asset_category': assetCategory,
+                'transportation_asset_type': assetType
+            }
+        };
+    });
 }
