@@ -1,58 +1,60 @@
 frappe.provide('frappe.pages.scheduled_items');
 
 frappe.pages.scheduled_items.on_page_load = function(wrapper) {
-    var page = frappe.ui.make_app_page({
+    frappe.ui.make_app_page({
         parent: wrapper,
         title: 'Scheduled Items',
         single_column: true
     });
+};
 
-    page.main.html(`
-        <div class="filter-section mb-4">
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="form-group category-select-wrapper">
-                        <label>Category</label>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group severity-select-wrapper">
-                        <label>Severity Levels</label>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label>Driver/Vehicle Filter</label>
-                        <div class="item-select-wrapper"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-bordered">
-                <thead id="table-header">
-                </thead>
-                <tbody id="table-body">
-                </tbody>
-            </table>
-        </div>
-    `);
-
-    new ScheduledItems(page);
-}
-
-class ScheduledItems {
-    constructor(page) {
-        this.page = page;
+frappe.pages.scheduled_items.ScheduledItems = class ScheduledItems {
+    constructor(wrapper) {
+        this.page = wrapper.page;
+        this.wrapper = $(wrapper);
         this.sort_field = 'severity';
         this.sort_order = 'desc';
+        this.setup_page();
         this.setup_filters();
         this.refresh();
     }
 
+    setup_page() {
+        this.page.main.html(`
+            <div class="filter-section mb-4">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group category-select-wrapper">
+                            <label>Category</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group severity-select-wrapper">
+                            <label>Severity Levels</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Driver/Vehicle Filter</label>
+                            <div class="item-select-wrapper"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead id="table-header">
+                    </thead>
+                    <tbody id="table-body">
+                    </tbody>
+                </table>
+            </div>
+        `);
+    }
+
     setup_filters() {
         this.severity_select = frappe.ui.form.make_control({
-            parent: $('.severity-select-wrapper'),
+            parent: this.page.main.find('.severity-select-wrapper'),
             df: {
                 fieldtype: 'MultiSelectPills',
                 fieldname: 'severity_levels',
@@ -63,7 +65,7 @@ class ScheduledItems {
         });
 
         this.category_select = frappe.ui.form.make_control({
-            parent: $('.category-select-wrapper'),
+            parent: this.page.main.find('.category-select-wrapper'),
             df: {
                 fieldtype: 'MultiSelectPills',
                 fieldname: 'category',
@@ -74,7 +76,7 @@ class ScheduledItems {
         });
 
         this.item_select = frappe.ui.form.make_control({
-            parent: $('.item-select-wrapper'),
+            parent: this.page.main.find('.item-select-wrapper'),
             df: {
                 fieldtype: 'MultiSelectPills',
                 fieldname: 'items',
@@ -115,9 +117,9 @@ class ScheduledItems {
         });
         header_html += '</tr>';
         
-        $('#table-header').html(header_html);
+        this.page.main.find('#table-header').html(header_html);
 
-        $('.sortable-header').click((e) => {
+        this.page.main.find('.sortable-header').off('click').on('click', (e) => {
             const fieldname = $(e.currentTarget).data('fieldname');
             if (this.sort_field === fieldname) {
                 this.sort_order = this.sort_order === 'asc' ? 'desc' : 'asc';
@@ -192,6 +194,13 @@ class ScheduledItems {
             });
             body_html += '</tr>';
         });
-        $('#table-body').html(body_html || '<tr><td colspan="6" class="text-center">No records found</td></tr>');
+        this.page.main.find('#table-body').html(body_html || '<tr><td colspan="6" class="text-center">No records found</td></tr>');
     }
-}
+};
+
+frappe.pages.scheduled_items.on_page_show = function(wrapper) {
+    // Initialize page
+    if (!frappe.pages.scheduled_items.schedule_items) {
+        frappe.pages.scheduled_items.schedule_items = new frappe.pages.scheduled_items.ScheduledItems(wrapper);
+    }
+};
