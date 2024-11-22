@@ -1,4 +1,6 @@
-frappe.pages['scheduled-items'].on_page_load = function(wrapper) {
+frappe.provide('frappe.pages.scheduled_items');
+
+frappe.pages.scheduled_items.on_page_load = function(wrapper) {
     var page = frappe.ui.make_app_page({
         parent: wrapper,
         title: 'Scheduled Items',
