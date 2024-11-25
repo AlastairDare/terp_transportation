@@ -79,7 +79,7 @@ frappe.ui.form.on('Asset Unified Maintenance', {
                 indicator: 'blue'
             }, 5);
         }
-    },,
+    },
     
     asset: function(frm) {
         if (frm.doc.asset) {
