@@ -317,9 +317,9 @@ class NotificationsConfig(Document):
         return asset_count
 
     def _create_time_based_schedule_notification(self, notification_type, expiry_date, 
-                                      level_1_threshold, level_2_threshold, level_3_threshold,
-                                      transportation_asset=None, driver=None, 
-                                      asset_unified_maintenance=None):
+                                  level_1_threshold, level_2_threshold, level_3_threshold,
+                                  transportation_asset=None, driver=None, 
+                                  asset_unified_maintenance=None):
         """Create a time-based schedule notification"""
         remaining_days = date_diff(expiry_date, nowdate())
         
@@ -336,7 +336,7 @@ class NotificationsConfig(Document):
         elif remaining_days <= level_1_days:
             severity = 'Level 1'
         else:
-            return  # No schedule notification needed
+            severity = 'Level 0'  # Changed from return to set Level 0
         
         # Delete existing schedule notification if any
         existing = frappe.db.exists('Schedule Notification', {
@@ -366,9 +366,9 @@ class NotificationsConfig(Document):
         schedule_notification.insert()
     
     def _create_distance_based_schedule_notification(self, notification_type, current_odometer, 
-                                         last_service_odometer, level_1_threshold, 
-                                         level_2_threshold, level_3_threshold,
-                                         transportation_asset, asset_unified_maintenance):
+                                     last_service_odometer, level_1_threshold, 
+                                     level_2_threshold, level_3_threshold,
+                                     transportation_asset, asset_unified_maintenance):
         """Create a distance-based schedule notification"""
         distance_since_service = current_odometer - last_service_odometer
         
@@ -380,7 +380,7 @@ class NotificationsConfig(Document):
         elif distance_since_service >= level_1_threshold:
             severity = 'Level 1'
         else:
-            return  # No schedule notification needed
+            severity = 'Level 0'  # Changed from return to set Level 0
         
         # Delete existing schedule notification if any
         existing = frappe.db.exists('Schedule Notification', {
