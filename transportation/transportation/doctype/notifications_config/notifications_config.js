@@ -68,7 +68,6 @@ frappe.ui.form.on('Notifications Config', {
             }
         ];
 
-        // Set up toggle handlers for each section
         sections.forEach(section => {
             // Initial state
             set_fields_read_only(frm, section.fields, !frm.doc[section.toggle]);
@@ -85,10 +84,10 @@ frappe.ui.form.on('Notifications Config', {
                 .then(count => {
                     const button_label = count > 0 ? 'Update Schedule Notifications' : 'Create Schedule Notifications';
                     
-                    // Set up primary button
+                    // Set up primary button - now always enabled
                     frm.page.set_primary_action(__(button_label), function() {
                         frappe.show_alert({
-                            message: __('Setting up notifications...'),
+                            message: __('Processing notifications...'),
                             indicator: 'blue'
                         });
 
@@ -117,21 +116,11 @@ frappe.ui.form.on('Notifications Config', {
                             }
                         });
                     });
-
-                    // Disable button if no changes and notifications exist
-                    if (count > 0 && !frm.doc.__unsaved) {
-                        frm.page.btn_primary.addClass('btn-default').prop('disabled', true);
-                    }
                 });
         }
     },
 
-    // Enable button when form is changed
-    validate: function(frm) {
-        if (frm.page.btn_primary) {
-            frm.page.btn_primary.removeClass('btn-default').prop('disabled', false);
-        }
-    }
+    // Removed the validate function as we don't need to handle button enabling/disabling anymore
 });
 
 function set_fields_read_only(frm, fields, readonly) {
