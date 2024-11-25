@@ -286,17 +286,21 @@ class NotificationsConfig(Document):
                 
                 # Time-based service schedule notifications
                 if self.track_vehicles_upcoming_service_by_time and service_doc.complete_date:
+                    # Calculate expiry date as 1 year from the last service date
+                    service_expiry_date = add_days(service_doc.complete_date, 365)
+                    
                     self._create_time_based_schedule_notification(
                         transportation_asset=asset.name,
                         notification_type='Transportation Asset Service Time',
-                        expiry_date=service_doc.complete_date,
+                        last_service_date=service_doc.complete_date,  # Set the last service date
+                        expiry_date=service_expiry_date,  # Set expiry to 1 year from last service
                         level_1_threshold=self.track_vehicles_service_by_time_level_1_time_remaining,
                         level_2_threshold=self.track_vehicles_service_by_time_level_2_time_remaining,
                         level_3_threshold=self.track_vehicles_service_by_time_level_3_time_remaining,
                         asset_unified_maintenance=asset.most_recent_service
                     )
                     schedule_notifications_created = True
-
+                    
                 # Distance-based service schedule notifications
                 if self.track_vehicles_upcoming_service_by_kilometres and service_doc.odometer_reading is not None and asset.current_mileage is not None:
                     self._create_distance_based_schedule_notification(
@@ -319,7 +323,7 @@ class NotificationsConfig(Document):
     def _create_time_based_schedule_notification(self, notification_type, expiry_date, 
                                   level_1_threshold, level_2_threshold, level_3_threshold,
                                   transportation_asset=None, driver=None, 
-                                  asset_unified_maintenance=None):
+                                  asset_unified_maintenance=None, last_service_date=None):
         """Create a time-based schedule notification"""
         remaining_days = date_diff(expiry_date, nowdate())
         
@@ -336,7 +340,7 @@ class NotificationsConfig(Document):
         elif remaining_days <= level_1_days:
             severity = 'Level 1'
         else:
-            severity = 'Level 0'  # Changed from return to set Level 0
+            severity = 'Level 0'
         
         # Delete existing schedule notification if any
         existing = frappe.db.exists('Schedule Notification', {
@@ -347,7 +351,7 @@ class NotificationsConfig(Document):
         if existing:
             frappe.delete_doc('Schedule Notification', existing)
             
-        schedule_notification = frappe.get_doc({
+        schedule_notification_data = {
             'doctype': 'Schedule Notification',
             'notification_type': notification_type,
             'threshold_type': 'Time',
@@ -361,8 +365,13 @@ class NotificationsConfig(Document):
             'remaining_time': remaining_days,
             'current_severity_level': severity,
             'last_processed': frappe.utils.now()
-        })
+        }
         
+        # Add last_service_date if provided
+        if last_service_date:
+            schedule_notification_data['last_service_date'] = last_service_date
+        
+        schedule_notification = frappe.get_doc(schedule_notification_data)
         schedule_notification.insert()
     
     def _create_distance_based_schedule_notification(self, notification_type, current_odometer, 
