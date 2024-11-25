@@ -379,17 +379,21 @@ class NotificationsConfig(Document):
                                      level_2_threshold, level_3_threshold,
                                      transportation_asset, asset_unified_maintenance):
         """Create a distance-based schedule notification"""
-        distance_since_service = current_odometer - last_service_odometer
+        # Calculate the odometer reading at which next service is due
+        service_due_at = last_service_odometer + self.track_vehicles_service_by_kilometres_level_1_distance_limit
         
-        # Determine severity level based on kilometers traveled since last service
-        if distance_since_service >= level_3_threshold:
+        # Calculate remaining distance until service is due
+        remaining_distance = service_due_at - current_odometer
+        
+        # Determine severity level based on how close we are to the service due point
+        if remaining_distance <= level_3_threshold:
             severity = 'Level 3'
-        elif distance_since_service >= level_2_threshold:
+        elif remaining_distance <= level_2_threshold:
             severity = 'Level 2'
-        elif distance_since_service >= level_1_threshold:
+        elif remaining_distance <= level_1_threshold:
             severity = 'Level 1'
         else:
-            severity = 'Level 0'  # Changed from return to set Level 0
+            severity = 'Level 0'
         
         # Delete existing schedule notification if any
         existing = frappe.db.exists('Schedule Notification', {
@@ -410,7 +414,8 @@ class NotificationsConfig(Document):
             'level_1_distance_threshold': level_1_threshold,
             'level_2_distance_threshold': level_2_threshold,
             'level_3_distance_threshold': level_3_threshold,
-            'remaining_distance': distance_since_service,
+            'remaining_distance': remaining_distance,  # Now represents distance until service is due
+            'next_service_due_at': service_due_at,    # Added to store when next service is due
             'current_severity_level': severity,
             'last_processed': frappe.utils.now()
         })

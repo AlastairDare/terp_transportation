@@ -262,6 +262,14 @@
         },
         {
             "depends_on": "track_vehicles_upcoming_service_by_kilometres",
+            "fieldname": "track_vehicles_service_by_kilometres_level_1_distance_limit",
+            "fieldtype": "Int",
+            "label": "Service frequency by distance (KM)",
+            "read_only": 0,
+            "default": 60000
+        },
+        {
+            "depends_on": "track_vehicles_upcoming_service_by_kilometres",
             "fieldname": "track_vehicles_service_by_kilometres_level_1_distance_remaining",
             "fieldtype": "Int",
             "label": "Track Vehicles Service By Kilometres Level 1 Distance Remaining (KM)",
