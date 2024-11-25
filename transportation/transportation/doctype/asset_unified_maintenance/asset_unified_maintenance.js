@@ -73,12 +73,6 @@ frappe.ui.form.on('Asset Unified Maintenance', {
     },
     
     before_save: function(frm) {
-        console.log('=== Before Save Called ===');
-        console.log('Timestamp:', new Date().toISOString());
-        console.log('Current Stack:', new Error().stack);
-        console.log('Form unsaved status:', frm.doc.__unsaved);
-        console.log('Maintenance status:', frm.doc.maintenance_status);
-    
         if (frm.doc.__unsaved && (frm.doc.maintenance_status === "Planned" || frm.doc.maintenance_status === "In Progress")) {
             frappe.show_alert({
                 message: __("Change status to 'Complete' to create an Expense log for this Maintenance Event"),

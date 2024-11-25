@@ -67,10 +67,6 @@ doc_events = {
     "validate": "transportation.transportation.doctype.refuel.refuel.validate",
     "before_save": "transportation.transportation.doctype.refuel.refuel.before_save"
     },
-    "Asset Unified Maintenance": {
-        "validate": "transportation.transportation.doctype.asset_unified_maintenance.asset_unified_maintenance.validate",
-        "before_save": "transportation.transportation.doctype.asset_unified_maintenance.asset_unified_maintenance.before_save"
-    },
     "Tolls": {
         "before_save": "transportation.transportation.doctype.tolls.tolls.validate",
         "after_insert": "transportation.transportation.doctype.tolls.tolls.after_insert"
