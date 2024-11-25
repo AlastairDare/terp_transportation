@@ -18,39 +18,6 @@ def get_permission_query_conditions(user=None):
         user = frappe.session.user
     return ""
 
-# Keep hooks at module level
-def validate(doc, method):
-    """
-    Module level validate hook - delegates to document class
-    """
-    # Remove any notification logic from here to avoid doubles
-    pass
-
-def update_transportation_asset(doc):
-    """
-    Update Transportation Asset's most recent service and mileage when maintenance is complete
-    """
-    if doc.maintenance_type == "Service" and doc.maintenance_status == "Complete":
-        # Get the linked transportation asset
-        transportation_asset = frappe.get_doc("Transportation Asset", doc.asset)
-        
-        # Update most recent service link
-        transportation_asset.most_recent_service = doc.name
-        
-        # Update current mileage if odometer reading is provided
-        if doc.odometer_reading and doc.odometer_reading > 0:
-            transportation_asset.current_mileage = doc.odometer_reading
-            
-        transportation_asset.save(ignore_permissions=True)
-
-def before_save(doc, method):
-    """
-    Module level before_save hook - for expense creation and transportation asset updates
-    """
-    if doc.maintenance_status == "Complete":
-        doc.create_or_update_expense()
-        update_transportation_asset(doc)
-
 class AssetUnifiedMaintenance(Document):
     def validate(self):
         self.validate_dates()
@@ -64,6 +31,28 @@ class AssetUnifiedMaintenance(Document):
             maintenance_type_label = "Service" if self.maintenance_type == "Service" else "Repair"
             frappe.throw(_(f"When setting a {maintenance_type_label} to 'Complete' an '{maintenance_type_label} Complete Date' is required"))
 
+    def before_save(self):
+        """Handle all before_save operations"""
+        if self.maintenance_status == "Complete":
+            self.create_or_update_expense()
+            self.update_transportation_asset()
+            
+    def update_transportation_asset(self):
+        """Update Transportation Asset's most recent service and mileage when maintenance is complete"""
+        if self.maintenance_type == "Service" and self.maintenance_status == "Complete":
+            # Get the linked transportation asset
+            transportation_asset = frappe.get_doc("Transportation Asset", self.asset)
+            
+            # Update most recent service link
+            transportation_asset.most_recent_service = self.name
+            
+            # Update current mileage if odometer reading is provided
+            if self.odometer_reading and self.odometer_reading > 0:
+                transportation_asset.current_mileage = self.odometer_reading
+                
+            transportation_asset.save(ignore_permissions=True)
+
+    # Rest of the existing methods remain unchanged
     def validate_dates(self):
         if not self.begin_date:
             frappe.throw(_("Begin Date is mandatory"))
@@ -288,5 +277,3 @@ class AssetUnifiedMaintenance(Document):
                 issue_assigned_to_maintenance_job = ''
             WHERE name IN %s
         """, (tuple(issues),))
-
-    
