@@ -21,8 +21,11 @@ def get_week_days(week_option):
     return week_map.get(week_option, 0)
 
 @frappe.whitelist()
-def process_schedule_notifications(self):
-    """Main function to process schedule notifications based on current configuration"""
+def process_schedule_notifications():
+    """Process schedule notifications based on current configuration"""
+    # Get the Notifications Config singleton
+    config = frappe.get_single('Notifications Config')
+    
     # First, delete ALL existing schedule notifications
     frappe.db.sql("""DELETE FROM `tabSchedule Notification`""")
     frappe.db.commit()
@@ -32,17 +35,17 @@ def process_schedule_notifications(self):
     driver_count = 0
     
     # Process driver notifications if enabled
-    if self.track_driver_license_expiry_date or self.track_driver_prdp_expiry_date:
-        driver_count = self._process_driver_schedule_notifications()
+    if config.track_driver_license_expiry_date or config.track_driver_prdp_expiry_date:
+        driver_count = config._process_driver_schedule_notifications()
     
     # Process asset notifications if any asset-related tracking is enabled
-    if (self.track_transportation_assets_registration_expiry_date or
-        self.track_transportation_assets_warranty_expiry_date or
-        self.track_transportation_assets_crw_expiry_date or
-        self.track_transportation_assets_cbrta_expiry_date or
-        self.track_vehicles_upcoming_service_by_time or
-        self.track_vehicles_upcoming_service_by_kilometres):
-        asset_count = self._process_asset_schedule_notifications()
+    if (config.track_transportation_assets_registration_expiry_date or
+        config.track_transportation_assets_warranty_expiry_date or
+        config.track_transportation_assets_crw_expiry_date or
+        config.track_transportation_assets_cbrta_expiry_date or
+        config.track_vehicles_upcoming_service_by_time or
+        config.track_vehicles_upcoming_service_by_kilometres):
+        asset_count = config._process_asset_schedule_notifications()
     
     frappe.db.commit()
     
