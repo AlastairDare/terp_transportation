@@ -5,7 +5,10 @@ frappe.ui.form.on('Transportation Asset', {
         toggleSecondaryTrailer(frm);
         setupFixedAssetFilter(frm);
         toggleMostRecentService(frm);
-        toggle_subbie_fields(frm);
+        if (!frm.__init_subbie) {
+            frm.__init_subbie = true;
+            toggle_subbie_fields(frm);
+        }
     },
 
     is_subbie: function(frm) {
@@ -17,19 +20,19 @@ frappe.ui.form.on('Transportation Asset', {
         setupFieldFilters(frm);
         clearTypeSpecificFields(frm);
         toggleSecondaryTrailer(frm);
-        setupFixedAssetFilter(frm); // Add this line
+        setupFixedAssetFilter(frm);
         
-        // Clear fixed asset when type changes
-        if (frm.doc.fixed_asset) {
-            frm.set_value('fixed_asset', '');
-        }
-
         if (frm.doc.is_subbie && frm.doc.transportation_asset_type !== 'Truck') {
             frm.set_value('transportation_asset_type', 'Truck');
             frappe.show_alert({
                 message: __('Subbie assets must be of type Truck'),
                 indicator: 'orange'
             });
+        }
+
+        // Clear fixed asset when type changes
+        if (frm.doc.fixed_asset) {
+            frm.set_value('fixed_asset', '');
         }
     },
 
@@ -303,6 +306,9 @@ function setupFixedAssetFilter(frm) {
 }
 
 function toggle_subbie_fields(frm) {
+    if (frm.__is_toggling_subbie) return; // Prevent recursive calls
+    frm.__is_toggling_subbie = true;
+    
     const is_subbie = frm.doc.is_subbie;
     
     // Fields that should not be mandatory for subbies
@@ -324,7 +330,6 @@ function toggle_subbie_fields(frm) {
     frm.set_df_property('transportation_asset_type', 'read_only', is_subbie);
     if (is_subbie) {
         frm.set_value('transportation_asset_type', 'Truck');
-        // Set a default status if needed
         frm.set_value('status', 'Active');
     }
 
@@ -339,6 +344,5 @@ function toggle_subbie_fields(frm) {
         frm.set_df_property(section, 'hidden', is_subbie);
     });
 
-    // Refresh the form to apply changes
-    frm.refresh();
+    frm.__is_toggling_subbie = false;
 }
