@@ -36,59 +36,59 @@ def validate(doc, method):
         doc.net_mass = doc.second_mass - doc.first_mass
 
 def before_save(doc, method):
-    """Before save hook to handle item creation"""
+    """Before save hook to handle item and sales invoice creation"""
     if doc.status == "Complete":
         try:
-            if frappe.db.exists("Item", doc.name):
-                frappe.msgprint(
-                    msg=_("Service Item {0} already exists").format(doc.name),
-                    title=_("Service Item Status"),
-                    indicator="blue"
-                )
-                return
+            # First ensure the item exists regardless of sales invoice choice
+            if not frappe.db.exists("Item", doc.name):
+                item = frappe.get_doc({
+                    "doctype": "Item",
+                    "item_code": doc.name,
+                    "item_name": f"{doc.name}",
+                    "item_group": "Trips",
+                    "stock_uom": "Each",
+                    "is_stock_item": 0,
+                    "is_fixed_asset": 0,
+                    "description": f"Service Item for Trip {doc.name}"
+                })
+                
+                item.insert(ignore_permissions=True)
+                
+                # Only show item creation message if we're not creating a sales invoice
+                if not doc.auto_create_sales_invoice:
+                    msg = f"""
+                        <div>
+                            <p>{_("Service Item created successfully: {0}").format(doc.name)}</p>
+                            <div style="margin-top: 10px;">
+                                <button class="btn btn-xs btn-default" 
+                                        onclick="frappe.utils.copy_to_clipboard('{doc.name}').then(() => {{
+                                            frappe.show_alert({{
+                                                message: '{_("Item code copied to clipboard")}',
+                                                indicator: 'green'
+                                            }});
+                                        }})">
+                                    Copy Item Code
+                                </button>
+                            </div>
+                        </div>
+                    """
+                    
+                    frappe.msgprint(
+                        msg=msg,
+                        title=_("Service Item Created"),
+                        indicator="green"
+                    )
 
-            item = frappe.get_doc({
-                "doctype": "Item",
-                "item_code": doc.name,
-                "item_name": f"{doc.name}",
-                "item_group": "Trips",
-                "stock_uom": "Each",
-                "is_stock_item": 0,
-                "is_fixed_asset": 0,
-                "description": f"Service Item for Trip {doc.name}"
-            })
-            
-            item.insert(ignore_permissions=True)
-            
-            msg = f"""
-                <div>
-                    <p>{_("Service Item created successfully: {0}").format(doc.name)}</p>
-                    <div style="margin-top: 10px;">
-                        <button class="btn btn-xs btn-default" 
-                                onclick="frappe.utils.copy_to_clipboard('{doc.name}').then(() => {{
-                                    frappe.show_alert({{
-                                        message: '{_("Item code copied to clipboard")}',
-                                        indicator: 'green'
-                                    }});
-                                }})">
-                            Copy Item Code
-                        </button>
-                    </div>
-                </div>
-            """
-            
-            frappe.msgprint(
-                msg=msg,
-                title=_("Service Item Created"),
-                indicator="green"
-            )
-
+            # Handle sales invoice creation/update if auto-create is enabled
+            if doc.auto_create_sales_invoice:
+                create_or_update_sales_invoice(doc)
+                
         except Exception as e:
             frappe.log_error(
-                message=f"Error creating service item for trip {doc.name}: {str(e)}",
-                title="Service Item Creation Error"
+                message=f"Error in before_save for trip {doc.name}: {str(e)}",
+                title="Trip Save Error"
             )
-            frappe.throw(_("Failed to create service item. Error: {0}").format(str(e)))
+            frappe.throw(_("Failed to process trip completion. Error: {0}").format(str(e)))
 
 def handle_service_item(doc):
     """Create service item if it doesn't exist"""
@@ -217,3 +217,86 @@ def get_last_odometer_reading(truck: str, current_doc: Optional[str] = None) -> 
         "trip_name": None,
         "trip_date": None
     }
+    
+def create_or_update_sales_invoice(doc):
+    """Create or update sales invoice based on trip data"""
+    try:
+        if doc.linked_sales_invoice:
+            # Update existing invoice
+            sales_invoice = frappe.get_doc("Sales Invoice", doc.linked_sales_invoice)
+            update_sales_invoice(sales_invoice, doc)
+            sales_invoice.save()
+            frappe.msgprint(
+                msg=f"""
+                    <div>
+                        <p>{_("Sales Invoice updated successfully: ")} 
+                        <a href='/app/sales-invoice/{sales_invoice.name}'>{sales_invoice.name}</a>
+                        </p>
+                    </div>
+                """,
+                title=_("Sales Invoice Updated"),
+                indicator="green"
+            )
+        else:
+            # Create new invoice
+            sales_invoice = create_new_sales_invoice(doc)
+            doc.linked_sales_invoice = sales_invoice.name
+            frappe.msgprint(
+                msg=f"""
+                    <div>
+                        <p>{_("Sales Invoice created successfully: ")} 
+                        <a href='/app/sales-invoice/{sales_invoice.name}'>{sales_invoice.name}</a>
+                        </p>
+                    </div>
+                """,
+                title=_("Sales Invoice Created"),
+                indicator="green"
+            )
+            
+    except Exception as e:
+        frappe.log_error(
+            message=f"Error creating/updating sales invoice for trip {doc.name}: {str(e)}",
+            title="Sales Invoice Creation Error"
+        )
+        frappe.throw(_("Failed to create/update sales invoice. Error: {0}").format(str(e)))
+
+def create_new_sales_invoice(doc):
+    """Create a new sales invoice from trip data"""
+    sales_invoice = frappe.get_doc({
+        "doctype": "Sales Invoice",
+        "customer": doc.billing_customer,
+        "taxes_and_charges": doc.taxes_and_charges,
+        "items": [{
+            "item_code": doc.name,
+            "qty": doc.quantity,
+            "rate": doc.rate,
+            "amount": doc.amount
+        }]
+    })
+    
+    sales_invoice.insert(ignore_permissions=True)
+    return sales_invoice
+
+def update_sales_invoice(sales_invoice, doc):
+    """Update existing sales invoice with new trip data"""
+    # Update header level fields
+    sales_invoice.customer = doc.billing_customer
+    sales_invoice.taxes_and_charges = doc.taxes_and_charges
+    
+    # Update or add item
+    item_found = False
+    for item in sales_invoice.items:
+        if item.item_code == doc.name:
+            item.qty = doc.quantity
+            item.rate = doc.rate
+            item.amount = doc.amount
+            item_found = True
+            break
+    
+    if not item_found:
+        sales_invoice.append("items", {
+            "item_code": doc.name,
+            "qty": doc.quantity,
+            "rate": doc.rate,
+            "amount": doc.amount
+        })

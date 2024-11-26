@@ -144,6 +144,70 @@ frappe.ui.form.on('Trip', {
 
     time_end: function(frm) {
         validateTimes(frm);
+    },
+
+    auto_create_sales_invoice: function(frm) {
+        if (!frm.doc.auto_create_sales_invoice) {
+            frappe.confirm(
+                'Unchecking this will clear all sales invoice related fields. Continue?',
+                function() {
+                    // User clicked Yes
+                    frm.set_value('billing_customer', '');
+                    frm.set_value('quantity', 1);
+                    frm.set_value('rate', '');
+                    frm.set_value('amount', '');
+                    frm.set_value('taxes_and_charges', '');
+                },
+                function() {
+                    // User clicked No
+                    frm.set_value('auto_create_sales_invoice', 1);
+                }
+            );
+        }
+    },
+    
+    quantity_is_net_mass: function(frm) {
+        if (frm.doc.quantity_is_net_mass) {
+            if (frm.doc.net_mass) {
+                frm.set_value('quantity', frm.doc.net_mass);
+            } else {
+                frappe.show_alert({
+                    message: __('Value for Net mass needs to be filled in to populate Quantity'),
+                    indicator: 'yellow'
+                });
+                frm.set_value('quantity', 0);
+            }
+        } else {
+            frm.set_value('quantity', 1);
+        }
+    },
+    
+    net_mass: function(frm) {
+        if (frm.doc.quantity_is_net_mass) {
+            frm.set_value('quantity', frm.doc.net_mass || 0);
+        }
+    },
+    
+    quantity: function(frm) {
+        calculateAmount(frm);
+    },
+    
+    rate: function(frm) {
+        if (frm.doc.rate < 1) {
+            frappe.show_alert({
+                message: __('Rate cannot be less than 1'),
+                indicator: 'red'
+            });
+            frm.set_value('rate', 1);
+            return;
+        }
+        calculateAmount(frm);
+    },
+    
+    before_save: function(frm) {
+        if (frm.doc.status === "Complete" && frm.doc.auto_create_sales_invoice) {
+            validateSalesInvoiceFields(frm);
+        }
     }
 });
 
@@ -205,4 +269,23 @@ function logStatusChange(frm) {
 frappe.form.formatters['Time'] = function(value) {
     if (!value) return '';
     return moment(value, 'HH:mm:ss').format('HH:mm');
+}
+
+function calculateAmount(frm) {
+    if (frm.doc.quantity && frm.doc.rate) {
+        frm.set_value('amount', frm.doc.quantity * frm.doc.rate);
+    }
+}
+
+function validateSalesInvoiceFields(frm) {
+    const requiredFields = ['billing_customer', 'quantity', 'rate', 'taxes_and_charges'];
+    const missingFields = requiredFields.filter(field => !frm.doc[field]);
+    
+    if (missingFields.length > 0) {
+        frappe.throw(__(`Please fill in the following fields for Sales Invoice creation: ${missingFields.join(', ')}`));
+    }
+    
+    if (frm.doc.quantity <= 0) {
+        frappe.throw(__('Quantity must be greater than 0'));
+    }
 }

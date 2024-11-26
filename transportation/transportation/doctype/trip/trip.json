@@ -29,6 +29,65 @@
             "read_only": 1
         },
         {
+            "fieldname": "sales_invoice_setup_section",
+            "fieldtype": "Section Break",
+            "label": "Sales Invoice Setup",
+            "insert_after": "trip_information_section"
+        },
+        {
+            "fieldname": "linked_sales_invoice",
+            "fieldtype": "Link",
+            "label": "Linked Sales Invoice",
+            "options": "Sales Invoice",
+            "read_only": 1
+        },
+        {
+            "fieldname": "auto_create_sales_invoice",
+            "fieldtype": "Check",
+            "label": "Auto-Create Sales Invoice",
+            "default": 0
+        },
+        {
+            "fieldname": "quantity_is_net_mass",
+            "fieldtype": "Check",
+            "label": "Quantity is Net Mass",
+            "default": 0
+        },
+        {
+            "fieldname": "billing_customer",
+            "fieldtype": "Link",
+            "label": "Billing Customer",
+            "options": "Customer",
+            "depends_on": "eval:doc.auto_create_sales_invoice==1"
+        },
+        {
+            "fieldname": "quantity",
+            "fieldtype": "Float",
+            "label": "Quantity",
+            "default": 1,
+            "depends_on": "eval:doc.auto_create_sales_invoice==1"
+        },
+        {
+            "fieldname": "rate",
+            "fieldtype": "Currency",
+            "label": "Rate",
+            "depends_on": "eval:doc.auto_create_sales_invoice==1"
+        },
+        {
+            "fieldname": "amount",
+            "fieldtype": "Currency",
+            "label": "Amount",
+            "read_only": 1,
+            "depends_on": "eval:doc.auto_create_sales_invoice==1"
+        },
+        {
+            "fieldname": "taxes_and_charges",
+            "fieldtype": "Link",
+            "label": "Taxes and Charges",
+            "options": "Sales Taxes and Charges Template",
+            "depends_on": "eval:doc.auto_create_sales_invoice==1"
+        },
+        {
             "fieldname": "trip_assignment_section",
             "fieldtype": "Section Break",
             "label": "Trip Assignment Details",
@@ -101,21 +160,21 @@
         {
             "fieldname": "first_mass",
             "fieldtype": "Int",
-            "label": "First Mass (KG)",
+            "label": "First Mass (Tons)",
             "description": "Mass of the vehicle without cargo",
             "reqd": 0
         },
         {
             "fieldname": "second_mass",
             "fieldtype": "Int",
-            "label": "Second Mass (KG)",
+            "label": "Second Mass (Tons)",
             "description": "Mass of the vehicle including cargo",
             "reqd": 0
         },
         {
             "fieldname": "net_mass",
             "fieldtype": "Int",
-            "label": "Net Mass (KG)",
+            "label": "Net Mass (Tons)",
             "description": "Mass of just the cargo",
             "reqd": 0
         },
