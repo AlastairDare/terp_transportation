@@ -82,6 +82,11 @@ frappe.ui.form.on('Trip', {
         // Perform any necessary calculations or validations before saving
         calculateTotalDistance(frm);
         calculateNetMass(frm);
+        
+        // Validate sales invoice fields if needed
+        if (frm.doc.status === "Complete" && frm.doc.auto_create_sales_invoice) {
+            validateSalesInvoiceFields(frm);
+        }
     },
 
     after_save: function(frm) {
@@ -202,12 +207,6 @@ frappe.ui.form.on('Trip', {
             return;
         }
         calculateAmount(frm);
-    },
-    
-    before_save: function(frm) {
-        if (frm.doc.status === "Complete" && frm.doc.auto_create_sales_invoice) {
-            validateSalesInvoiceFields(frm);
-        }
     }
 });
 
