@@ -114,5 +114,3 @@ scheduler_events = {
         ]
     }
 }
-
-boot_session = "transportation.startup.boot.boot_session"
