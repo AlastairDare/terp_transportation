@@ -115,4 +115,4 @@ scheduler_events = {
     }
 }
 
-default_home_page = "/app/operations"
+boot_session = "transportation.startup.boot.boot_session"
