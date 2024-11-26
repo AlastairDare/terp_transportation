@@ -8,22 +8,22 @@ def validate(doc, method):
     if doc.is_subbie:
         if doc.transportation_asset_type != "Truck":
             frappe.throw(_("Subbie assets must be of type Truck"))
-        # Only validate these minimal fields for subbies
+        # Only validate license_plate and asset_number for subbies
         if not doc.license_plate:
             frappe.throw(_("License Plate is mandatory for Subbie Trucks"))
         if not doc.asset_number:
             frappe.throw(_("Asset Number is mandatory for Subbie Trucks"))
-        if not doc.vin:
-            frappe.throw(_("VIN is mandatory for Subbie Trucks"))
-    else:
-        # Regular validation for non-subbie assets
-        update_dynamic_labels(doc)
-        validate_fixed_asset_category(doc)
-        
-        if doc.transportation_asset_type == "Trailer":
-            validate_trailer(doc)
-        elif doc.transportation_asset_type == "Truck":
-            validate_truck(doc)
+        # Skip all other validations for subbies
+        return
+    
+    # Regular validation for non-subbie assets
+    update_dynamic_labels(doc)
+    validate_fixed_asset_category(doc)
+    
+    if doc.transportation_asset_type == "Trailer":
+        validate_trailer(doc)
+    elif doc.transportation_asset_type == "Truck":
+        validate_truck(doc)
 
 def validate_fixed_asset_category(doc):
     """Validate that the fixed asset belongs to the correct asset category"""

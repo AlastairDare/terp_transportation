@@ -306,16 +306,18 @@ function setupFixedAssetFilter(frm) {
 }
 
 function toggle_subbie_fields(frm) {
-    if (frm.__is_toggling_subbie) return; // Prevent recursive calls
+    if (frm.__is_toggling_subbie) return;
     frm.__is_toggling_subbie = true;
     
     const is_subbie = frm.doc.is_subbie;
     
-    // Fields that should not be mandatory for subbies
+    // Expanded list of fields to modify
     const fields_to_modify = [
         'fixed_asset',
         'status',
-        'vin'
+        'vin',
+        'etag_number',
+        'registration_expiry'
     ];
     
     const sections_to_hide = [
@@ -337,6 +339,12 @@ function toggle_subbie_fields(frm) {
     fields_to_modify.forEach(field => {
         frm.set_df_property(field, 'hidden', is_subbie);
         frm.set_df_property(field, 'reqd', !is_subbie);
+
+        // For new docs, explicitly set fields as not mandatory in the metadata
+        if (frm.is_new() && is_subbie) {
+            let df = frappe.meta.get_docfield(frm.doctype, field, frm.doc.name);
+            if (df) df.reqd = 0;
+        }
     });
 
     // Hide sections
@@ -344,5 +352,6 @@ function toggle_subbie_fields(frm) {
         frm.set_df_property(section, 'hidden', is_subbie);
     });
 
+    frm.refresh_fields();
     frm.__is_toggling_subbie = false;
 }
