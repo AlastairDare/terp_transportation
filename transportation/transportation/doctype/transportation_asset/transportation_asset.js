@@ -36,6 +36,33 @@ frappe.ui.form.on('Transportation Asset', {
         }
     },
 
+    before_save: function(frm) {
+        if (frm.doc.is_subbie) {
+            // Get all fields that we want to make non-mandatory
+            const fields_to_override = ['fixed_asset', 'vin', 'status'];
+            
+            // Override mandatory validation for these fields
+            fields_to_override.forEach(field => {
+                let df = frappe.meta.get_docfield(frm.doctype, field, frm.doc.name);
+                if (df) {
+                    df._reqd = df.reqd;  // Store original reqd value
+                    df.reqd = 0;         // Make field not mandatory
+                }
+            });
+            
+            // Restore after a short delay
+            setTimeout(() => {
+                fields_to_override.forEach(field => {
+                    let df = frappe.meta.get_docfield(frm.doctype, field, frm.doc.name);
+                    if (df && df._reqd !== undefined) {
+                        df.reqd = df._reqd;
+                        delete df._reqd;
+                    }
+                });
+            }, 1000);
+        }
+    },
+
     primary_trailer: function(frm) {
         if (!frm.doc.primary_trailer) {
             frm.set_value('secondary_trailer', '');
