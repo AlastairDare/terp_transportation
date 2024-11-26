@@ -37,7 +37,7 @@
             "label": "Fixed Asset",
             "fieldtype": "Link",
             "options": "Asset",
-            "reqd": 1,
+            "reqd": 0,
             "unique": 1
         },
         {
@@ -224,7 +224,7 @@
             "fieldname": "vin",
             "label": "VIN",
             "fieldtype": "Data",
-            "reqd": 1,
+            "reqd": 0,
             "unique": 1
         },
         {

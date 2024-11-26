@@ -10,11 +10,11 @@ frappe.ui.form.on('Transportation Asset', {
             toggle_subbie_fields(frm);
         }
     },
-
+ 
     is_subbie: function(frm) {
         toggle_subbie_fields(frm);
     },
-
+ 
     transportation_asset_type: function(frm) {
         updateFieldLabels(frm);
         setupFieldFilters(frm);
@@ -29,78 +29,57 @@ frappe.ui.form.on('Transportation Asset', {
                 indicator: 'orange'
             });
         }
-
+ 
         // Clear fixed asset when type changes
         if (frm.doc.fixed_asset) {
             frm.set_value('fixed_asset', '');
         }
     },
-
-    before_save: function(frm) {
+ 
+    validate: function(frm) {
+        // Skip validations for subbie trucks
         if (frm.doc.is_subbie) {
-            // Get all fields that we want to make non-mandatory
-            const fields_to_override = ['fixed_asset', 'vin', 'status'];
-            
-            // Override mandatory validation for these fields
-            fields_to_override.forEach(field => {
-                let df = frappe.meta.get_docfield(frm.doctype, field, frm.doc.name);
-                if (df) {
-                    df._reqd = df.reqd;  // Store original reqd value
-                    df.reqd = 0;         // Make field not mandatory
-                }
-            });
-            
-            // Restore after a short delay
-            setTimeout(() => {
-                fields_to_override.forEach(field => {
-                    let df = frappe.meta.get_docfield(frm.doctype, field, frm.doc.name);
-                    if (df && df._reqd !== undefined) {
-                        df.reqd = df._reqd;
-                        delete df._reqd;
-                    }
-                });
-            }, 1000);
-        }
-    },
-
-    primary_trailer: function(frm) {
-        if (!frm.doc.primary_trailer) {
-            frm.set_value('secondary_trailer', '');
-            toggleSecondaryTrailer(frm);
             return;
         }
-
-        // Fetch the primary trailer's paired trailer
-        frappe.db.get_value('Transportation Asset', 
-            frm.doc.primary_trailer,
-            ['paired_trailer', 'status'],
-            function(data) {
-                if (data && data.paired_trailer) {
-                    // Check if the paired trailer is active
-                    frappe.db.get_value('Transportation Asset',
-                        data.paired_trailer,
-                        'status',
-                        function(trailer_data) {
-                            if (trailer_data && trailer_data.status === 'Active') {
-                                frm.set_value('secondary_trailer', data.paired_trailer);
-                            } else {
-                                frm.set_value('secondary_trailer', '');
-                                frappe.show_alert({
-                                    message: __('The paired trailer is not active and cannot be assigned'),
-                                    indicator: 'orange'
-                                });
-                            }
-                            toggleSecondaryTrailer(frm);
-                        }
-                    );
-                } else {
-                    frm.set_value('secondary_trailer', '');
-                    toggleSecondaryTrailer(frm);
-                }
-            }
-        );
+ 
+        // Validate required fields for non-subbie assets
+        if (!frm.doc.fixed_asset) {
+            frappe.msgprint(__('Fixed Asset is mandatory for regular Transportation Assets'));
+            frappe.validated = false;
+            return;
+        }
+ 
+        if (!frm.doc.vin) {
+            frappe.msgprint(__('VIN is mandatory for regular Transportation Assets'));
+            frappe.validated = false;
+            return;
+        }
+ 
+        if (!frm.doc.status) {
+            frappe.msgprint(__('Status is mandatory for regular Transportation Assets'));
+            frappe.validated = false;
+            return;
+        }
+ 
+        // Validate class based on type
+        if (frm.doc.transportation_asset_type === 'Truck' && !frm.doc.asset_class) {
+            frappe.msgprint(__('Please select a Vehicle Class'));
+            frappe.validated = false;
+        }
+        
+        if (frm.doc.transportation_asset_type === 'Trailer' && !frm.doc.trailer_class) {
+            frappe.msgprint(__('Please select a Trailer Class'));
+            frappe.validated = false;
+        }
+ 
+        // Prevent self-pairing for trailers
+        if (frm.doc.transportation_asset_type === 'Trailer' && 
+            frm.doc.paired_trailer === frm.doc.name) {
+            frappe.msgprint(__('A trailer cannot be paired with itself'));
+            frappe.validated = false;
+        }
     }
-});
+ });
 
 function updateFieldLabels(frm) {
     const assetType = frm.doc.transportation_asset_type;
