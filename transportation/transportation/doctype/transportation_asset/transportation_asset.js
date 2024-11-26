@@ -5,6 +5,11 @@ frappe.ui.form.on('Transportation Asset', {
         toggleSecondaryTrailer(frm);
         setupFixedAssetFilter(frm);
         toggleMostRecentService(frm);
+        toggle_subbie_fields(frm);
+    },
+
+    is_subbie: function(frm) {
+        toggle_subbie_fields(frm);
     },
 
     transportation_asset_type: function(frm) {
@@ -17,6 +22,14 @@ frappe.ui.form.on('Transportation Asset', {
         // Clear fixed asset when type changes
         if (frm.doc.fixed_asset) {
             frm.set_value('fixed_asset', '');
+        }
+
+        if (frm.doc.is_subbie && frm.doc.transportation_asset_type !== 'Truck') {
+            frm.set_value('transportation_asset_type', 'Truck');
+            frappe.show_alert({
+                message: __('Subbie assets must be of type Truck'),
+                indicator: 'orange'
+            });
         }
     },
 
@@ -281,5 +294,40 @@ function setupFixedAssetFilter(frm) {
                 'transportation_asset_type': assetType
             }
         };
+    });
+}
+
+function toggle_subbie_fields(frm) {
+    const is_subbie = frm.doc.is_subbie;
+    const fields_to_hide = [
+        'fixed_asset',
+        'etag_number',
+        'registration_expiry',
+        'status'
+    ];
+    
+    const sections_to_hide = [
+        'pairing_section',
+        'warranty_section',
+        'certificates_and_permits_section',
+        'model_detail_section',
+        'logistics_section'
+    ];
+
+    // Handle transportation_asset_type
+    frm.set_df_property('transportation_asset_type', 'read_only', is_subbie);
+    if (is_subbie) {
+        frm.set_value('transportation_asset_type', 'Truck');
+    }
+
+    // Hide/show fields and make them non-mandatory
+    fields_to_hide.forEach(field => {
+        frm.set_df_property(field, 'hidden', is_subbie);
+        frm.set_df_property(field, 'reqd', !is_subbie);
+    });
+
+    // Hide/show sections
+    sections_to_hide.forEach(section => {
+        frm.set_df_property(section, 'hidden', is_subbie);
     });
 }

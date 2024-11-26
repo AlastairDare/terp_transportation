@@ -19,6 +19,15 @@
             "reqd": 1
         },
         {
+            "fieldname": "col_break_type",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "is_subbie",
+            "label": "Is Subbie",
+            "fieldtype": "Check"
+        },
+        {
             "fieldname": "general_information_section",
             "fieldtype": "Section Break",
             "label": "General Information"

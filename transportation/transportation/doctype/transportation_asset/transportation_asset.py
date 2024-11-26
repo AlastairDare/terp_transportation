@@ -5,15 +5,20 @@ def validate(doc, method):
     """Validate transportation asset document"""
     frappe.logger().debug(f"Validating transportation asset {doc.name}")
     
+    if doc.is_subbie:
+        if doc.transportation_asset_type != "Truck":
+            frappe.throw(_("Subbie assets must be of type Truck"))
+            
     # Update labels based on asset type
     update_dynamic_labels(doc)
     
-    # Validate fixed asset category
-    validate_fixed_asset_category(doc)
+    # Validate fixed asset category only if not a subbie
+    if not doc.is_subbie:
+        validate_fixed_asset_category(doc)
     
     if doc.transportation_asset_type == "Trailer":
         validate_trailer(doc)
-    elif doc.transportation_asset_type == "Truck":
+    elif doc.transportation_asset_type == "Truck" and not doc.is_subbie:
         validate_truck(doc)
 
 def validate_fixed_asset_category(doc):
