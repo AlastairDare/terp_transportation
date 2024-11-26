@@ -209,6 +209,11 @@ function toggleSecondaryTrailer(frm) {
 
 // Add custom validations
 frappe.ui.form.on('Transportation Asset', 'validate', function(frm) {
+    // Skip validations for subbie trucks
+    if (frm.doc.is_subbie) {
+        return;
+    }
+
     // Ensure asset class is set based on type
     if (frm.doc.transportation_asset_type === 'Truck' && !frm.doc.asset_class) {
         frappe.msgprint(__('Please select a Vehicle Class'));
@@ -299,11 +304,12 @@ function setupFixedAssetFilter(frm) {
 
 function toggle_subbie_fields(frm) {
     const is_subbie = frm.doc.is_subbie;
-    const fields_to_hide = [
+    
+    // Fields that should not be mandatory for subbies
+    const fields_to_modify = [
         'fixed_asset',
-        'etag_number',
-        'registration_expiry',
-        'status'
+        'status',
+        'vin'
     ];
     
     const sections_to_hide = [
@@ -318,16 +324,21 @@ function toggle_subbie_fields(frm) {
     frm.set_df_property('transportation_asset_type', 'read_only', is_subbie);
     if (is_subbie) {
         frm.set_value('transportation_asset_type', 'Truck');
+        // Set a default status if needed
+        frm.set_value('status', 'Active');
     }
 
-    // Hide/show fields and make them non-mandatory
-    fields_to_hide.forEach(field => {
+    // Modify field properties
+    fields_to_modify.forEach(field => {
         frm.set_df_property(field, 'hidden', is_subbie);
         frm.set_df_property(field, 'reqd', !is_subbie);
     });
 
-    // Hide/show sections
+    // Hide sections
     sections_to_hide.forEach(section => {
         frm.set_df_property(section, 'hidden', is_subbie);
     });
+
+    // Refresh the form to apply changes
+    frm.refresh();
 }

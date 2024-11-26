@@ -8,18 +8,22 @@ def validate(doc, method):
     if doc.is_subbie:
         if doc.transportation_asset_type != "Truck":
             frappe.throw(_("Subbie assets must be of type Truck"))
-            
-    # Update labels based on asset type
-    update_dynamic_labels(doc)
-    
-    # Validate fixed asset category only if not a subbie
-    if not doc.is_subbie:
+        # Only validate these minimal fields for subbies
+        if not doc.license_plate:
+            frappe.throw(_("License Plate is mandatory for Subbie Trucks"))
+        if not doc.asset_number:
+            frappe.throw(_("Asset Number is mandatory for Subbie Trucks"))
+        if not doc.vin:
+            frappe.throw(_("VIN is mandatory for Subbie Trucks"))
+    else:
+        # Regular validation for non-subbie assets
+        update_dynamic_labels(doc)
         validate_fixed_asset_category(doc)
-    
-    if doc.transportation_asset_type == "Trailer":
-        validate_trailer(doc)
-    elif doc.transportation_asset_type == "Truck" and not doc.is_subbie:
-        validate_truck(doc)
+        
+        if doc.transportation_asset_type == "Trailer":
+            validate_trailer(doc)
+        elif doc.transportation_asset_type == "Truck":
+            validate_truck(doc)
 
 def validate_fixed_asset_category(doc):
     """Validate that the fixed asset belongs to the correct asset category"""
@@ -121,12 +125,14 @@ def validate_truck(doc):
 def update_dynamic_labels(doc):
     """Update field labels based on asset type"""
     if doc.transportation_asset_type == "Truck":
-        doc.asset_name = doc.get("asset_name", "").replace("Asset", "Vehicle")
-        doc.asset_number = doc.get("asset_number", "").replace("Asset", "Truck")
+        if doc.get("asset_name"):
+            doc.asset_name = doc.get("asset_name", "").replace("Asset", "Vehicle")
+        doc.asset_number = doc.get("asset_number", "").replace("Asset", "Truck") if doc.get("asset_number") else ""
         doc.asset_mass = doc.get("asset_mass", "")
     else:
-        doc.asset_name = doc.get("asset_name", "").replace("Asset", "Trailer")
-        doc.asset_number = doc.get("asset_number", "").replace("Asset", "Trailer")
+        if doc.get("asset_name"):
+            doc.asset_name = doc.get("asset_name", "").replace("Asset", "Trailer")
+        doc.asset_number = doc.get("asset_number", "").replace("Asset", "Trailer") if doc.get("asset_number") else ""
         doc.asset_mass = doc.get("asset_mass", "")
 
 @frappe.whitelist()
