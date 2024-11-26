@@ -115,6 +115,4 @@ scheduler_events = {
     }
 }
 
-on_session_creation = [
-    "transportation.api.set_home_page"
-]
+default_home_page = "/app/operations"
