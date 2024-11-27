@@ -229,13 +229,15 @@ class TransportationDashboard {
         data.forEach(row => {
             body_html += '<tr>';
             this.columns.forEach(col => {
-                let value = row[col.fieldname];
+                let value = row[col.fieldname] ?? 0; // Use nullish coalescing to show 0 for null/undefined
                 if (col.fieldtype === 'Currency') {
                     value = frappe.format(value, { fieldtype: 'Currency' });
                 } else if (col.fieldtype === 'Float') {
                     value = frappe.format(value, { fieldtype: 'Float', precision: 2 });
+                } else if (col.fieldtype === 'Int') {
+                    value = frappe.format(value, { fieldtype: 'Int' });
                 }
-                body_html += `<td>${value || ''}</td>`;
+                body_html += `<td>${value}</td>`;
             });
             body_html += '</tr>';
         });
@@ -247,7 +249,7 @@ class TransportationDashboard {
         
         // Calculate totals for numeric columns
         this.columns.forEach(col => {
-            if (col.fieldtype === 'Currency' || col.fieldtype === 'Float') {
+            if (['Currency', 'Float', 'Int'].includes(col.fieldtype)) {
                 totals[col.fieldname] = data.reduce((sum, row) => sum + (row[col.fieldname] || 0), 0);
             }
         });
@@ -263,6 +265,8 @@ class TransportationDashboard {
                     value = frappe.format(value, { fieldtype: 'Currency' });
                 } else if (col.fieldtype === 'Float') {
                     value = frappe.format(value, { fieldtype: 'Float', precision: 2 });
+                } else if (col.fieldtype === 'Int') {
+                    value = frappe.format(value, { fieldtype: 'Int' });
                 }
             } else {
                 value = '';
