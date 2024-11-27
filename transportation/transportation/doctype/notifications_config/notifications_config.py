@@ -21,38 +21,65 @@ def get_week_days(week_option):
     return week_map.get(week_option, 0)
 
 @frappe.whitelist()
-def process_schedule_notifications():
-    """Process schedule notifications based on current configuration"""
-    # Get the Notifications Config singleton
-    config = frappe.get_single('Notifications Config')
-    
-    # First, delete ALL existing schedule notifications
-    frappe.db.sql("""DELETE FROM `tabSchedule Notification`""")
-    frappe.db.commit()
-    
-    # Initialize counters
-    asset_count = 0
-    driver_count = 0
-    
-    # Process driver notifications if enabled
-    if config.track_driver_license_expiry_date or config.track_driver_prdp_expiry_date:
-        driver_count = config._process_driver_schedule_notifications()
-    
-    # Process asset notifications if any asset-related tracking is enabled
-    if (config.track_transportation_assets_registration_expiry_date or
-        config.track_transportation_assets_warranty_expiry_date or
-        config.track_transportation_assets_crw_expiry_date or
-        config.track_transportation_assets_cbrta_expiry_date or
-        config.track_vehicles_upcoming_service_by_time or
-        config.track_vehicles_upcoming_service_by_kilometres):
-        asset_count = config._process_asset_schedule_notifications()
-    
-    frappe.db.commit()
-    
-    return {
-        "assets": asset_count,
-        "drivers": driver_count
-    }
+def process_schedule_notifications(self):
+        """Main function to process schedule notifications based on current configuration"""
+        # Track which schedule notification types were previously configured
+        previous_types = set(frappe.get_all('Schedule Notification', 
+                                          fields=['notification_type'], 
+                                          distinct=True, 
+                                          pluck='notification_type'))
+        
+        # Get current enabled types
+        current_types = set()
+        if self.track_driver_license_expiry_date:
+            current_types.add('Driver License')
+        if self.track_driver_prdp_expiry_date:
+            current_types.add('Driver PrDP')
+        if self.track_transportation_assets_registration_expiry_date:
+            current_types.add('Transportation Asset Registration')
+        if self.track_transportation_assets_warranty_expiry_date:
+            current_types.add('Transportation Asset Warranty')
+        if self.track_transportation_assets_crw_expiry_date:
+            current_types.add('Transportation Asset CRW')
+        if self.track_transportation_assets_cbrta_expiry_date:
+            current_types.add('Transportation Asset C-BRTA')
+        if self.track_vehicles_upcoming_service_by_time:
+            current_types.add('Transportation Asset Service Time')
+        if self.track_vehicles_upcoming_service_by_kilometres:
+            current_types.add('Transportation Asset Service Distance')
+        
+        # Always include Miscellaneous type for custom notifications
+        current_types.add('Miscellaneous')
+        
+        # Delete all existing schedule notifications
+        frappe.db.sql("""DELETE FROM `tabSchedule Notification`""")
+        
+        # Process schedule notifications
+        asset_count = 0
+        driver_count = 0
+        custom_count = 0
+        
+        if self.track_driver_license_expiry_date or self.track_driver_prdp_expiry_date:
+            driver_count = self._process_driver_schedule_notifications()
+        
+        if (self.track_transportation_assets_registration_expiry_date or
+            self.track_transportation_assets_warranty_expiry_date or
+            self.track_transportation_assets_crw_expiry_date or
+            self.track_transportation_assets_cbrta_expiry_date or
+            self.track_vehicles_upcoming_service_by_time or
+            self.track_vehicles_upcoming_service_by_kilometres):
+            asset_count = self._process_asset_schedule_notifications()
+        
+        # Process custom notifications
+        custom_count = self._process_custom_schedule_notifications()
+        
+        frappe.db.commit()
+        
+        return {
+            "assets": asset_count,
+            "drivers": driver_count,
+            "custom": custom_count
+        }
 
 class NotificationsConfig(Document):
     def validate(self):
@@ -323,7 +350,8 @@ class NotificationsConfig(Document):
     def _create_time_based_schedule_notification(self, notification_type, expiry_date, 
                                   level_1_threshold, level_2_threshold, level_3_threshold,
                                   transportation_asset=None, driver=None, 
-                                  asset_unified_maintenance=None, last_service_date=None):
+                                  asset_unified_maintenance=None, last_service_date=None,
+                                  custom_notification_description=None):
         """Create a time-based schedule notification"""
         remaining_days = date_diff(expiry_date, nowdate())
         
@@ -342,15 +370,6 @@ class NotificationsConfig(Document):
         else:
             severity = 'Level 0'
         
-        # Delete existing schedule notification if any
-        existing = frappe.db.exists('Schedule Notification', {
-            'notification_type': notification_type,
-            'transportation_asset': transportation_asset,
-            'driver': driver
-        })
-        if existing:
-            frappe.delete_doc('Schedule Notification', existing)
-            
         schedule_notification_data = {
             'doctype': 'Schedule Notification',
             'notification_type': notification_type,
@@ -370,6 +389,10 @@ class NotificationsConfig(Document):
         # Add last_service_date if provided
         if last_service_date:
             schedule_notification_data['last_service_date'] = last_service_date
+            
+        # Add custom notification description if provided
+        if custom_notification_description:
+            schedule_notification_data['custom_notification_description'] = custom_notification_description
         
         schedule_notification = frappe.get_doc(schedule_notification_data)
         schedule_notification.insert()
@@ -481,3 +504,26 @@ class NotificationsConfig(Document):
             if not self.get(section['check_field']):
                 for field in section['fields']:
                     self.set(field, None)
+                    
+    def _process_custom_schedule_notifications(self):
+        """Process all custom notification records"""
+        custom_notifications = frappe.get_all(
+            'Custom Notification',
+            fields=['name', 'notification_description', 'expiry_date', 
+                    'level_1_threshold', 'level_2_threshold', 'level_3_threshold']
+        )
+        
+        custom_count = 0
+        
+        for notification in custom_notifications:
+            self._create_time_based_schedule_notification(
+                notification_type='Miscellaneous',
+                expiry_date=notification.expiry_date,
+                level_1_threshold=notification.level_1_threshold,
+                level_2_threshold=notification.level_2_threshold,
+                level_3_threshold=notification.level_3_threshold,
+                custom_notification_description=notification.notification_description
+            )
+            custom_count += 1
+        
+        return custom_count

@@ -52,7 +52,7 @@
             "fieldname": "notification_type",
             "fieldtype": "Select",
             "label": "Notification Type",
-            "options": "Driver License\nDriver PrDP\nTransportation Asset Registration\nTransportation Asset Warranty\nTransportation Asset CRW\nTransportation Asset C-BRTA\nTransportation Asset Service Time\nTransportation Asset Service Distance",
+            "options": "Driver License\nDriver PrDP\nTransportation Asset Registration\nTransportation Asset Warranty\nTransportation Asset CRW\nTransportation Asset C-BRTA\nTransportation Asset Service Time\nTransportation Asset Service Distance\nMiscellaneous",
             "reqd": 1
         },
         {
@@ -157,6 +157,12 @@
             "fieldtype": "Datetime",
             "label": "Last Processed",
             "read_only": 1
+        },
+        {
+            "fieldname": "custom_notification_description",
+            "fieldtype": "Data",
+            "label": "Custom Notification Description",
+            "hidden":1
         }
     ],
     "index_web_pages_for_search": 1,

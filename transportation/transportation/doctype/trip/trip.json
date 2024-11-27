@@ -32,7 +32,8 @@
             "fieldname": "sales_invoice_setup_section",
             "fieldtype": "Section Break",
             "label": "Sales Invoice Setup",
-            "insert_after": "trip_information_section"
+            "insert_after": "trip_information_section",
+            "collapsible": 1
         },
         {
             "fieldname": "linked_sales_invoice",

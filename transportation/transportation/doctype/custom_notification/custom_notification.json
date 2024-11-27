@@ -1,0 +1,71 @@
+{
+    "actions": [],
+    "autoname": "format:CUS-NOT-{###########}",
+    "creation": "2024-11-27",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "notification_description",
+        "expiry_date",
+        "level_1_threshold",
+        "level_2_threshold",
+        "level_3_threshold"
+    ],
+    "fields": [
+        {
+            "fieldname": "notification_description",
+            "fieldtype": "Data",
+            "label": "Notification Description",
+            "reqd": 1
+        },
+        {
+            "fieldname": "expiry_date",
+            "fieldtype": "Date",
+            "label": "Expiry Date",
+            "reqd": 1
+        },
+        {
+            "fieldname": "level_1_threshold",
+            "fieldtype": "Select",
+            "label": "Level 1 Time Threshold",
+            "options": "One Week\nTwo Weeks\nThree Weeks\nFour Weeks\nFive Weeks\nSix Weeks\nSeven Weeks\nEight Weeks\nNine Weeks\nTen Weeks\nEleven Weeks\nTwelve Weeks",
+            "reqd": 1
+        },
+        {
+            "fieldname": "level_2_threshold",
+            "fieldtype": "Select",
+            "label": "Level 2 Time Threshold",
+            "options": "One Week\nTwo Weeks\nThree Weeks\nFour Weeks\nFive Weeks\nSix Weeks\nSeven Weeks\nEight Weeks\nNine Weeks\nTen Weeks\nEleven Weeks\nTwelve Weeks",
+            "reqd": 1
+        },
+        {
+            "fieldname": "level_3_threshold",
+            "fieldtype": "Select",
+            "label": "Level 3 Time Threshold",
+            "options": "One Week\nTwo Weeks\nThree Weeks\nFour Weeks\nFive Weeks\nSix Weeks\nSeven Weeks\nEight Weeks\nNine Weeks\nTen Weeks\nEleven Weeks\nTwelve Weeks",
+            "reqd": 1
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-11-27",
+    "module": "Transportation",
+    "name": "Custom Notification",
+    "name_case": "Title Case",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "print": 1,
+            "read": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "track_changes": 1
+}
