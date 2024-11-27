@@ -94,7 +94,7 @@
             "label": "Purchase Invoice Setup",
             "insert_after": "taxes_and_charges",
             "collapsible": 1,
-            "depends_on": "eval:doc.truck && frappe.db.get_value('Transportation Asset', doc.truck, 'is_subbie')==='Yes'"
+            "depends_on": "eval:doc.truck && frappe.db.get_value('Transportation Asset', doc.truck, 'is_subbie')==1"
         },
         {
             "fieldname": "linked_purchase_invoice",
