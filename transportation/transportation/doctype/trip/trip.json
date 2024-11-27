@@ -89,6 +89,61 @@
             "depends_on": "eval:doc.auto_create_sales_invoice==1"
         },
         {
+            "fieldname": "purchase_invoice_setup_section",
+            "fieldtype": "Section Break",
+            "label": "Purchase Invoice Setup",
+            "insert_after": "taxes_and_charges",
+            "collapsible": 1,
+            "depends_on": "eval:doc.truck && frappe.db.get_value('Transportation Asset', doc.truck, 'is_subbie')==='Yes'"
+        },
+        {
+            "fieldname": "linked_purchase_invoice",
+            "fieldtype": "Link",
+            "label": "Linked Purchase Invoice",
+            "options": "Purchase Invoice",
+            "read_only": 1
+        },
+        {
+            "fieldname": "auto_create_purchase_invoice",
+            "fieldtype": "Check",
+            "label": "Auto-Create Purchase Invoice",
+            "default": 0
+        },
+        {
+            "fieldname": "billing_supplier",
+            "fieldtype": "Link",
+            "label": "Billing Supplier",
+            "options": "Supplier",
+            "depends_on": "eval:doc.auto_create_purchase_invoice==1"
+        },
+        {
+            "fieldname": "purchase_quantity",
+            "fieldtype": "Float",
+            "label": "Purchase Quantity",
+            "default": 1,
+            "depends_on": "eval:doc.auto_create_purchase_invoice==1"
+        },
+        {
+            "fieldname": "purchase_rate",
+            "fieldtype": "Currency",
+            "label": "Purchase Rate",
+            "depends_on": "eval:doc.auto_create_purchase_invoice==1"
+        },
+        {
+            "fieldname": "purchase_amount",
+            "fieldtype": "Currency",
+            "label": "Purchase Amount",
+            "read_only": 1,
+            "depends_on": "eval:doc.auto_create_purchase_invoice==1"
+        },
+        {
+            "fieldname": "purchase_taxes_and_charges",
+            "fieldtype": "Link",
+            "label": "Purchase Taxes and Charges",
+            "options": "Purchase Taxes and Charges Template",
+            "depends_on": "eval:doc.auto_create_purchase_invoice==1"
+        },
+        {
             "fieldname": "trip_assignment_section",
             "fieldtype": "Section Break",
             "label": "Trip Assignment Details",

@@ -36,10 +36,10 @@ def validate(doc, method):
         doc.net_mass = doc.second_mass - doc.first_mass
 
 def before_save(doc, method):
-    """Before save hook to handle item and sales invoice creation"""
+    """Before save hook to handle item and invoice creation"""
     if doc.status == "Complete":
         try:
-            # First ensure the item exists regardless of sales invoice choice
+            # First ensure the service item exists regardless of invoice choice
             if not frappe.db.exists("Item", doc.name):
                 item = frappe.get_doc({
                     "doctype": "Item",
@@ -54,8 +54,8 @@ def before_save(doc, method):
                 
                 item.insert(ignore_permissions=True)
                 
-                # Only show item creation message if we're not creating a sales invoice
-                if not doc.auto_create_sales_invoice:
+                # Only show item creation message if we're not creating any invoices
+                if not (doc.auto_create_sales_invoice or doc.auto_create_purchase_invoice):
                     msg = f"""
                         <div>
                             <p>{_("Service Item created successfully: {0}").format(doc.name)}</p>
@@ -79,9 +79,56 @@ def before_save(doc, method):
                         indicator="green"
                     )
 
-            # Handle sales invoice creation/update if auto-create is enabled
+            sales_invoice = None
+            purchase_invoice = None
+            
+            # Handle sales invoice creation if enabled
             if doc.auto_create_sales_invoice:
-                create_or_update_sales_invoice(doc)
+                sales_invoice = create_or_update_sales_invoice(doc)
+            
+            # Handle purchase invoice creation if enabled and truck is subbie
+            if doc.auto_create_purchase_invoice:
+                purchase_invoice = create_or_update_purchase_invoice(doc)
+            
+            # Show combined message if both invoices were created
+            if sales_invoice and purchase_invoice:
+                frappe.msgprint(
+                    msg=f"""
+                        <div>
+                            <p>{_("Invoices created/updated successfully:")}</p>
+                            <ul>
+                                <li>Sales Invoice: <a href='/app/sales-invoice/{sales_invoice.name}'>{sales_invoice.name}</a></li>
+                                <li>Purchase Invoice: <a href='/app/purchase-invoice/{purchase_invoice.name}'>{purchase_invoice.name}</a></li>
+                            </ul>
+                        </div>
+                    """,
+                    title=_("Invoices Created/Updated"),
+                    indicator="green"
+                )
+            elif sales_invoice:
+                frappe.msgprint(
+                    msg=f"""
+                        <div>
+                            <p>{_("Sales Invoice created/updated successfully: ")} 
+                            <a href='/app/sales-invoice/{sales_invoice.name}'>{sales_invoice.name}</a>
+                            </p>
+                        </div>
+                    """,
+                    title=_("Sales Invoice Created/Updated"),
+                    indicator="green"
+                )
+            elif purchase_invoice:
+                frappe.msgprint(
+                    msg=f"""
+                        <div>
+                            <p>{_("Purchase Invoice created/updated successfully: ")} 
+                            <a href='/app/purchase-invoice/{purchase_invoice.name}'>{purchase_invoice.name}</a>
+                            </p>
+                        </div>
+                    """,
+                    title=_("Purchase Invoice Created/Updated"),
+                    indicator="green"
+                )
                 
         except Exception as e:
             frappe.log_error(
@@ -259,6 +306,83 @@ def create_or_update_sales_invoice(doc):
             title="Sales Invoice Creation Error"
         )
         frappe.throw(_("Failed to create/update sales invoice. Error: {0}").format(str(e)))
+        
+def create_or_update_purchase_invoice(doc):
+    """Create or update purchase invoice based on trip data"""
+    try:
+        if doc.linked_purchase_invoice:
+            # Update existing invoice
+            purchase_invoice = frappe.get_doc("Purchase Invoice", doc.linked_purchase_invoice)
+            update_purchase_invoice(purchase_invoice, doc)
+            purchase_invoice.save()
+            return purchase_invoice
+        else:
+            # Create new invoice
+            purchase_invoice = create_new_purchase_invoice(doc)
+            doc.linked_purchase_invoice = purchase_invoice.name
+            return purchase_invoice
+            
+    except Exception as e:
+        frappe.log_error(
+            message=f"Error creating/updating purchase invoice for trip {doc.name}: {str(e)}",
+            title="Purchase Invoice Creation Error"
+        )
+        frappe.throw(_("Failed to create/update purchase invoice. Error: {0}").format(str(e)))
+
+def create_new_purchase_invoice(doc):
+    """Create a new purchase invoice from trip data"""
+    # Create the purchase item first
+    item_code = f"PURCH-{doc.name}"
+    if not frappe.db.exists("Item", item_code):
+        item = frappe.get_doc({
+            "doctype": "Item",
+            "item_code": item_code,
+            "item_name": f"Purchase Item for {doc.name}",
+            "item_group": "Services",
+            "stock_uom": "Each",
+            "is_stock_item": 0,
+            "is_fixed_asset": 0,
+            "description": f"Purchase Service Item for Trip {doc.name}"
+        })
+        item.insert(ignore_permissions=True)
+
+    purchase_invoice = frappe.get_doc({
+        "doctype": "Purchase Invoice",
+        "supplier": doc.billing_supplier,
+        "taxes_and_charges": doc.purchase_taxes_and_charges,
+        "items": [{
+            "item_code": item_code,
+            "qty": doc.purchase_quantity,
+            "rate": doc.purchase_rate,
+            "amount": doc.purchase_amount
+        }]
+    })
+    
+    purchase_invoice.insert(ignore_permissions=True)
+    return purchase_invoice
+
+def update_purchase_invoice(purchase_invoice, doc):
+    """Update existing purchase invoice with new trip data"""
+    purchase_invoice.supplier = doc.billing_supplier
+    purchase_invoice.taxes_and_charges = doc.purchase_taxes_and_charges
+    
+    item_code = f"PURCH-{doc.name}"
+    item_found = False
+    for item in purchase_invoice.items:
+        if item.item_code == item_code:
+            item.qty = doc.purchase_quantity
+            item.rate = doc.purchase_rate
+            item.amount = doc.purchase_amount
+            item_found = True
+            break
+    
+    if not item_found:
+        purchase_invoice.append("items", {
+            "item_code": item_code,
+            "qty": doc.purchase_quantity,
+            "rate": doc.purchase_rate,
+            "amount": doc.purchase_amount
+        })
 
 def create_new_sales_invoice(doc):
     """Create a new sales invoice from trip data"""

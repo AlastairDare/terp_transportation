@@ -75,6 +75,9 @@ frappe.ui.form.on('Trip', {
             if (!frm.doc.date) {
                 frappe.throw(__("Trip Date is required for completing a trip"));
             }
+            if (frm.doc.auto_create_purchase_invoice) {
+                validatePurchaseInvoiceFields(frm);
+            }   
         }
     },
 
@@ -207,6 +210,42 @@ frappe.ui.form.on('Trip', {
             return;
         }
         calculateAmount(frm);
+    },
+
+    auto_create_purchase_invoice: function(frm) {
+        if (!frm.doc.auto_create_purchase_invoice) {
+            frappe.confirm(
+                'Unchecking this will clear all purchase invoice related fields. Continue?',
+                function() {
+                    // User clicked Yes
+                    frm.set_value('billing_supplier', '');
+                    frm.set_value('purchase_quantity', 1);
+                    frm.set_value('purchase_rate', '');
+                    frm.set_value('purchase_amount', '');
+                    frm.set_value('purchase_taxes_and_charges', '');
+                },
+                function() {
+                    // User clicked No
+                    frm.set_value('auto_create_purchase_invoice', 1);
+                }
+            );
+        }
+    },
+
+    purchase_quantity: function(frm) {
+        calculatePurchaseAmount(frm);
+    },
+    
+    purchase_rate: function(frm) {
+        if (frm.doc.purchase_rate < 1) {
+            frappe.show_alert({
+                message: __('Purchase Rate cannot be less than 1'),
+                indicator: 'red'
+            });
+            frm.set_value('purchase_rate', 1);
+            return;
+        }
+        calculatePurchaseAmount(frm);
     }
 });
 
@@ -286,5 +325,26 @@ function validateSalesInvoiceFields(frm) {
     
     if (frm.doc.quantity <= 0) {
         frappe.throw(__('Quantity must be greater than 0'));
+    }
+}
+
+function calculatePurchaseAmount(frm) {
+    if (frm.doc.purchase_quantity && frm.doc.purchase_rate) {
+        frm.set_value('purchase_amount', frm.doc.purchase_quantity * frm.doc.purchase_rate);
+    }
+}
+
+function validatePurchaseInvoiceFields(frm) {
+    if (frm.doc.auto_create_purchase_invoice) {
+        const requiredFields = ['billing_supplier', 'purchase_quantity', 'purchase_rate', 'purchase_taxes_and_charges'];
+        const missingFields = requiredFields.filter(field => !frm.doc[field]);
+        
+        if (missingFields.length > 0) {
+            frappe.throw(__(`Please fill in the following fields for Purchase Invoice creation: ${missingFields.join(', ')}`));
+        }
+        
+        if (frm.doc.purchase_quantity <= 0) {
+            frappe.throw(__('Purchase Quantity must be greater than 0'));
+        }
     }
 }
