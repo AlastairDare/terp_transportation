@@ -39,6 +39,7 @@ def get_dashboard_data(filters=None):
         )
         
         trip_names = [t.name for t in trips]
+        trip_count = len(trips)  # Get the count of trips
         
         # Initialize revenue data
         revenue = 0
@@ -89,6 +90,7 @@ def get_dashboard_data(filters=None):
             'asset_number': asset.asset_number,
             'revenue': revenue,
             'tons': tons,
+            'trips': trip_count,  # Add the trips count to the row
             'total_expenses': total_expenses,
             'fuel_expenses': expense_by_type.get('Refuel', 0),
             'toll_expenses': expense_by_type.get('Toll', 0),
@@ -121,6 +123,12 @@ def get_columns():
             "fieldname": "tons",
             "fieldtype": "Float",
             "width": 100
+        },
+        {
+            "label": _("Trips"),
+            "fieldname": "trips",
+            "fieldtype": "Int",
+            "width": 80
         },
         {
             "label": _("Revenue"),
