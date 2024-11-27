@@ -40,6 +40,16 @@ frappe.ui.form.on('Trip', {
             return;
         }
         
+        // Check is_subbie and control purchase section visibility
+        frappe.db.get_value('Transportation Asset', frm.doc.truck, 'is_subbie', (r) => {
+            if (r && r.is_subbie) {
+                frm.set_df_property('purchase_invoice_setup_section', 'hidden', 0);
+            } else {
+                frm.set_df_property('purchase_invoice_setup_section', 'hidden', 1);
+            }
+            frm.refresh_field('purchase_invoice_setup_section');
+        });
+        
         // Get the last odometer reading
         frappe.call({
             method: 'transportation.transportation.doctype.trip.trip.get_last_odometer_reading',
