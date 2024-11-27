@@ -1,6 +1,23 @@
 import frappe
 from frappe.model.document import Document
-from frappe.utils import get_week_days
+
+def get_week_days(week_option):
+    """Convert week option to days"""
+    week_map = {
+        'One Week': 7,
+        'Two Weeks': 14,
+        'Three Weeks': 21,
+        'Four Weeks': 28,
+        'Five Weeks': 35,
+        'Six Weeks': 42,
+        'Seven Weeks': 49,
+        'Eight Weeks': 56,
+        'Nine Weeks': 63,
+        'Ten Weeks': 70,
+        'Eleven Weeks': 77,
+        'Twelve Weeks': 84
+    }
+    return week_map.get(week_option, 0)
 
 class CustomNotification(Document):
     def validate(self):
