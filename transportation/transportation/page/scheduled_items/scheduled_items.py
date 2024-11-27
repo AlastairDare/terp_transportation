@@ -27,6 +27,8 @@ def get_dashboard_data(filters=None):
             category_conditions.append("driver IS NOT NULL AND driver != ''")
         if 'Vehicle' in filters['category']:
             category_conditions.append("transportation_asset IS NOT NULL AND transportation_asset != ''")
+        if 'Custom' in filters['category']:
+            category_conditions.append("notification_type = 'Miscellaneous'")
         if category_conditions:
             conditions.append(f"({' OR '.join(category_conditions)})")
     
@@ -35,11 +37,17 @@ def get_dashboard_data(filters=None):
     return frappe.db.sql(f"""
         SELECT 
             current_severity_level as severity,
-            COALESCE(
-                (SELECT employee_name FROM `tabDriver` WHERE name = driver),
-                (SELECT asset_number FROM `tabTransportation Asset` WHERE name = transportation_asset)
-            ) as item_name,
-            notification_type as sub_type,
+            CASE 
+                WHEN notification_type = 'Miscellaneous' THEN 'Custom'
+                ELSE COALESCE(
+                    (SELECT employee_name FROM `tabDriver` WHERE name = driver),
+                    (SELECT asset_number FROM `tabTransportation Asset` WHERE name = transportation_asset)
+                )
+            END as item_name,
+            CASE 
+                WHEN notification_type = 'Miscellaneous' THEN custom_notification_description
+                ELSE notification_type
+            END as sub_type,
             threshold_type as type,
             CASE 
                 WHEN threshold_type = 'Distance' THEN CONCAT(remaining_distance, ' KM')
@@ -66,13 +74,13 @@ def get_columns():
             "width": 100
         },
         {
-            "label": _("Driver/Vehicle"),
+            "label": _("Resource"),  # Changed from "Driver/Vehicle"
             "fieldname": "item_name",
             "fieldtype": "Data",
             "width": 150
         },
         {
-            "label": _("Sub-Type"),
+            "label": _("Notification"),  # Changed from "Sub-Type"
             "fieldname": "sub_type",
             "fieldtype": "Data",
             "width": 150

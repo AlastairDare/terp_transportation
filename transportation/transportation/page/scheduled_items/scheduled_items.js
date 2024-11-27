@@ -65,7 +65,7 @@ class ScheduledItems {
             df: {
                 fieldtype: 'MultiSelectPills',
                 fieldname: 'category',
-                options: ['Driver', 'Vehicle'],
+                options: ['Driver', 'Vehicle', 'Custom'], // Modified this line
                 onchange: () => this.refresh()
             },
             render_input: true
