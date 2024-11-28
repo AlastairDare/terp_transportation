@@ -1,6 +1,7 @@
 {
     "actions": [],
     "allow_rename": 0,
+    "autoname": "field:workspace_name",
     "creation": "2024-01-01 12:00:00.000000",
     "doctype": "DocType",
     "engine": "InnoDB",
@@ -9,13 +10,13 @@
         "icon",
         "is_active",
         "sequence",
-        "content_section",
         "workspace_content"
     ],
     "fields": [
         {
             "fieldname": "workspace_name",
             "fieldtype": "Data",
+            "in_list_view": 1,
             "label": "Workspace Name",
             "reqd": 1,
             "unique": 1
@@ -23,6 +24,7 @@
         {
             "fieldname": "icon",
             "fieldtype": "Select",
+            "in_list_view": 1,
             "label": "Icon",
             "options": "truck\nroad\nfleet\ngear\nbox\nlist\nmap-pin",
             "reqd": 1
@@ -40,22 +42,20 @@
             "reqd": 1
         },
         {
-            "fieldname": "content_section",
-            "fieldtype": "Section Break",
-            "label": "Content"
-        },
-        {
             "fieldname": "workspace_content",
             "fieldtype": "Table",
             "label": "Workspace Content",
-            "options": "Workspace Content Item"
+            "options": "Workspace Content Item",
+            "reqd": 1
         }
     ],
+    "index_web_pages_for_search": 1,
     "links": [],
     "modified": "2024-01-01 12:00:00.000000",
     "modified_by": "Administrator",
     "module": "Transportation",
-    "name": "Custom Workspace Configuration",
+    "name": "Custom Workspace Config",
+    "name_case": "Title Case",
     "owner": "Administrator",
     "permissions": [
         {
@@ -72,6 +72,5 @@
         }
     ],
     "sort_field": "modified",
-    "sort_order": "DESC",
-    "states": []
+    "sort_order": "DESC"
 }

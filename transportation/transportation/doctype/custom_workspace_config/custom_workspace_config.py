@@ -3,13 +3,13 @@ from frappe import _
 from frappe.model.document import Document
 import json
 
-class CustomWorkspaceConfiguration(Document):
+class CustomWorkspaceConfig(Document):
     def validate(self):
         self.validate_sequence()
         
     def validate_sequence(self):
         """Ensure sequence numbers are unique"""
-        existing = frappe.get_all('Custom Workspace Configuration',
+        existing = frappe.get_all('Custom Workspace Config',
             filters={'name': ['!=', self.name]},
             pluck='sequence')
         if self.sequence in existing:
@@ -80,9 +80,9 @@ class CustomWorkspaceConfiguration(Document):
             workspace_data["name"] = workspace_name
             workspace = frappe.get_doc(workspace_data)
             workspace.insert()
-            
+
     @frappe.whitelist()
-    def refresh_workspaces():
+    def refresh_workspaces(self):
         try:
             # Clear workspace cache
             frappe.cache().delete_key('all_workspaces')

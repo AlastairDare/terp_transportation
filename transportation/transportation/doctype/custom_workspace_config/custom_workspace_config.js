@@ -1,5 +1,5 @@
-frappe.ui.form.on('Custom Workspace Configuration', {
-
+frappe.ui.form.on('Custom Workspace Config', {
+    
     after_save: function(frm) {
         frappe.show_alert({
             message: 'Refreshing workspaces...',
