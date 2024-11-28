@@ -57,6 +57,9 @@ class CustomWorkspaceConfig(Document):
         """Create or update the ERPNext Workspace document"""
         workspace_name = f"custom-{self.workspace_name.lower().replace(' ', '-')}"
         
+        # Add logging
+        frappe.logger().debug(f"Attempting to create/update workspace: {workspace_name}")
+        
         workspace_data = {
             "doctype": "Workspace",
             "icon": self.icon,
@@ -71,15 +74,22 @@ class CustomWorkspaceConfig(Document):
         }
         
         try:
-            # Update existing workspace if it exists
+            # Try to get existing workspace
             workspace = frappe.get_doc("Workspace", workspace_name)
+            frappe.logger().debug("Found existing workspace, updating...")
             workspace.update(workspace_data)
             workspace.save()
+            frappe.logger().debug("Workspace updated successfully")
         except frappe.DoesNotExistError:
             # Create new workspace
+            frappe.logger().debug("Creating new workspace...")
             workspace_data["name"] = workspace_name
             workspace = frappe.get_doc(workspace_data)
             workspace.insert()
+            frappe.logger().debug("New workspace created successfully")
+        except Exception as e:
+            frappe.logger().error(f"Error creating/updating workspace: {str(e)}")
+            raise
 
     @frappe.whitelist()
     def refresh_workspaces(self):
