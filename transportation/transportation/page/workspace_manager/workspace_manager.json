@@ -1,0 +1,16 @@
+{
+    "docstatus": 0,
+    "doctype": "Page",
+    "icon": "list",
+    "module": "Transportation",
+    "name": "workspace-manager",
+    "owner": "Administrator",
+    "page_name": "workspace-manager",
+    "roles": [
+        {
+            "role": "System Manager"
+        }
+    ],
+    "standard": "Yes",
+    "title": "Workspace Manager"
+}
