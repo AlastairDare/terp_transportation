@@ -53,12 +53,12 @@ class CustomWorkspaceConfig(Document):
         
         return json.dumps(content)
     
-    def after_save(self):
+    def after_insert(self):
         """Create or update the ERPNext Workspace document"""
         workspace_name = f"custom-{self.workspace_name.lower().replace(' ', '-')}"
         
-        # Add logging
-        frappe.logger().debug(f"Attempting to create/update workspace: {workspace_name}")
+        # Log initial attempt
+        frappe.log_error(f"Attempting to create/update workspace: {workspace_name}", "Workspace Creation")
         
         workspace_data = {
             "doctype": "Workspace",
@@ -76,19 +76,19 @@ class CustomWorkspaceConfig(Document):
         try:
             # Try to get existing workspace
             workspace = frappe.get_doc("Workspace", workspace_name)
-            frappe.logger().debug("Found existing workspace, updating...")
+            frappe.log_error("Found existing workspace, updating...", "Workspace Creation")
             workspace.update(workspace_data)
             workspace.save()
-            frappe.logger().debug("Workspace updated successfully")
+            frappe.log_error("Workspace updated successfully", "Workspace Creation")
         except frappe.DoesNotExistError:
             # Create new workspace
-            frappe.logger().debug("Creating new workspace...")
+            frappe.log_error("Creating new workspace...", "Workspace Creation")
             workspace_data["name"] = workspace_name
             workspace = frappe.get_doc(workspace_data)
             workspace.insert()
-            frappe.logger().debug("New workspace created successfully")
+            frappe.log_error("New workspace created successfully", "Workspace Creation")
         except Exception as e:
-            frappe.logger().error(f"Error creating/updating workspace: {str(e)}")
+            frappe.log_error(f"Error creating/updating workspace: {str(e)}", "Workspace Creation Error")
             raise
 
     @frappe.whitelist()
