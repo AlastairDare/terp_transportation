@@ -1,17 +1,8 @@
 {
     "doctype": "Workspace",
-    "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>T-ERP Super Admin</b></span>\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Trip Management\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Trip Capture\",\"link_type\":\"DocType\",\"link_to\":\"Trip Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"ChatGPT Settings\",\"link_type\":\"DocType\",\"link_to\":\"ChatGPT Settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Claude Settings\",\"link_type\":\"DocType\",\"link_to\":\"Claude Settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"AI Config\",\"link_type\":\"DocType\",\"link_to\":\"AI Config\",\"type\":\"Form\",\"onboard\":1,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"OCR Settings\",\"link_type\":\"DocType\",\"link_to\":\"OCR Settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Workspace Manager\",\"link_type\":\"Page\",\"link_to\":\"workspace-manager\",\"type\":\"Link\",\"onboard\":0,\"col\":4}}]",
+    "content": "[{\"type\":\"header\",\"data\":{\"text\":\"T-ERP Super Admin\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"name\":\"Trip Management\",\"type\":\"Card Break\",\"count\":0,\"col\":4}},{\"type\":\"shortcut\",\"data\":{\"name\":\"Trip Capture\",\"label\":\"Trip Capture\",\"link_to\":\"Trip Capture\",\"link_type\":\"DocType\",\"type\":\"List\",\"col\":4}},{\"type\":\"shortcut\",\"data\":{\"name\":\"Settings\",\"type\":\"Card Break\",\"count\":0,\"col\":4}},{\"type\":\"shortcut\",\"data\":{\"name\":\"ChatGPT Settings\",\"label\":\"ChatGPT Settings\",\"link_to\":\"ChatGPT Settings\",\"link_type\":\"DocType\",\"type\":\"Form\",\"col\":4}},{\"type\":\"shortcut\",\"data\":{\"name\":\"Claude Settings\",\"label\":\"Claude Settings\",\"link_to\":\"Claude Settings\",\"link_type\":\"DocType\",\"type\":\"Form\",\"col\":4}},{\"type\":\"shortcut\",\"data\":{\"name\":\"AI Config\",\"label\":\"AI Config\",\"link_to\":\"AI Config\",\"link_type\":\"DocType\",\"type\":\"Form\",\"col\":4}},{\"type\":\"shortcut\",\"data\":{\"name\":\"OCR Settings\",\"label\":\"OCR Settings\",\"link_to\":\"OCR Settings\",\"link_type\":\"DocType\",\"type\":\"Form\",\"col\":4}},{\"type\":\"shortcut\",\"data\":{\"name\":\"Workspace Manager\",\"label\":\"Workspace Manager\",\"link_to\":\"workspace-manager\",\"link_type\":\"Page\",\"type\":\"Link\",\"col\":4}}]",
     "icon": "gear",
     "label": "T-ERP Super Admin",
-    "module": "Transportation",
-    "name": "T-ERP Super Admin",
-    "public": 1,
-    "sequence_id": 40.0,
-    "title": "T-ERP Super Admin",
-    "extends": "T-ERP Super Admin",
-    "extends_another_page": 1,
-    "is_default": 0,
-    "for_user": "",
     "links": [
       {
         "hidden": 0,
@@ -47,7 +38,7 @@
         "link_to": "ChatGPT Settings",
         "link_type": "DocType",
         "onboard": 1,
-        "type": "Link"
+        "type": "Form"
       },
       {
         "hidden": 0,
@@ -57,7 +48,7 @@
         "link_to": "Claude Settings",
         "link_type": "DocType",
         "onboard": 1,
-        "type": "Link"
+        "type": "Form"
       },
       {
         "hidden": 0,
@@ -67,7 +58,7 @@
         "link_to": "AI Config",
         "link_type": "DocType",
         "onboard": 1,
-        "type": "Link"
+        "type": "Form"
       },
       {
         "hidden": 0,
@@ -77,7 +68,7 @@
         "link_to": "OCR Settings",
         "link_type": "DocType",
         "onboard": 1,
-        "type": "Link"
+        "type": "Form"
       },
       {
         "hidden": 0,
@@ -90,8 +81,12 @@
         "type": "Link"
       }
     ],
-    "restrict_to_domain": "",
-    "hide_custom": 1,
+    "module": "Transportation",
+    "name": "T-ERP Super Admin",
+    "pin_to_bottom": 0,
     "pin_to_top": 0,
-    "hide_edges": 0
+    "public": 1,
+    "sequence_id": 40.0,
+    "title": "T-ERP Super Admin",
+    "hide_custom": 1
   }
