@@ -30,7 +30,7 @@ class WorkspaceManager {
         frappe.call({
             method: 'frappe.client.get_list',
             args: {
-                doctype: 'Custom Workspace Configuration',
+                doctype: 'Custom Workspace Config',
                 fields: ['workspace_name', 'icon', 'is_active', 'sequence'],
                 order_by: 'sequence'
             },
@@ -81,7 +81,7 @@ class WorkspaceManager {
             `).appendTo(tbody);
 
             row.find('.edit-btn').on('click', () => {
-                frappe.set_route(['Form', 'Custom Workspace Configuration', workspace.name]);
+                frappe.set_route(['Form', 'Custom Workspace Config', workspace.name]);
             });
 
             row.find('.delete-btn').on('click', () => {
@@ -91,7 +91,7 @@ class WorkspaceManager {
                         frappe.call({
                             method: 'frappe.client.delete',
                             args: {
-                                doctype: 'Custom Workspace Configuration',
+                                doctype: 'Custom Workspace Config',
                                 name: workspace.name
                             },
                             callback: () => {
