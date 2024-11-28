@@ -7,7 +7,7 @@ frappe.pages['workspace-manager'].on_page_load = function(wrapper) {
 
     // Add Create button
     page.set_primary_action('Create Workspace', () => {
-        frappe.new_doc('Custom Workspace Configuration');
+        frappe.new_doc('Custom Workspace Config');
     });
 
     // Initialize the page
