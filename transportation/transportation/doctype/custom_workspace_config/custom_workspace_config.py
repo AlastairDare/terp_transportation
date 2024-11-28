@@ -18,10 +18,10 @@ class CustomWorkspaceConfig(Document):
     def generate_workspace_content(self):
         """Generate the workspace content in the format expected by ERPNext"""
         content = []
+        current_card = None
         
         for item in sorted(self.workspace_content, key=lambda x: x.sequence):
             if item.item_type == "Header":
-                # Add header
                 content.append({
                     "type": "header",
                     "data": {
@@ -29,35 +29,27 @@ class CustomWorkspaceConfig(Document):
                         "col": 12
                     }
                 })
-                # Start new card
+                # Start new card for links
+                current_card = item.header_text
                 content.append({
                     "type": "card",
                     "data": {
-                        "card_name": item.header_text,
+                        "card_name": current_card,
                         "col": 4
                     }
                 })
             else:  # Link
                 content.append({
-                    "type": "link",
+                    "type": "shortcut",  # Changed from "link" to "shortcut"
                     "data": {
+                        "name": item.link_label,
                         "label": item.link_label,
-                        "link_type": item.link_type,
                         "link_to": item.link_to,
+                        "link_type": item.link_type,
                         "type": "List" if item.link_type == "DocType" else "Link",
-                        "onboard": 0,
                         "col": 4
                     }
                 })
-        
-        # Add hide_custom to prevent custom documents from appearing
-        workspace_data = {
-            "doctype": "Workspace",
-            "icon": self.icon,
-            "label": self.workspace_name,
-            "content": content,
-            "hide_custom": 1
-        }
         
         return json.dumps(content)
     
@@ -122,3 +114,23 @@ class CustomWorkspaceConfig(Document):
                 "success": False,
                 "message": "Error refreshing workspaces: " + str(e)
             }
+            
+    def on_trash(self):
+        """Delete the associated workspace when this config is deleted"""
+        workspace_name = f"custom-{self.workspace_name.lower().replace(' ', '-')}"
+        try:
+            # Delete the workspace
+            workspace = frappe.get_doc("Workspace", workspace_name)
+            workspace.delete()
+            frappe.db.commit()
+        except Exception as e:
+            frappe.log_error(f"Error deleting workspace: {str(e)}", "Workspace Deletion Error")
+
+    def delete(self):
+        """Override delete method to handle proper cleanup"""
+        try:
+            self.on_trash()  # Delete associated workspace first
+            super().delete()  # Then delete the config
+        except Exception as e:
+            frappe.log_error(f"Error in delete: {str(e)}", "Config Deletion Error")
+            raise

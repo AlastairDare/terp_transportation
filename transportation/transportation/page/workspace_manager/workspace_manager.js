@@ -85,26 +85,26 @@ class WorkspaceManager {
             });
 
             row.find('.delete-btn').on('click', () => {
-                frappe.confirm(
-                    'Are you sure you want to delete this workspace?',
-                    () => {
-                        frappe.call({
-                            method: 'frappe.client.delete',
-                            args: {
-                                doctype: 'Custom Workspace Config',
-                                name: workspace.name
-                            },
-                            callback: () => {
-                                this.load_workspaces();
-                                frappe.show_alert({
-                                    message: 'Workspace deleted',
-                                    indicator: 'green'
-                                });
-                            }
-                        });
-                    }
-                );
-            });
+              frappe.confirm(
+                  'Are you sure you want to delete this workspace?',
+                  () => {
+                      frappe.call({
+                          method: 'frappe.client.delete',
+                          args: {
+                              doctype: 'Custom Workspace Config',
+                              name: workspace.name  // Make sure to include the name
+                          },
+                          callback: () => {
+                              this.load_workspaces();
+                              frappe.show_alert({
+                                  message: 'Workspace deleted',
+                                  indicator: 'green'
+                              });
+                          }
+                      });
+                  }
+              );
+          });
         });
     }
 }
