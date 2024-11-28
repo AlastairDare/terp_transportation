@@ -18,7 +18,6 @@ class CustomWorkspaceConfig(Document):
     def generate_workspace_content(self):
         """Generate the workspace content in the format expected by ERPNext"""
         content = []
-        current_card = None
         
         for item in sorted(self.workspace_content, key=lambda x: x.sequence):
             if item.item_type == "Header":
@@ -51,6 +50,15 @@ class CustomWorkspaceConfig(Document):
                     }
                 })
         
+        # Add hide_custom to prevent custom documents from appearing
+        workspace_data = {
+            "doctype": "Workspace",
+            "icon": self.icon,
+            "label": self.workspace_name,
+            "content": content,
+            "hide_custom": 1
+        }
+        
         return json.dumps(content)
     
     def after_insert(self):
@@ -70,7 +78,8 @@ class CustomWorkspaceConfig(Document):
             "content": self.generate_workspace_content(),
             "sequence_id": float(self.sequence),
             "title": self.workspace_name,
-            "is_hidden": not self.is_active
+            "is_hidden": not self.is_active,
+            "hide_custom": 1
         }
         
         try:
