@@ -1,6 +1,6 @@
 {
     "doctype": "Workspace",
-    "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>T-ERP Super Admin</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip Capture\",\"col\":3,\"icon\":\"camera\",\"link_type\":\"DocType\",\"link_to\":\"Trip Capture\",\"type\":\"Form\"}},{\"type\":\"card\",\"data\":{\"card_name\":\"Trip Management\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Trip Capture\",\"link_type\":\"DocType\",\"link_to\":\"Trip Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"ChatGPT Settings\",\"link_type\":\"DocType\",\"link_to\":\"ChatGPT Settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Claude Settings\",\"link_type\":\"DocType\",\"link_to\":\"Claude Settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"AI Config\",\"link_type\":\"DocType\",\"link_to\":\"AI Config\",\"type\":\"Form\",\"onboard\":1,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"OCR Settings\",\"link_type\":\"DocType\",\"link_to\":\"OCR Settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}}]",
+    "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>T-ERP Super Admin</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip Capture\",\"col\":3,\"icon\":\"camera\",\"link_type\":\"DocType\",\"link_to\":\"Trip Capture\",\"type\":\"Form\"}},{\"type\":\"card\",\"data\":{\"card_name\":\"Trip Management\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Trip Capture\",\"link_type\":\"DocType\",\"link_to\":\"Trip Capture\",\"type\":\"List\",\"onboard\":0,\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"ChatGPT Settings\",\"link_type\":\"DocType\",\"link_to\":\"ChatGPT Settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Claude Settings\",\"link_type\":\"DocType\",\"link_to\":\"Claude Settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"AI Config\",\"link_type\":\"DocType\",\"link_to\":\"AI Config\",\"type\":\"Form\",\"onboard\":1,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"OCR Settings\",\"link_type\":\"DocType\",\"link_to\":\"OCR Settings\",\"type\":\"Form\",\"onboard\":1,\"col\":4}},{\"type\":\"link\",\"data\":{\"label\":\"Workspace Manager\",\"link_type\":\"Page\",\"link_to\":\"workspace_manager\",\"type\":\"Link\",\"onboard\":0,\"col\":4}}]",
     "icon": "gear",
     "label": "T-ERP Super Admin",
     "module": "Transportation",
@@ -17,7 +17,7 @@
             "hidden": 0,
             "is_query_report": 0,
             "label": "Settings",
-            "link_count": 4,
+            "link_count": 5,
             "onboard": 0,
             "type": "Card Break"
         },
@@ -59,6 +59,16 @@
             "link_to": "OCR Settings",
             "link_type": "DocType",
             "onboard": 1,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Workspace Manager",
+            "link_count": 0,
+            "link_to": "workspace_manager",
+            "link_type": "Page",
+            "onboard": 0,
             "type": "Link"
         }
     ],
