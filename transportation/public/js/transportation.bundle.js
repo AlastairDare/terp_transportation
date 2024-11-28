@@ -13,3 +13,5 @@ import '../../transportation/doctype/schedule_notification/schedule_notification
 import '../../transportation/doctype/schedule_notification/schedule_notification.js';
 import '../../transportation/page/transportation_dashboard/transportation_dashboard.js';
 import '../../transportation/page/scheduled_items/scheduled_items.js';
+import '../../transportation/page/workspace_manager/workspace_manager.js';
+
