@@ -1,3 +1,4 @@
+// workspace_manager.js
 frappe.pages['workspace-manager'].on_page_load = function(wrapper) {
     var page = frappe.ui.make_app_page({
         parent: wrapper,
@@ -5,12 +6,10 @@ frappe.pages['workspace-manager'].on_page_load = function(wrapper) {
         single_column: true
     });
 
-    // Add Create button
     page.set_primary_action('Create Workspace', () => {
         frappe.new_doc('Custom Workspace Config');
     });
 
-    // Initialize the page
     new WorkspaceManager(wrapper, page);
 }
 
@@ -31,7 +30,7 @@ class WorkspaceManager {
             method: 'frappe.client.get_list',
             args: {
                 doctype: 'Custom Workspace Config',
-                fields: ['workspace_name', 'icon', 'is_active', 'sequence'],
+                fields: ['name', 'workspace_name', 'icon', 'is_active', 'sequence'],
                 order_by: 'sequence'
             },
             callback: (r) => {
@@ -85,26 +84,26 @@ class WorkspaceManager {
             });
 
             row.find('.delete-btn').on('click', () => {
-              frappe.confirm(
-                  'Are you sure you want to delete this workspace?',
-                  () => {
-                      frappe.call({
-                          method: 'frappe.client.delete',
-                          args: {
-                              doctype: 'Custom Workspace Config',
-                              name: workspace.name  // Make sure to include the name
-                          },
-                          callback: () => {
-                              this.load_workspaces();
-                              frappe.show_alert({
-                                  message: 'Workspace deleted',
-                                  indicator: 'green'
-                              });
-                          }
-                      });
-                  }
-              );
-          });
+                frappe.confirm(
+                    'Are you sure you want to delete this workspace?',
+                    () => {
+                        frappe.call({
+                            method: 'frappe.client.delete',
+                            args: {
+                                doctype: 'Custom Workspace Config',
+                                name: workspace.name // This is the critical line
+                            },
+                            callback: () => {
+                                this.load_workspaces();
+                                frappe.show_alert({
+                                    message: 'Workspace deleted',
+                                    indicator: 'green'
+                                });
+                            }
+                        });
+                    }
+                );
+            });
         });
     }
 }

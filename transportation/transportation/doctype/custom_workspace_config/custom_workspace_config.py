@@ -18,7 +18,6 @@ class CustomWorkspaceConfig(Document):
     def generate_workspace_content(self):
         """Generate the workspace content in the format expected by ERPNext"""
         content = []
-        current_card = None
         
         for item in sorted(self.workspace_content, key=lambda x: x.sequence):
             if item.item_type == "Header":
@@ -29,39 +28,30 @@ class CustomWorkspaceConfig(Document):
                         "col": 12
                     }
                 })
-                # Start new card for links
-                current_card = item.header_text
-                content.append({
-                    "type": "card",
-                    "data": {
-                        "card_name": current_card,
-                        "col": 4
-                    }
-                })
             else:  # Link
                 content.append({
-                    "type": "shortcut",  # Changed from "link" to "shortcut"
+                    "type": "shortcut",
                     "data": {
                         "name": item.link_label,
                         "label": item.link_label,
                         "link_to": item.link_to,
                         "link_type": item.link_type,
                         "type": "List" if item.link_type == "DocType" else "Link",
-                        "col": 4
+                        "col": 4,
+                        "onboard": 0,
+                        "dependencies": [],
+                        "is_query_report": 0
                     }
                 })
         
         return json.dumps(content)
     
     def after_insert(self):
-        """Create or update the ERPNext Workspace document"""
         workspace_name = f"custom-{self.workspace_name.lower().replace(' ', '-')}"
-        
-        # Log initial attempt
-        frappe.log_error(f"Attempting to create/update workspace: {workspace_name}", "Workspace Creation")
         
         workspace_data = {
             "doctype": "Workspace",
+            "name": workspace_name,  # Add this line
             "icon": self.icon,
             "label": self.workspace_name,
             "module": "Transportation",
@@ -75,21 +65,11 @@ class CustomWorkspaceConfig(Document):
         }
         
         try:
-            # Try to get existing workspace
-            workspace = frappe.get_doc("Workspace", workspace_name)
-            frappe.log_error("Found existing workspace, updating...", "Workspace Creation")
-            workspace.update(workspace_data)
-            workspace.save()
-            frappe.log_error("Workspace updated successfully", "Workspace Creation")
-        except frappe.DoesNotExistError:
-            # Create new workspace
-            frappe.log_error("Creating new workspace...", "Workspace Creation")
-            workspace_data["name"] = workspace_name
             workspace = frappe.get_doc(workspace_data)
-            workspace.insert()
-            frappe.log_error("New workspace created successfully", "Workspace Creation")
+            workspace.insert(ignore_permissions=True)  # Add ignore_permissions=True
+            frappe.db.commit()  # Add explicit commit
         except Exception as e:
-            frappe.log_error(f"Error creating/updating workspace: {str(e)}", "Workspace Creation Error")
+            frappe.log_error(f"Error creating workspace: {str(e)}", "Workspace Creation Error")
             raise
 
     @frappe.whitelist()
