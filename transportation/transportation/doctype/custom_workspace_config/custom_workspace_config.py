@@ -123,29 +123,52 @@ class CustomWorkspaceConfig(Document):
             raise
         
     def after_save(self):
-        """Update existing workspace when config changes"""
+        """Update workspace by deleting and recreating"""
         try:
-            # Find the workspace by label and module
+            # Find existing workspace
             workspaces = frappe.get_all("Workspace", 
                 filters={"label": self.workspace_name, "module": "Transportation"},
                 pluck="name")
                 
             if workspaces:
                 workspace_name = workspaces[0]
+                
+                # First generate new content
                 content, links = self.generate_workspace_content()
                 
-                # Get and update the workspace
-                workspace = frappe.get_doc("Workspace", workspace_name)
-                workspace.content = content
-                workspace.links = links
-                workspace.icon = self.icon
-                workspace.sequence_id = float(self.sequence)
-                workspace.is_hidden = not self.is_active
-                workspace.save()
-                frappe.db.commit()
+                # Prepare new workspace data
+                workspace_data = {
+                    "doctype": "Workspace",
+                    "name": workspace_name,  # Keep same name to maintain references
+                    "icon": self.icon,
+                    "label": self.workspace_name,
+                    "module": "Transportation",
+                    "parent_page": "Transportation",
+                    "public": 1,
+                    "content": content,
+                    "sequence_id": float(self.sequence),
+                    "title": self.workspace_name,
+                    "hide_custom": 1,
+                    "links": links,
+                    "is_hidden": not self.is_active
+                }
                 
+                try:
+                    # Delete existing
+                    frappe.delete_doc("Workspace", workspace_name, force=1)
+                    frappe.db.commit()
+                    
+                    # Create new
+                    new_workspace = frappe.get_doc(workspace_data)
+                    new_workspace.insert(ignore_permissions=True)
+                    frappe.db.commit()
+                    
+                except Exception as e:
+                    frappe.log_error(f"Error in delete-recreate cycle: {str(e)}", "Workspace Update Error")
+                    raise
+                    
         except Exception as e:
-            frappe.log_error(f"Error updating workspace: {str(e)}", "Workspace Update Error")
+            frappe.log_error(f"Error in workspace update: {str(e)}", "Workspace Update Error")
             raise
 
     @frappe.whitelist()
