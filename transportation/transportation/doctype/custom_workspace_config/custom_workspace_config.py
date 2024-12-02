@@ -144,11 +144,20 @@ class CustomWorkspaceConfig(Document):
         
         try:
             if frappe.db.exists("Workspace", workspace_name):
-                workspace = frappe.get_doc("Workspace", workspace_name)
-                workspace.update(workspace_data)
-                workspace.save(ignore_permissions=True)
+                # Delete existing workspace first
+                frappe.delete_doc("Workspace", workspace_name, force=1, ignore_permissions=True)
                 frappe.db.commit()
-                frappe.cache().delete_key('all_workspaces')  # Clear cache
+                
+                # Create new workspace with updated content
+                workspace_data["name"] = workspace_name
+                new_workspace = frappe.get_doc(workspace_data)
+                new_workspace.insert(ignore_permissions=True)
+                frappe.db.commit()
+                
+                # Clear all caches
+                frappe.cache().delete_key('all_workspaces')
+                frappe.cache().delete_key('workspace_stats')
+                frappe.cache().delete_value('workspace')
         except Exception as e:
             frappe.log_error(f"Error updating workspace: {str(e)}", "Workspace Update Error")
             raise
@@ -180,32 +189,27 @@ class CustomWorkspaceConfig(Document):
         """Delete the associated workspace when this config is deleted"""
         workspace_name = f"custom-{self.workspace_name.lower().replace(' ', '-')}"
         
-        # Log the attempt
-        frappe.log_error(f"Attempting to delete workspace: {workspace_name}", "Workspace Deletion Debug")
-        
         try:
-            # Check if workspace exists and log result
-            exists = frappe.db.exists("Workspace", workspace_name)
-            frappe.log_error(f"Workspace exists check: {exists}", "Workspace Deletion Debug")
-            
-            if exists:
-                # Add ignore_permissions and extra logging
+            # Try multiple deletion approaches
+            if frappe.db.exists("Workspace", workspace_name):
+                # First try: Standard deletion
                 frappe.delete_doc("Workspace", workspace_name, force=1, ignore_permissions=True)
+                
+                # Second try: Direct SQL deletion
+                frappe.db.sql("""DELETE FROM `tabWorkspace` WHERE name = %s""", workspace_name)
+                
+                # Also delete any workspace links
+                frappe.db.sql("""DELETE FROM `tabWorkspace Link` WHERE parent = %s""", workspace_name)
+                
+                # Clear all possible caches
+                frappe.cache().delete_key('all_workspaces')
+                frappe.cache().delete_key('workspace_stats')
+                frappe.cache().delete_value('workspace')
+                
                 frappe.db.commit()
-                frappe.cache().delete_key('all_workspaces')  # Clear workspace cache
                 
-                # Verify deletion
-                still_exists = frappe.db.exists("Workspace", workspace_name)
-                frappe.log_error(f"Deletion verification - workspace still exists: {still_exists}", "Workspace Deletion Debug")
-                
-                if still_exists:
-                    # If it still exists, try direct DB deletion as fallback
-                    frappe.db.sql("""DELETE FROM tabWorkspace WHERE name = %s""", workspace_name)
-                    frappe.db.commit()
-                    frappe.log_error("Performed direct DB deletion", "Workspace Deletion Debug")
         except Exception as e:
-            frappe.log_error(f"Error deleting workspace: {str(e)}\nWorkspace name: {workspace_name}", "Workspace Deletion Error")
-            raise
+            frappe.log_error(f"Error deleting workspace: {str(e)}", "Workspace Deletion Error")
 
     def delete(self):
         """Override delete method to handle proper cleanup"""
