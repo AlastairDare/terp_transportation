@@ -124,40 +124,26 @@ class CustomWorkspaceConfig(Document):
         
     def after_save(self):
         """Update existing workspace when config changes"""
-        workspace_name = f"custom-{self.workspace_name.lower().replace(' ', '-')}"
-        
-        content, links = self.generate_workspace_content()
-        
-        workspace_data = {
-            "icon": self.icon,
-            "label": self.workspace_name,
-            "module": "Transportation",
-            "parent_page": "Transportation",
-            "public": 1,
-            "content": content,
-            "sequence_id": float(self.sequence),
-            "title": self.workspace_name,
-            "hide_custom": 1,
-            "links": links,
-            "is_hidden": not self.is_active
-        }
-        
         try:
-            if frappe.db.exists("Workspace", workspace_name):
-                # Delete existing workspace first
-                frappe.delete_doc("Workspace", workspace_name, force=1, ignore_permissions=True)
+            # Find the workspace by label and module
+            workspaces = frappe.get_all("Workspace", 
+                filters={"label": self.workspace_name, "module": "Transportation"},
+                pluck="name")
+                
+            if workspaces:
+                workspace_name = workspaces[0]
+                content, links = self.generate_workspace_content()
+                
+                # Get and update the workspace
+                workspace = frappe.get_doc("Workspace", workspace_name)
+                workspace.content = content
+                workspace.links = links
+                workspace.icon = self.icon
+                workspace.sequence_id = float(self.sequence)
+                workspace.is_hidden = not self.is_active
+                workspace.save()
                 frappe.db.commit()
                 
-                # Create new workspace with updated content
-                workspace_data["name"] = workspace_name
-                new_workspace = frappe.get_doc(workspace_data)
-                new_workspace.insert(ignore_permissions=True)
-                frappe.db.commit()
-                
-                # Clear all caches
-                frappe.cache().delete_key('all_workspaces')
-                frappe.cache().delete_key('workspace_stats')
-                frappe.cache().delete_value('workspace')
         except Exception as e:
             frappe.log_error(f"Error updating workspace: {str(e)}", "Workspace Update Error")
             raise
@@ -187,27 +173,17 @@ class CustomWorkspaceConfig(Document):
             
     def on_trash(self):
         """Delete the associated workspace when this config is deleted"""
-        workspace_name = f"custom-{self.workspace_name.lower().replace(' ', '-')}"
-        
         try:
-            # Try multiple deletion approaches
-            if frappe.db.exists("Workspace", workspace_name):
-                # First try: Standard deletion
-                frappe.delete_doc("Workspace", workspace_name, force=1, ignore_permissions=True)
-                
-                # Second try: Direct SQL deletion
-                frappe.db.sql("""DELETE FROM `tabWorkspace` WHERE name = %s""", workspace_name)
-                
-                # Also delete any workspace links
-                frappe.db.sql("""DELETE FROM `tabWorkspace Link` WHERE parent = %s""", workspace_name)
-                
-                # Clear all possible caches
-                frappe.cache().delete_key('all_workspaces')
-                frappe.cache().delete_key('workspace_stats')
-                frappe.cache().delete_value('workspace')
-                
-                frappe.db.commit()
-                
+            # Get all workspaces with this config's name
+            workspaces = frappe.get_all("Workspace", 
+                filters={"label": self.workspace_name, "module": "Transportation"})
+            
+            # Delete each matching workspace
+            for workspace in workspaces:
+                frappe.delete_doc("Workspace", workspace.name, force=1)
+            
+            frappe.db.commit()
+            
         except Exception as e:
             frappe.log_error(f"Error deleting workspace: {str(e)}", "Workspace Deletion Error")
 
