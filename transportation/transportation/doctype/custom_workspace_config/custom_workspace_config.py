@@ -125,21 +125,24 @@ class CustomWorkspaceConfig(Document):
     def after_save(self):
         """Update workspace by deleting and recreating"""
         try:
+            # Log start with actual data
+            frappe.log_error("Starting workspace update", "UPDATE DEBUG")
+            
             # Find existing workspace
             workspaces = frappe.get_all("Workspace", 
                 filters={"label": self.workspace_name, "module": "Transportation"},
                 pluck="name")
                 
+            frappe.log_error(f"Found workspaces: {workspaces}", "UPDATE DEBUG")
+            
             if workspaces:
                 workspace_name = workspaces[0]
-                
-                # First generate new content
                 content, links = self.generate_workspace_content()
                 
-                # Prepare new workspace data
+                # Log pre-deletion data
                 workspace_data = {
                     "doctype": "Workspace",
-                    "name": workspace_name,  # Keep same name to maintain references
+                    "name": workspace_name,
                     "icon": self.icon,
                     "label": self.workspace_name,
                     "module": "Transportation",
@@ -153,22 +156,23 @@ class CustomWorkspaceConfig(Document):
                     "is_hidden": not self.is_active
                 }
                 
-                try:
-                    # Delete existing
-                    frappe.delete_doc("Workspace", workspace_name, force=1)
-                    frappe.db.commit()
-                    
-                    # Create new
-                    new_workspace = frappe.get_doc(workspace_data)
-                    new_workspace.insert(ignore_permissions=True)
-                    frappe.db.commit()
-                    
-                except Exception as e:
-                    frappe.log_error(f"Error in delete-recreate cycle: {str(e)}", "Workspace Update Error")
-                    raise
+                frappe.log_error(f"About to delete and recreate with data: {workspace_data}", "UPDATE DEBUG")
+                
+                # Delete existing
+                frappe.delete_doc("Workspace", workspace_name, force=1)
+                frappe.db.commit()
+                
+                frappe.log_error("Delete successful, attempting recreation", "UPDATE DEBUG")
+                
+                # Create new
+                new_workspace = frappe.get_doc(workspace_data)
+                new_workspace.insert(ignore_permissions=True)
+                frappe.db.commit()
+                
+                frappe.log_error("Recreation successful", "UPDATE DEBUG")
                     
         except Exception as e:
-            frappe.log_error(f"Error in workspace update: {str(e)}", "Workspace Update Error")
+            frappe.log_error(f"Error in workspace update: {str(e)}", "UPDATE ERROR")
             raise
 
     @frappe.whitelist()
