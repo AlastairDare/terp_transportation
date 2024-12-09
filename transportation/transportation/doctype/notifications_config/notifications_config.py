@@ -23,41 +23,17 @@ def get_week_days(week_option):
 @frappe.whitelist()
 def process_schedule_notifications():
     """Process schedule notifications based on current configuration"""
-    # Get the Notifications Config singleton
-    config = frappe.get_single('Notifications Config')
-    
-    # First, delete ALL existing schedule notifications - using ORM instead of raw SQL
-    frappe.db.delete("Schedule Notification")
-    frappe.db.commit()
-    
-    # Initialize counters
-    asset_count = 0
-    driver_count = 0
-    custom_count = 0
-    
-    # Process driver notifications if enabled
-    if config.track_driver_license_expiry_date or config.track_driver_prdp_expiry_date:
-        driver_count = config._process_driver_schedule_notifications()
-    
-    # Process asset notifications if any asset-related tracking is enabled
-    if (config.track_transportation_assets_registration_expiry_date or
-        config.track_transportation_assets_warranty_expiry_date or
-        config.track_transportation_assets_crw_expiry_date or
-        config.track_transportation_assets_cbrta_expiry_date or
-        config.track_vehicles_upcoming_service_by_time or
-        config.track_vehicles_upcoming_service_by_kilometres):
-        asset_count = config._process_asset_schedule_notifications()
-    
-    # Process custom notifications
-    custom_count = config._process_custom_schedule_notifications()
-    
-    frappe.db.commit()
-    
-    return {
-        "assets": asset_count,
-        "drivers": driver_count,
-        "custom": custom_count
-    }
+    try:
+        # Get the NotificationsConfig singleton and use its working method
+        config = frappe.get_single('Notifications Config')
+        result = config.process_schedule_notifications()
+        
+        frappe.db.commit()
+        return result
+        
+    except Exception as e:
+        frappe.log_error(f"Error in schedule notification processing: {str(e)}")
+        raise
 
 class NotificationsConfig(Document):
     def validate(self):
