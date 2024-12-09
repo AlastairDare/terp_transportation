@@ -14,7 +14,7 @@
             "fieldtype": "Int",
             "label": "Odometer Reading",
             "in_list_view": 1,
-            "reqd": 1,
+            "reqd": 0,
             "idx": 1
         },
         {

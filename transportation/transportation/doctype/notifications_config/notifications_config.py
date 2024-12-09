@@ -26,8 +26,8 @@ def process_schedule_notifications():
     # Get the Notifications Config singleton
     config = frappe.get_single('Notifications Config')
     
-    # First, delete ALL existing schedule notifications
-    frappe.db.sql("""DELETE FROM `tabSchedule Notification`""")
+    # First, delete ALL existing schedule notifications - using ORM instead of raw SQL
+    frappe.db.delete("Schedule Notification")
     frappe.db.commit()
     
     # Initialize counters
