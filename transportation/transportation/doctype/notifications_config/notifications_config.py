@@ -107,37 +107,38 @@ class NotificationsConfig(Document):
         """Main function to process schedule notifications based on current configuration"""
         try:
             # Track which schedule notification types were previously configured
-            previous_types = set(frappe.get_all('Schedule Notification', 
-                                            fields=['notification_type'], 
-                                            distinct=True, 
-                                            pluck='notification_type'))
-            
-            # Get current enabled types
-            current_types = set()
-            if self.track_driver_license_expiry_date:
-                current_types.add('Driver License')
-            if self.track_driver_prdp_expiry_date:
-                current_types.add('Driver PrDP')
-            if self.track_transportation_assets_registration_expiry_date:
-                current_types.add('Transportation Asset Registration')
-            if self.track_transportation_assets_warranty_expiry_date:
-                current_types.add('Transportation Asset Warranty')
-            if self.track_transportation_assets_crw_expiry_date:
-                current_types.add('Transportation Asset CRW')
-            if self.track_transportation_assets_cbrta_expiry_date:
-                current_types.add('Transportation Asset C-BRTA')
-            if self.track_vehicles_upcoming_service_by_time:
-                current_types.add('Transportation Asset Service Time')
-            if self.track_vehicles_upcoming_service_by_kilometres:
-                current_types.add('Transportation Asset Service Distance')
-            
-            # Remove schedule notifications for disabled types
-            types_to_remove = previous_types - current_types
-            if types_to_remove:
-                for notification_type in types_to_remove:
-                    frappe.db.delete('Schedule Notification', {
-                        'notification_type': notification_type
-                    })
+            if frappe.db.table_exists('Schedule Notification'):
+                previous_types = set(frappe.get_all('Schedule Notification', 
+                                                fields=['notification_type'], 
+                                                distinct=True, 
+                                                pluck='notification_type'))
+                
+                # Get current enabled types
+                current_types = set()
+                if self.track_driver_license_expiry_date:
+                    current_types.add('Driver License')
+                if self.track_driver_prdp_expiry_date:
+                    current_types.add('Driver PrDP')
+                if self.track_transportation_assets_registration_expiry_date:
+                    current_types.add('Transportation Asset Registration')
+                if self.track_transportation_assets_warranty_expiry_date:
+                    current_types.add('Transportation Asset Warranty')
+                if self.track_transportation_assets_crw_expiry_date:
+                    current_types.add('Transportation Asset CRW')
+                if self.track_transportation_assets_cbrta_expiry_date:
+                    current_types.add('Transportation Asset C-BRTA')
+                if self.track_vehicles_upcoming_service_by_time:
+                    current_types.add('Transportation Asset Service Time')
+                if self.track_vehicles_upcoming_service_by_kilometres:
+                    current_types.add('Transportation Asset Service Distance')
+                
+                # Remove schedule notifications for disabled types
+                types_to_remove = previous_types - current_types
+                if types_to_remove:
+                    for notification_type in types_to_remove:
+                        frappe.db.delete('Schedule Notification', {
+                            'notification_type': notification_type
+                        })
             
             # Process schedule notifications
             asset_count = 0
@@ -164,6 +165,7 @@ class NotificationsConfig(Document):
                 "custom": custom_count
             }
         except Exception as e:
+            frappe.db.rollback()
             frappe.log_error(f"Error in schedule notification processing: {str(e)}")
             raise
 
