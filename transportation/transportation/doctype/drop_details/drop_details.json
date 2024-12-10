@@ -5,8 +5,7 @@
     "engine": "InnoDB",
     "field_order": [
         "location",
-        "odometer_reading",
-        "parent_trip"
+        "odometer_reading"
     ],
     "fields": [
         {
@@ -14,8 +13,7 @@
             "fieldtype": "Int",
             "label": "Odometer Reading",
             "in_list_view": 1,
-            "reqd": 0,
-            "idx": 1
+            "reqd": 0
         },
         {
             "fieldname": "location",
@@ -23,20 +21,31 @@
             "label": "Location",
             "options": "Location",
             "in_list_view": 1,
-            "reqd": 0,
-            "idx": 2
+            "reqd": 0
         },
         {
-            "fieldname": "parent_trip",
-            "fieldtype": "Link",
-            "label": "Parent Trip",
-            "options": "Trip",
-            "in_list_view": 1,
-            "reqd": 0,
-            "default": "parent.name",
-            "read_only": 1,
-            "hidden": 1,
-            "idx": 3
+            "fieldname": "parent",
+            "fieldtype": "Data",
+            "label": "Parent",
+            "hidden": 1
+        },
+        {
+            "fieldname": "parentfield",
+            "fieldtype": "Data",
+            "label": "Parent Field",
+            "hidden": 1
+        },
+        {
+            "fieldname": "parenttype",
+            "fieldtype": "Data",
+            "label": "Parent Type",
+            "hidden": 1
+        },
+        {
+            "fieldname": "idx",
+            "fieldtype": "Int",
+            "label": "Index",
+            "hidden": 1
         }
     ],
     "istable": 1,
