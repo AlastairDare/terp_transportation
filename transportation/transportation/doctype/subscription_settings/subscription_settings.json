@@ -1,0 +1,31 @@
+{
+    "name": "Subscription Settings",
+    "doctype": "DocType",
+    "module": "Transportation",
+    "custom": 1,
+    "issingle": 1,
+    "fields": [
+        {
+            "fieldname": "truck_limit_section",
+            "fieldtype": "Section Break",
+            "label": "Asset Limits"
+        },
+        {
+            "fieldname": "truck_limit",
+            "label": "Truck Limit",
+            "fieldtype": "Int",
+            "reqd": 1,
+            "default": 0,
+            "description": "Maximum number of trucks allowed in the system"
+        }
+    ],
+    "permissions": [
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 0
+        }
+    ]
+}

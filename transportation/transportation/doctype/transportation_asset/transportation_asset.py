@@ -5,6 +5,8 @@ def validate(doc, method):
     """Validate transportation asset document"""
     frappe.logger().debug(f"Validating transportation asset {doc.name}")
     
+    
+    validate_truck_limit(doc)
     if doc.is_subbie:
         if doc.transportation_asset_type != "Truck":
             frappe.throw(_("Subbie assets must be of type Truck"))
@@ -24,6 +26,41 @@ def validate(doc, method):
         validate_trailer(doc)
     elif doc.transportation_asset_type == "Truck":
         validate_truck(doc)
+
+def validate_truck_limit(doc):
+    """Validate that the truck limit hasn't been exceeded"""
+    if doc.transportation_asset_type != "Truck":
+        return
+
+    # Get the subscription settings
+    settings = frappe.get_single("Subscription Settings")
+    if not settings.truck_limit:
+        return  # No limit set
+
+    # Count existing trucks (excluding the current document if it's an update)
+    filters = {
+        "transportation_asset_type": "Truck",
+        "docstatus": 1  # Only count submitted documents
+    }
+    if not doc.is_new():
+        filters["name"] = ["!=", doc.name]
+    
+    current_truck_count = frappe.db.count("Transportation Asset", filters)
+
+    # For existing documents, only validate if changing type to Truck
+    if not doc.is_new():
+        old_doc = frappe.get_doc("Transportation Asset", doc.name)
+        if old_doc.transportation_asset_type == "Truck":
+            return  # No need to validate if it was already a truck
+    
+    # Check if adding this truck would exceed the limit
+    if current_truck_count >= settings.truck_limit:
+        frappe.throw(
+            _("Cannot create/modify this asset as a Truck. Your subscription limit of {0} trucks has been reached. Current count: {1}").format(
+                settings.truck_limit,
+                current_truck_count
+            )
+        )
 
 def validate_fixed_asset_category(doc):
     """Validate that the fixed asset belongs to the correct asset category"""
