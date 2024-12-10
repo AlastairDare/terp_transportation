@@ -39,8 +39,7 @@ def validate_truck_limit(doc):
 
     # Count existing trucks (excluding the current document if it's an update)
     filters = {
-        "transportation_asset_type": "Truck",
-        "docstatus": 1  # Only count submitted documents
+        "transportation_asset_type": "Truck"
     }
     if not doc.is_new():
         filters["name"] = ["!=", doc.name]
