@@ -39,7 +39,7 @@ frappe.ui.form.on('DocType Label Config', {
 
 function load_doctype_fields(frm) {
     frappe.call({
-        method: 'transportation.doctype.doctype_label_config.doctype_label_config.get_doctype_fields',
+        method: 'transportation.transportation.doctype.doctype_label_config.doctype_label_config.get_doctype_fields',
         args: {
             doctype_name: frm.doc.doctype_name,
             exclude_standard: frm.doc.exclude_standard_fields || 0
