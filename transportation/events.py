@@ -1,50 +1,40 @@
 import frappe
+from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
 
 def apply_custom_labels(doc, method=None):
-    """Apply custom labels from configuration if they exist"""
-    frappe.log_error(
-        message=f"Checking labels for doctype: {doc.doctype}",
-        title="Label Debug: Start"
-    )
-    
-    if doc.doctype == "DocType Label Config":
+    """Apply custom labels only when saving a DocType Label Config"""
+    if doc.doctype != "DocType Label Config":
         return
         
-    config = frappe.get_all(
-        "DocType Label Config",
-        filters={
-            "doctype_name": doc.doctype,
-            "is_active": 1
-        },
-        limit=1
-    )
-    
     frappe.log_error(
-        message=f"Found configurations: {config}",
-        title="Label Debug: Config"
+        message=f"Updating customizations for: {doc.doctype_name}",
+        title="Label Customization: Start"
     )
-
-    if not config:
-        return
-        
-    config_doc = frappe.get_doc("DocType Label Config", config[0].name)
     
+    # Get labels that should be applied
     custom_labels = {
         d.field_name: d.custom_label 
-        for d in config_doc.field_labels 
+        for d in doc.field_labels 
         if d.is_active and d.custom_label
     }
     
-    frappe.log_error(
-        message=f"Custom labels map: {custom_labels}",
-        title="Label Debug: Labels"
-    )
-
-    meta = frappe.get_meta(doc.doctype)
-    for field in meta.fields:
+    if not custom_labels:
+        return
+        
+    # Use CustomizeForm to update the field labels
+    customize_form = CustomizeForm()
+    customize_form.doc_type = doc.doctype_name
+    customize_form.fetch_to_customize()
+    
+    updated = False
+    for field in customize_form.get("fields"):
         if field.fieldname in custom_labels:
             field.label = custom_labels[field.fieldname]
-            frappe.log_error(
-                message=f"Changed label for {field.fieldname} to {custom_labels[field.fieldname]}",
-                title="Label Debug: Applied"
-            )
+            updated = True
+            
+    if updated:
+        customize_form.save_customization()
+        frappe.log_error(
+            message=f"Updated labels for {doc.doctype_name}: {custom_labels}",
+            title="Label Customization: Complete"
+        )
