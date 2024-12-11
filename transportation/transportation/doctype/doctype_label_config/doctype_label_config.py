@@ -50,33 +50,32 @@ def get_doctype_fields(doctype_name, exclude_standard=1):
     try:
         meta = frappe.get_meta(doctype_name)
         
-        # Log basic info
-        frappe.log_error("Starting field processing", "Label Config: Start")
+        # Log all fields before filtering
+        for field in meta.fields:
+            frappe.log_error(
+                f"Field: {field.fieldname}, Type: {field.fieldtype}, Owner: {field.owner}",
+                "Field Details"
+            )
         
         fields_to_exclude = ["Section Break", "Column Break", "Tab Break", "HTML", "Button"]
         fields = []
         
-        # Process each field individually
         for field in meta.fields:
-            if field.fieldtype not in fields_to_exclude:
-                if int(exclude_standard) and field.owner == "Administrator":
-                    continue
-                    
-                new_field = {
-                    "field_name": field.fieldname,
-                    "original_label": field.label,
-                    "custom_label": "",
-                    "is_active": 1
-                }
-                fields.append(new_field)
+            if field.fieldtype in fields_to_exclude:
+                frappe.log_error(f"Excluded due to type: {field.fieldname}", "Field Filtering")
+                continue
                 
-                # Log each field individually
-                frappe.log_error(
-                    f"Added field: {field.fieldname}", 
-                    f"Label Config: Field {field.fieldname}"
-                )
+            if int(exclude_standard) and field.owner == "Administrator":
+                frappe.log_error(f"Excluded as standard field: {field.fieldname}", "Field Filtering")
+                continue
+                
+            fields.append({
+                "field_name": field.fieldname,
+                "original_label": field.label,
+                "custom_label": "",
+                "is_active": 1
+            })
         
-        # Log final count
         frappe.log_error(f"Total fields processed: {len(fields)}", "Label Config: Complete")
         return fields
         
