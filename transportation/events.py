@@ -1,7 +1,8 @@
 import frappe
 
 def apply_custom_labels(doc):
-    """Apply custom labels from configuration if they exist"""
+    frappe.log_error(f"Applying labels for {doc.doctype}", "Label Override Debug")
+    
     if doc.doctype == "DocType Label Config":
         return
         
@@ -13,6 +14,8 @@ def apply_custom_labels(doc):
         },
         limit=1
     )
+    
+    frappe.log_error(f"Found config: {config}", "Label Override Debug")
     
     if not config:
         return
