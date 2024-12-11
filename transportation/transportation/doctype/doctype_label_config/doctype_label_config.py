@@ -47,7 +47,20 @@ class DocTypeLabelConfig(Document):
 @frappe.whitelist()
 def get_doctype_fields(doctype_name, exclude_standard=1):
     """Get all fields for a DocType"""
-    doc = frappe.new_doc("DocType Label Config")
-    doc.doctype_name = doctype_name
-    doc.exclude_standard_fields = exclude_standard
-    return doc.load_fields()
+    meta = frappe.get_meta(doctype_name)
+    fields_to_exclude = ["Section Break", "Column Break", "Tab Break", "HTML", "Button"]
+    
+    fields = []
+    for field in meta.fields:
+        if field.fieldtype not in fields_to_exclude:
+            if int(exclude_standard) and field.owner == "Administrator":
+                continue
+                
+            fields.append({
+                "field_name": field.fieldname,
+                "original_label": field.label,
+                "custom_label": "",
+                "is_active": 1
+            })
+            
+    return fields
