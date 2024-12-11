@@ -1,10 +1,9 @@
 import frappe
-from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
 
 def apply_custom_labels(doc, method=None):
     """Apply custom labels only when saving a DocType Label Config"""
     frappe.log_error(
-        message=f"Starting customization for {doc.doctype_name}",
+        message=f"Starting label update for {doc.doctype_name}",
         title="Label Debug"
     )
     
@@ -22,38 +21,30 @@ def apply_custom_labels(doc, method=None):
         return
 
     try:
-        # Create and initialize CustomizeForm properly
-        customize_form = frappe.new_doc("Customize Form")
-        customize_form.doc_type = doc.doctype_name
-        
-        frappe.log_error(
-            message=f"Customizing: {customize_form.doc_type}",
-            title="Label Debug"
-        )
-        
-        customize_form.run_method("fetch_to_customize")
+        # Get the actual DocType
+        target_doctype = frappe.get_doc("DocType", doc.doctype_name)
         
         # Update the labels
         updated = False
-        for field in customize_form.get("fields"):
+        for field in target_doctype.fields:
             if field.fieldname in custom_labels:
                 frappe.log_error(
-                    message=f"Setting {field.fieldname} label to: {custom_labels[field.fieldname]}",
+                    message=f"Updating {field.fieldname} from {field.label} to {custom_labels[field.fieldname]}",
                     title="Label Debug"
                 )
                 field.label = custom_labels[field.fieldname]
                 updated = True
         
         if updated:
-            customize_form.run_method("save_customization")
+            target_doctype.save()
             frappe.clear_cache()
             frappe.log_error(
-                message="Customizations saved and cache cleared",
+                message="Labels updated and cache cleared",
                 title="Label Debug"
             )
     
     except Exception as e:
         frappe.log_error(
-            message=f"Error details: {str(e)}",
+            message=f"Error: {str(e)}",
             title="Label Debug Error"
         )
