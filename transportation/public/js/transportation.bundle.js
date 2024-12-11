@@ -12,6 +12,7 @@ import '../../transportation/doctype/tolls/tolls.js';
 import '../../transportation/doctype/schedule_notification/schedule_notification_list.js';
 import '../../transportation/doctype/schedule_notification/schedule_notification.js';
 import '../../transportation/doctype/custom_workspace_config/custom_workspace_config.js';
+import '../../transportation/doctype/doctype_label_config/doctype_label_config.js';
 import '../../transportation/page/transportation_dashboard/transportation_dashboard.js';
 import '../../transportation/page/scheduled_items/scheduled_items.js';
 import '../../transportation/page/workspace_manager/workspace_manager.js';

@@ -1,0 +1,47 @@
+{
+    "name": "DocType Label Config",
+    "owner": "Administrator",
+    "doctype": "DocType",
+    "module": "Your App",
+    "custom": 1,
+    "is_submittable": 0,
+    "quick_entry": 0,
+    "track_changes": 1,
+    "fields": [
+        {
+            "fieldname": "doctype_name",
+            "fieldtype": "Link",
+            "label": "DocType",
+            "options": "DocType",
+            "reqd": 1
+        },
+        {
+            "fieldname": "is_active",
+            "fieldtype": "Check",
+            "label": "Configuration Active",
+            "default": 1
+        },
+        {
+            "fieldname": "exclude_standard_fields",
+            "fieldtype": "Check",
+            "label": "Exclude Standard Fields",
+            "default": 1
+        },
+        {
+            "fieldname": "field_labels",
+            "fieldtype": "Table",
+            "label": "Field Labels",
+            "options": "DocType Field Label",
+            "reqd": 1
+        }
+    ],
+    "permissions": [
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1
+        }
+    ]
+}
