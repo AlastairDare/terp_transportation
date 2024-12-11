@@ -1,6 +1,6 @@
 import frappe
 
-def apply_custom_labels(doc):
+def apply_custom_labels(doc, method=None):
     """Apply custom labels from configuration if they exist"""
     frappe.log_error(
         message=f"Checking labels for doctype: {doc.doctype}",
