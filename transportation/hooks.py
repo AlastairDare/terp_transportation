@@ -116,7 +116,7 @@ scheduler_events = {
 }
 
 doc_events = {
-	"*": {
-		"before_load": "transportation.events.apply_custom_labels"
-	}
+    "*": {
+        "onload": "transportation.events.apply_custom_labels"
+    }
 }
