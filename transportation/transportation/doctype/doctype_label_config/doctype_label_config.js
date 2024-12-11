@@ -2,7 +2,7 @@ frappe.ui.form.on('DocType Label Config', {
     refresh: function(frm) {
         frm.add_custom_button(__('Load Fields'), function() {
             frappe.call({
-                method: 'your_app.doctype.doctype_label_config.doctype_label_config.get_doctype_fields',
+                method: 'transportation.doctype.doctype_label_config.doctype_label_config.get_doctype_fields',
                 args: {
                     doctype_name: frm.doc.doctype_name,
                     exclude_standard: frm.doc.exclude_standard_fields

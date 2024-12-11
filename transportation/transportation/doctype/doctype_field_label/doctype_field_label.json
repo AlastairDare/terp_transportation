@@ -2,7 +2,7 @@
     "name": "DocType Field Label",
     "owner": "Administrator",
     "doctype": "DocType",
-    "module": "Your App",
+    "module": "Transportation",
     "is_submittable": 0,
     "is_child_table": 1,
     "istable": 1,
