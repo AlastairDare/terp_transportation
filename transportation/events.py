@@ -3,8 +3,8 @@ import frappe
 def apply_custom_labels(doc):
     """Apply custom labels from configuration if they exist"""
     frappe.log_error(
-        message=f"Attempting label override for doctype: {doc.doctype}",
-        title="Label Config Debug"
+        message=f"Checking labels for doctype: {doc.doctype}",
+        title="Label Debug: Start"
     )
     
     if doc.doctype == "DocType Label Config":
@@ -20,24 +20,31 @@ def apply_custom_labels(doc):
     )
     
     frappe.log_error(
-        message=f"Found config: {config}",
-        title="Label Config Debug"
+        message=f"Found configurations: {config}",
+        title="Label Debug: Config"
     )
-    
+
     if not config:
         return
         
     config_doc = frappe.get_doc("DocType Label Config", config[0].name)
     
-    # Create mapping of field_name to custom_label
     custom_labels = {
         d.field_name: d.custom_label 
         for d in config_doc.field_labels 
         if d.is_active and d.custom_label
     }
     
-    # Apply custom labels to meta
+    frappe.log_error(
+        message=f"Custom labels map: {custom_labels}",
+        title="Label Debug: Labels"
+    )
+
     meta = frappe.get_meta(doc.doctype)
     for field in meta.fields:
         if field.fieldname in custom_labels:
             field.label = custom_labels[field.fieldname]
+            frappe.log_error(
+                message=f"Changed label for {field.fieldname} to {custom_labels[field.fieldname]}",
+                title="Label Debug: Applied"
+            )
