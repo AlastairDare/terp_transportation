@@ -47,33 +47,39 @@ class DocTypeLabelConfig(Document):
 @frappe.whitelist()
 def get_doctype_fields(doctype_name, exclude_standard=1):
     """Get all fields for a DocType"""
-    frappe.log_error(f"DocType requested: {doctype_name}", "Label Config Debug")
-    
     try:
         meta = frappe.get_meta(doctype_name)
-        frappe.log_error(f"Meta obtained: {meta.name}", "Label Config Debug")
-        frappe.log_error(f"Fields found: {[f.fieldname for f in meta.fields]}", "Label Config Debug")
+        
+        # Log basic info
+        frappe.log_error("Starting field processing", "Label Config: Start")
         
         fields_to_exclude = ["Section Break", "Column Break", "Tab Break", "HTML", "Button"]
         fields = []
         
+        # Process each field individually
         for field in meta.fields:
-            frappe.log_error(f"Processing field: {field.fieldname}, type: {field.fieldtype}", "Label Config Debug")
             if field.fieldtype not in fields_to_exclude:
                 if int(exclude_standard) and field.owner == "Administrator":
-                    frappe.log_error(f"Skipping standard field: {field.fieldname}", "Label Config Debug")
                     continue
                     
-                fields.append({
+                new_field = {
                     "field_name": field.fieldname,
                     "original_label": field.label,
                     "custom_label": "",
                     "is_active": 1
-                })
+                }
+                fields.append(new_field)
+                
+                # Log each field individually
+                frappe.log_error(
+                    f"Added field: {field.fieldname}", 
+                    f"Label Config: Field {field.fieldname}"
+                )
         
-        frappe.log_error(f"Final fields to return: {fields}", "Label Config Debug")        
+        # Log final count
+        frappe.log_error(f"Total fields processed: {len(fields)}", "Label Config: Complete")
         return fields
         
     except Exception as e:
-        frappe.log_error(f"Error in get_doctype_fields: {str(e)}", "Label Config Error")
+        frappe.log_error(str(e), "Label Config Error")
         raise e
