@@ -117,6 +117,7 @@ scheduler_events = {
 
 doc_events = {
     "DocType Label Config": {
-        "after_save": "transportation.events.apply_custom_labels"
+        "after_insert": "transportation.events.apply_custom_labels",
+        "on_update": "transportation.events.apply_custom_labels"
     }
 }
