@@ -233,8 +233,8 @@ class TransportationDashboard {
                 
                 // Special handling for transportation_asset column
                 if (col.fieldname === 'transportation_asset') {
-                    // Create a filters object that matches the Trip DocType fields
-                    const filters = {
+                    // Get current active filters from the dashboard
+                    const currentFilters = {
                         truck: row.transportation_asset,
                         date: ['between', [
                             $('#from_date').val(),
@@ -242,13 +242,19 @@ class TransportationDashboard {
                         ]]
                     };
                     
-                    // Create the URL for the Trip list view
-                    const encoded_filters = encodeURIComponent(JSON.stringify(filters));
+                    // Create the URL with all active filters
+                    const encoded_filters = encodeURIComponent(JSON.stringify(currentFilters));
                     const list_url = `/app/trip/view/list?filters=${encoded_filters}`;
                     
-                    // Create the link with both asset ID and license plate (if available)
-                    const display_text = row.asset_number || row.transportation_asset;
-                    value = `<a href="${list_url}" class="asset-link">${display_text}</a>`;
+                    // Create link with current filter context
+                    const display_text = row.asset_number;
+                    value = `<a href="${list_url}" class="asset-link" 
+                               data-asset-id="${row.transportation_asset}"
+                               data-from-date="${$('#from_date').val()}"
+                               data-to-date="${$('#to_date').val()}"
+                               title="View trips for ${display_text}">
+                               ${display_text}
+                            </a>`;
                 } else if (col.fieldtype === 'Currency') {
                     value = frappe.format(value, { fieldtype: 'Currency' });
                 } else if (col.fieldtype === 'Float') {
