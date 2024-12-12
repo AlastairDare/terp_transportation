@@ -229,19 +229,48 @@ class TransportationDashboard {
         data.forEach(row => {
             body_html += '<tr>';
             this.columns.forEach(col => {
-                let value = row[col.fieldname] ?? 0; // Use nullish coalescing to show 0 for null/undefined
-                if (col.fieldtype === 'Currency') {
+                let value = row[col.fieldname] ?? 0;
+                
+                // Special handling for transportation_asset column
+                if (col.fieldname === 'transportation_asset') {
+                    // Create a filters object that matches the Trip DocType fields
+                    const filters = {
+                        truck: row.transportation_asset,
+                        date: ['between', [
+                            $('#from_date').val(),
+                            $('#to_date').val()
+                        ]]
+                    };
+                    
+                    // Create the URL for the Trip list view
+                    const encoded_filters = encodeURIComponent(JSON.stringify(filters));
+                    const list_url = `/app/trip/view/list?filters=${encoded_filters}`;
+                    
+                    // Create the link with both asset ID and license plate (if available)
+                    const display_text = row.asset_number || row.transportation_asset;
+                    value = `<a href="${list_url}" class="asset-link">${display_text}</a>`;
+                } else if (col.fieldtype === 'Currency') {
                     value = frappe.format(value, { fieldtype: 'Currency' });
                 } else if (col.fieldtype === 'Float') {
                     value = frappe.format(value, { fieldtype: 'Float', precision: 2 });
                 } else if (col.fieldtype === 'Int') {
                     value = frappe.format(value, { fieldtype: 'Int' });
                 }
+                
                 body_html += `<td>${value}</td>`;
             });
             body_html += '</tr>';
         });
         $('#table-body').html(body_html);
+
+        // Add hover effect for the links
+        $('.asset-link').css({
+            'color': 'var(--text-color)',
+            'text-decoration': 'none'
+        }).hover(
+            function() { $(this).css('text-decoration', 'underline'); },
+            function() { $(this).css('text-decoration', 'none'); }
+        );
     }
 
     render_totals(data) {
