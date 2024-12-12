@@ -1,56 +1,54 @@
 frappe.listview_settings['Trip'] = {
     add_fields: ["truck", "date"],
+    
+    // Add filters to the list view
+    filters: [
+        ['Trip', 'docstatus', '<', '2']
+    ],
+
     onload: function(listview) {
-        console.log("Trip list view loaded");
-        
-        // Log URL parameters
+        // Add the filter fields
+        if (!listview.page.fields_dict.truck) {
+            listview.page.add_field({
+                fieldtype: 'Link',
+                fieldname: 'truck',
+                label: __('Truck'),
+                options: 'Transportation Asset',
+                onchange: function() {
+                    listview.refresh();
+                }
+            });
+        }
+
+        if (!listview.page.fields_dict.date) {
+            listview.page.add_field({
+                fieldtype: 'DateRange',
+                fieldname: 'date',
+                label: __('Trip Date'),
+                onchange: function() {
+                    listview.refresh();
+                }
+            });
+        }
+
+        // Check for dashboard filters
         const urlParams = new URLSearchParams(window.location.search);
-        console.log("URL parameters:", Object.fromEntries(urlParams));
-        
         if (urlParams.has('dashboard_filters')) {
-            console.log("Found dashboard_filters parameter");
-            
             try {
                 const dashboardFilters = JSON.parse(decodeURIComponent(urlParams.get('dashboard_filters')));
                 console.log('Parsed dashboard filters:', dashboardFilters);
 
-                // Clear existing filters
-                console.log('Clearing existing filters');
-                listview.filter_area.clear();
+                // Try using frappe.route_options
+                frappe.route_options = {
+                    'truck': dashboardFilters.truck,
+                    'date': ['between', [dashboardFilters.from_date, dashboardFilters.to_date]]
+                };
 
-                // Apply truck filter
-                if (dashboardFilters.truck) {
-                    console.log('Applying truck filter:', dashboardFilters.truck);
-                    listview.filter_area.add([
-                        'Trip',
-                        'truck',
-                        '=',
-                        dashboardFilters.truck
-                    ]);
-                }
-
-                // Apply date filter
-                if (dashboardFilters.from_date && dashboardFilters.to_date) {
-                    console.log('Applying date filter:', dashboardFilters.from_date, 'to', dashboardFilters.to_date);
-                    listview.filter_area.add([
-                        'Trip',
-                        'date',
-                        'between',
-                        [dashboardFilters.from_date, dashboardFilters.to_date]
-                    ]);
-                }
-
-                console.log('Refreshing list view');
+                // Force refresh
                 listview.refresh();
             } catch (e) {
-                console.error('Error applying dashboard filters:', e);
-                console.error('Error details:', e.message);
+                console.error('Error applying filters:', e);
             }
-        } else {
-            console.log("No dashboard_filters parameter found");
         }
-        
-        // Log the current state of filters
-        console.log('Current filter_area:', listview.filter_area);
     }
 };

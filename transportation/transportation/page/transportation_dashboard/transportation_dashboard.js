@@ -240,18 +240,15 @@ class TransportationDashboard {
                         to_date: $('#to_date').val()
                     };
                     
-                    console.log('Dashboard filters being created:', dashboardFilters);
+                    console.log('Creating link with filters:', dashboardFilters);
                     
                     // Create the URL with dashboard filters
                     const encoded_filters = encodeURIComponent(JSON.stringify(dashboardFilters));
                     const list_url = `/app/trip/view/list?dashboard_filters=${encoded_filters}`;
                     
-                    console.log('Generated URL:', list_url);
-                    
                     // Create the link
                     const display_text = row.asset_number;
-                    value = `<a href="${list_url}" class="asset-link" 
-                               onclick="console.log('Link clicked with filters:', ${JSON.stringify(dashboardFilters)})">${display_text}</a>`;
+                    value = `<a href="${list_url}" class="asset-link">${display_text}</a>`;
                 } else if (col.fieldtype === 'Currency') {
                     value = frappe.format(value, { fieldtype: 'Currency' });
                 } else if (col.fieldtype === 'Float') {
