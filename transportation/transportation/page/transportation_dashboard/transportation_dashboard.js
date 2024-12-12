@@ -233,28 +233,22 @@ class TransportationDashboard {
                 
                 // Special handling for transportation_asset column
                 if (col.fieldname === 'transportation_asset') {
-                    // Get current active filters from the dashboard
-                    const currentFilters = {
-                        truck: row.transportation_asset,
-                        date: ['between', [
+                    // Create filters in ERPNext's format
+                    const filters = [
+                        ['Trip', 'truck', '=', row.transportation_asset],
+                        ['Trip', 'date', 'between', [
                             $('#from_date').val(),
                             $('#to_date').val()
                         ]]
-                    };
+                    ];
                     
-                    // Create the URL with all active filters
-                    const encoded_filters = encodeURIComponent(JSON.stringify(currentFilters));
+                    // Create the URL with properly formatted filters
+                    const encoded_filters = encodeURIComponent(JSON.stringify(filters));
                     const list_url = `/app/trip/view/list?filters=${encoded_filters}`;
                     
-                    // Create link with current filter context
+                    // Create the link
                     const display_text = row.asset_number;
-                    value = `<a href="${list_url}" class="asset-link" 
-                               data-asset-id="${row.transportation_asset}"
-                               data-from-date="${$('#from_date').val()}"
-                               data-to-date="${$('#to_date').val()}"
-                               title="View trips for ${display_text}">
-                               ${display_text}
-                            </a>`;
+                    value = `<a href="${list_url}" class="asset-link">${display_text}</a>`;
                 } else if (col.fieldtype === 'Currency') {
                     value = frappe.format(value, { fieldtype: 'Currency' });
                 } else if (col.fieldtype === 'Float') {
@@ -268,15 +262,6 @@ class TransportationDashboard {
             body_html += '</tr>';
         });
         $('#table-body').html(body_html);
-
-        // Add hover effect for the links
-        $('.asset-link').css({
-            'color': 'var(--text-color)',
-            'text-decoration': 'none'
-        }).hover(
-            function() { $(this).css('text-decoration', 'underline'); },
-            function() { $(this).css('text-decoration', 'none'); }
-        );
     }
 
     render_totals(data) {
