@@ -233,18 +233,19 @@ class TransportationDashboard {
                 
                 // Special handling for transportation_asset column
                 if (col.fieldname === 'transportation_asset') {
-                    // Create filters in ERPNext's format
-                    const filters = [
-                        ['Trip', 'truck', '=', row.transportation_asset],
-                        ['Trip', 'date', 'between', [
-                            $('#from_date').val(),
-                            $('#to_date').val()
-                        ]]
-                    ];
+                    // Create dashboard filters object
+                    const dashboardFilters = {
+                        truck: row.transportation_asset,
+                        from_date: $('#from_date').val(),
+                        to_date: $('#to_date').val()
+                    };
                     
-                    // Create the URL with properly formatted filters
-                    const encoded_filters = encodeURIComponent(JSON.stringify(filters));
-                    const list_url = `/app/trip/view/list?filters=${encoded_filters}`;
+                    // Create the URL with dashboard filters
+                    const encoded_filters = encodeURIComponent(JSON.stringify(dashboardFilters));
+                    const list_url = `/app/trip/view/list?dashboard_filters=${encoded_filters}`;
+                    
+                    // Log for debugging
+                    console.log('Creating link with filters:', dashboardFilters);
                     
                     // Create the link
                     const display_text = row.asset_number;
