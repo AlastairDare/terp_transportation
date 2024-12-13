@@ -14,6 +14,8 @@ frappe.listview_settings['Trip'] = {
             options: 'Transportation Asset',
             onchange: () => {
                 const value = listview.page.fields_dict.truck.get_value();
+                listview.filter_area.clear();
+                listview.filter_area.add([[listview.doctype, "docstatus", "<", "2"]]);
                 if (value) {
                     listview.filter_area.add([[listview.doctype, "truck", "=", value]]);
                 }
@@ -29,6 +31,8 @@ frappe.listview_settings['Trip'] = {
             options: '\nNot Invoiced\nInvoiced',
             onchange: () => {
                 const value = listview.page.fields_dict.sales_invoice_status.get_value();
+                listview.filter_area.clear();
+                listview.filter_area.add([[listview.doctype, "docstatus", "<", "2"]]);
                 if (value) {
                     listview.filter_area.add([[listview.doctype, "sales_invoice_status", "=", value]]);
                 }
@@ -44,6 +48,8 @@ frappe.listview_settings['Trip'] = {
             options: 'Customer',
             onchange: () => {
                 const value = listview.page.fields_dict.billing_customer.get_value();
+                listview.filter_area.clear();
+                listview.filter_area.add([[listview.doctype, "docstatus", "<", "2"]]);
                 if (value) {
                     listview.filter_area.add([[listview.doctype, "billing_customer", "=", value]]);
                 }
@@ -51,19 +57,21 @@ frappe.listview_settings['Trip'] = {
             }
         });
 
-        // Date range filter - now using the correct field name
+        // Date range filter
         listview.page.add_field({
             fieldtype: 'DateRange',
-            fieldname: 'date',  // This matches your DocType field name
+            fieldname: 'date',
             label: 'Trip Date',
             onchange: () => {
-                const dates = listview.page.fields_dict.date.get_value();
-                if (dates && dates.length === 2) {
-                    listview.filter_area.clear();
-                    // Re-add the docstatus filter
-                    listview.filter_area.add([[listview.doctype, "docstatus", "<", "2"]]);
-                    // Add the date range filter
-                    listview.filter_area.add([[listview.doctype, "date", "between", dates]]);
+                const dateRange = listview.page.fields_dict.date.get_value();
+                listview.filter_area.clear();
+                listview.filter_area.add([[listview.doctype, "docstatus", "<", "2"]]);
+                
+                if (dateRange && dateRange.length === 2 && dateRange[0] && dateRange[1]) {
+                    listview.filter_area.add([
+                        [listview.doctype, "date", ">=", dateRange[0]],
+                        [listview.doctype, "date", "<=", dateRange[1]]
+                    ]);
                 }
                 listview.refresh();
             }
@@ -72,9 +80,7 @@ frappe.listview_settings['Trip'] = {
         // Clear filters button
         listview.page.add_inner_button('Clear Filters', () => {
             listview.filter_area.clear();
-            // Add back the default docstatus filter
             listview.filter_area.add([[listview.doctype, "docstatus", "<", "2"]]);
-            // Clear all field values
             Object.values(listview.page.fields_dict).forEach(field => {
                 field.set_value('');
             });
