@@ -1,17 +1,19 @@
 frappe.listview_settings['Trip'] = {
-    add_fields: ["truck", "date", "sales_invoice_status"],
+    add_fields: ["truck", "date", "sales_invoice_status", "billing_customer"],
     
     filters: [
         ['Trip', 'docstatus', '<', '2']
     ],
 
     onload: function(listview) {
-        // Create a filter group div
-        const filterGroup = $('<div class="filter-group d-flex"></div>').appendTo(listview.page.page_form);
+        // Create filter groups
+        const topFilterGroup = $('<div class="filter-group d-flex mb-3"></div>').appendTo(listview.page.page_form);
+        const dateFilterGroup = $('<div class="filter-group d-flex mb-3"></div>').appendTo(listview.page.page_form);
+        const bottomFilterGroup = $('<div class="filter-group d-flex"></div>').appendTo(listview.page.page_form);
 
-        // Add truck filter
+        // Add truck filter to top group
         if (!listview.page.fields_dict.truck) {
-            listview.page.add_field({
+            const truckField = listview.page.add_field({
                 fieldtype: 'Link',
                 fieldname: 'truck',
                 label: __('Truck'),
@@ -20,11 +22,12 @@ frappe.listview_settings['Trip'] = {
                     listview.refresh();
                 }
             });
+            $(truckField.wrapper).appendTo(topFilterGroup);
         }
 
-        // Add sales invoice status filter
+        // Add sales invoice status filter to top group
         if (!listview.page.fields_dict.sales_invoice_status) {
-            listview.page.add_field({
+            const statusField = listview.page.add_field({
                 fieldtype: 'Select',
                 fieldname: 'sales_invoice_status',
                 label: __('Invoice Status'),
@@ -33,9 +36,10 @@ frappe.listview_settings['Trip'] = {
                     listview.refresh();
                 }
             });
+            $(statusField.wrapper).appendTo(topFilterGroup);
         }
 
-        // Add date filters to the filter group
+        // Add date filters to middle group
         if (!listview.page.fields_dict.from_date) {
             const fromDateField = listview.page.add_field({
                 fieldtype: 'Date',
@@ -45,7 +49,7 @@ frappe.listview_settings['Trip'] = {
                     validateAndSetDateFilter(listview);
                 }
             });
-            $(fromDateField.wrapper).appendTo(filterGroup);
+            $(fromDateField.wrapper).appendTo(dateFilterGroup);
         }
 
         if (!listview.page.fields_dict.to_date) {
@@ -57,11 +61,25 @@ frappe.listview_settings['Trip'] = {
                     validateAndSetDateFilter(listview);
                 }
             });
-            $(toDateField.wrapper).appendTo(filterGroup);
+            $(toDateField.wrapper).appendTo(dateFilterGroup);
         }
 
-        // Add some margin between date fields
-        filterGroup.find('.frappe-control').css('margin-right', '10px');
+        // Add billing customer filter to bottom group
+        if (!listview.page.fields_dict.billing_customer) {
+            const customerField = listview.page.add_field({
+                fieldtype: 'Link',
+                fieldname: 'billing_customer',
+                label: __('Billing Customer'),
+                options: 'Customer',
+                onchange: function() {
+                    listview.refresh();
+                }
+            });
+            $(customerField.wrapper).appendTo(bottomFilterGroup);
+        }
+
+        // Add margins between fields in each group
+        $('.filter-group .frappe-control').css('margin-right', '10px');
     }
 };
 
