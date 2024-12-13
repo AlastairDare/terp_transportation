@@ -1,13 +1,12 @@
 frappe.listview_settings['Trip'] = {
-    add_fields: ["truck", "date"],
+    add_fields: ["truck", "date", "sales_invoice_status"],
     
-    // Add filters to the list view
     filters: [
         ['Trip', 'docstatus', '<', '2']
     ],
 
     onload: function(listview) {
-        // Add the filter fields
+        // Add truck filter
         if (!listview.page.fields_dict.truck) {
             listview.page.add_field({
                 fieldtype: 'Link',
@@ -20,35 +19,66 @@ frappe.listview_settings['Trip'] = {
             });
         }
 
-        if (!listview.page.fields_dict.date) {
+        // Add sales invoice status filter
+        if (!listview.page.fields_dict.sales_invoice_status) {
             listview.page.add_field({
-                fieldtype: 'DateRange',
-                fieldname: 'date',
-                label: __('Trip Date'),
+                fieldtype: 'Select',
+                fieldname: 'sales_invoice_status',
+                label: __('Invoice Status'),
+                options: '\nNot Invoiced\nInvoiced',
                 onchange: function() {
                     listview.refresh();
                 }
             });
         }
 
-        // Check for dashboard filters
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('dashboard_filters')) {
-            try {
-                const dashboardFilters = JSON.parse(decodeURIComponent(urlParams.get('dashboard_filters')));
-                console.log('Parsed dashboard filters:', dashboardFilters);
+        // Add From Date filter
+        if (!listview.page.fields_dict.from_date) {
+            listview.page.add_field({
+                fieldtype: 'Date',
+                fieldname: 'from_date',
+                label: __('From Date'),
+                onchange: function() {
+                    validateDateRange(listview);
+                }
+            });
+        }
 
-                // Try using frappe.route_options
-                frappe.route_options = {
-                    'truck': dashboardFilters.truck,
-                    'date': ['between', [dashboardFilters.from_date, dashboardFilters.to_date]]
-                };
-
-                // Force refresh
-                listview.refresh();
-            } catch (e) {
-                console.error('Error applying filters:', e);
-            }
+        // Add To Date filter
+        if (!listview.page.fields_dict.to_date) {
+            listview.page.add_field({
+                fieldtype: 'Date',
+                fieldname: 'to_date',
+                label: __('To Date'),
+                onchange: function() {
+                    validateDateRange(listview);
+                }
+            });
         }
     }
 };
+
+// Function to validate date range and refresh list
+function validateDateRange(listview) {
+    const fromDate = listview.page.fields_dict.from_date.get_value();
+    const toDate = listview.page.fields_dict.to_date.get_value();
+
+    // Clear any existing error messages
+    frappe.show_alert('', 0);
+
+    // Only validate if both dates are selected
+    if (fromDate && toDate) {
+        if (fromDate > toDate) {
+            frappe.show_alert({
+                message: __('From Date cannot be after To Date'),
+                indicator: 'red'
+            }, 5);
+            // Clear the To Date field
+            listview.page.fields_dict.to_date.set_value('');
+            return;
+        }
+        
+        // If dates are valid, refresh the list
+        listview.refresh();
+    }
+}

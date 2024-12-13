@@ -22,6 +22,15 @@
             "in_list_view": 1
         },
         {
+            "fieldname": "sales_invoice_status",
+            "fieldtype": "Select",
+            "label": "Status",
+            "options": "Not Invoiced\nInvoiced",
+            "default": "Not Invoiced",
+            "reqd": 1,
+            "in_list_view": 1
+        },
+        {
             "fieldname": "approver",
             "fieldtype": "Link",
             "label": "Approver",
@@ -58,35 +67,30 @@
             "fieldname": "billing_customer",
             "fieldtype": "Link",
             "label": "Billing Customer",
-            "options": "Customer",
-            "depends_on": "eval:doc.auto_create_sales_invoice==1"
+            "options": "Customer"
         },
         {
             "fieldname": "quantity",
             "fieldtype": "Float",
             "label": "Quantity",
-            "default": 1,
-            "depends_on": "eval:doc.auto_create_sales_invoice==1"
+            "default": 1
         },
         {
             "fieldname": "rate",
             "fieldtype": "Currency",
-            "label": "Rate",
-            "depends_on": "eval:doc.auto_create_sales_invoice==1"
+            "label": "Rate"
         },
         {
             "fieldname": "amount",
             "fieldtype": "Currency",
             "label": "Amount",
-            "read_only": 1,
-            "depends_on": "eval:doc.auto_create_sales_invoice==1"
+            "read_only": 1
         },
         {
             "fieldname": "taxes_and_charges",
             "fieldtype": "Link",
             "label": "Taxes and Charges",
-            "options": "Sales Taxes and Charges Template",
-            "depends_on": "eval:doc.auto_create_sales_invoice==1"
+            "options": "Sales Taxes and Charges Template"
         },
         {
             "fieldname": "purchase_invoice_setup_section",
