@@ -6,6 +6,9 @@ frappe.listview_settings['Trip'] = {
     ],
 
     onload: function(listview) {
+        // Create a filter group div
+        const filterGroup = $('<div class="filter-group d-flex"></div>').appendTo(listview.page.page_form);
+
         // Add truck filter
         if (!listview.page.fields_dict.truck) {
             listview.page.add_field({
@@ -32,34 +35,38 @@ frappe.listview_settings['Trip'] = {
             });
         }
 
-        // Add From Date filter
+        // Add date filters to the filter group
         if (!listview.page.fields_dict.from_date) {
-            listview.page.add_field({
+            const fromDateField = listview.page.add_field({
                 fieldtype: 'Date',
                 fieldname: 'from_date',
                 label: __('From Date'),
                 onchange: function() {
-                    validateDateRange(listview);
+                    validateAndSetDateFilter(listview);
                 }
             });
+            $(fromDateField.wrapper).appendTo(filterGroup);
         }
 
-        // Add To Date filter
         if (!listview.page.fields_dict.to_date) {
-            listview.page.add_field({
+            const toDateField = listview.page.add_field({
                 fieldtype: 'Date',
                 fieldname: 'to_date',
                 label: __('To Date'),
                 onchange: function() {
-                    validateDateRange(listview);
+                    validateAndSetDateFilter(listview);
                 }
             });
+            $(toDateField.wrapper).appendTo(filterGroup);
         }
+
+        // Add some margin between date fields
+        filterGroup.find('.frappe-control').css('margin-right', '10px');
     }
 };
 
-// Function to validate date range and refresh list
-function validateDateRange(listview) {
+// Function to validate and set date filter
+function validateAndSetDateFilter(listview) {
     const fromDate = listview.page.fields_dict.from_date.get_value();
     const toDate = listview.page.fields_dict.to_date.get_value();
 
@@ -78,7 +85,15 @@ function validateDateRange(listview) {
             return;
         }
         
-        // If dates are valid, refresh the list
-        listview.refresh();
+        // Set the date filter on the actual date field
+        listview.filter_area.add([[
+            'Trip',
+            'date',
+            'Between',
+            [fromDate, toDate]
+        ]]);
+    } else {
+        // Clear the date filter if either date is empty
+        listview.filter_area.remove('date');
     }
 }
