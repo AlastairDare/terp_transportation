@@ -51,14 +51,18 @@ frappe.listview_settings['Trip'] = {
             }
         });
 
-        // Date range filter
+        // Date range filter - now using the correct field name
         listview.page.add_field({
             fieldtype: 'DateRange',
-            fieldname: 'date_range',
+            fieldname: 'date',  // This matches your DocType field name
             label: 'Trip Date',
             onchange: () => {
-                const dates = listview.page.fields_dict.date_range.get_value();
+                const dates = listview.page.fields_dict.date.get_value();
                 if (dates && dates.length === 2) {
+                    listview.filter_area.clear();
+                    // Re-add the docstatus filter
+                    listview.filter_area.add([[listview.doctype, "docstatus", "<", "2"]]);
+                    // Add the date range filter
                     listview.filter_area.add([[listview.doctype, "date", "between", dates]]);
                 }
                 listview.refresh();
@@ -68,6 +72,8 @@ frappe.listview_settings['Trip'] = {
         // Clear filters button
         listview.page.add_inner_button('Clear Filters', () => {
             listview.filter_area.clear();
+            // Add back the default docstatus filter
+            listview.filter_area.add([[listview.doctype, "docstatus", "<", "2"]]);
             // Clear all field values
             Object.values(listview.page.fields_dict).forEach(field => {
                 field.set_value('');
