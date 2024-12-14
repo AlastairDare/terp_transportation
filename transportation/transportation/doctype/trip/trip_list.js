@@ -6,8 +6,8 @@ frappe.listview_settings['Trip'] = {
     ],
 
     onload(listview) {
-        // Add Group Service Item button using the same method as notifications config
-        listview.page.set_primary_action('Create Group Item', () => {
+        // Add Group Service Item button - proper list view method
+        listview.page.add_button('Create Group Item', () => {
             const selected = listview.get_checked_items();
             
             if (selected.length < 2) {
@@ -61,7 +61,7 @@ frappe.listview_settings['Trip'] = {
                     }
                 }
             });
-        });
+        }, 'primary');
 
         // Truck filter
         listview.page.add_field({
