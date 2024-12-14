@@ -119,5 +119,8 @@ doc_events = {
     "DocType Label Config": {
         "after_insert": "transportation.events.apply_custom_labels",
         "on_update": "transportation.events.apply_custom_labels"
+    },
+    "Sales Invoice": {
+        "on_submit": "transportation.transportation.doctype.trip_group.trip_group.handle_sales_invoice_submit"
     }
 }

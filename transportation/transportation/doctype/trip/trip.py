@@ -428,7 +428,7 @@ def update_sales_invoice(sales_invoice, doc):
         
 @frappe.whitelist()
 def create_group_service_item(trip_names):
-    """Create a single service item from multiple trips"""
+    """Create a Trip Group from multiple trips"""
     if not trip_names:
         return
         
@@ -436,38 +436,28 @@ def create_group_service_item(trip_names):
     if isinstance(trip_names, str):
         trip_names = json.loads(trip_names)
         
-    trips = [frappe.get_doc("Trip", name) for name in trip_names]
+    # Validate trips aren't already in groups
+    for trip_name in trip_names:
+        existing_groups = frappe.get_all(
+            "Trip Group Detail",
+            filters={
+                "trip": trip_name,
+                "parenttype": "Trip Group"
+            }
+        )
+        if existing_groups:
+            frappe.throw(_(f"Trip {trip_name} is already part of another group"))
     
-    # Calculate total amount from all trips
-    total_amount = sum((trip.rate * trip.quantity) for trip in trips)
+    # Get first trip for license plate
+    first_trip = frappe.get_doc("Trip", trip_names[0])
     
-    # Create group item code
-    group_item_code = f"GRP-{trips[0].name}-{len(trips)}"
+    # Create Trip Group
+    trip_group = frappe.get_doc({
+        "doctype": "Trip Group",
+        "license_plate": first_trip.license_plate,
+        "trips": [{"trip": trip_name} for trip_name in trip_names]
+    })
     
-    # Create service item
-    if not frappe.db.exists("Item", group_item_code):
-        item = frappe.get_doc({
-            "doctype": "Item",
-            "item_code": group_item_code,
-            "item_name": group_item_code,  # Changed to match item_code
-            "item_group": "Services",
-            "stock_uom": "Each",
-            "is_stock_item": 0,
-            "is_fixed_asset": 0,
-            "description": f"Group Service Item for Trips: {', '.join(trip_names)}",
-            "standard_rate": total_amount  # This sets the default rate for the item
-        })
-        item.insert(ignore_permissions=True)
-        
-        # Set quantity as 1 since we're creating a single consolidated item
-        item.quantity = 1
-        # Set rate as the total amount since quantity is 1
-        item.rate = total_amount
-        item.amount = total_amount
+    trip_group.insert(ignore_permissions=True)
     
-    # Update all trips to Invoiced status
-    for trip in trips:
-        trip.sales_invoice_status = "Invoiced"
-        trip.save(ignore_permissions=True)
-    
-    return group_item_code
+    return trip_group.name

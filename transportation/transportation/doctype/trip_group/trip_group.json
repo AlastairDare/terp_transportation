@@ -1,0 +1,77 @@
+{
+    "custom": 1,
+    "autoname": "format:GRP-TRIP-{license_plate}-{########}",
+    "engine": "InnoDB",
+    "module": "Transportation",
+    "name": "Trip Group",
+    "doctype": "DocType",
+    "fields": [
+        {
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "label": "Status",
+            "options": "Draft\nProcessing\nComplete\nError",
+            "default": "Draft",
+            "reqd": 1
+        },
+        {
+            "fieldname": "sales_invoice_status",
+            "fieldtype": "Select",
+            "label": "Sales Invoice Status",
+            "options": "Not Invoiced\nInvoiced",
+            "default": "Not Invoiced",
+            "reqd": 1
+        },
+        {
+            "fieldname": "service_item",
+            "fieldtype": "Link",
+            "label": "Service Item",
+            "options": "Item",
+            "read_only": 1
+        },
+        {
+            "fieldname": "sales_invoice",
+            "fieldtype": "Link",
+            "label": "Sales Invoice",
+            "options": "Sales Invoice",
+            "read_only": 1
+        },
+        {
+            "fieldname": "total_amount",
+            "fieldtype": "Currency",
+            "label": "Total Amount",
+            "read_only": 1
+        },
+        {
+            "fieldname": "license_plate",
+            "fieldtype": "Data",
+            "label": "License Plate",
+            "hidden": 1
+        },
+        {
+            "fieldname": "trips_section",
+            "fieldtype": "Section Break",
+            "label": "Trips"
+        },
+        {
+            "fieldname": "trips",
+            "fieldtype": "Table",
+            "label": "Trips",
+            "options": "Trip Group Detail",
+            "reqd": 1
+        }
+    ],
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "print": 1,
+            "read": 1,
+            "role": "System Manager",
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC"
+}
