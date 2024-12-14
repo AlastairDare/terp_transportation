@@ -424,3 +424,48 @@ def update_sales_invoice(sales_invoice, doc):
             "rate": doc.rate,
             "amount": doc.amount
         })
+        
+@frappe.whitelist()
+def create_group_service_item(trip_names):
+    """Create a single service item from multiple trips"""
+    if not trip_names:
+        return
+        
+    # Convert string to list if needed
+    if isinstance(trip_names, str):
+        trip_names = json.loads(trip_names)
+        
+    trips = [frappe.get_doc("Trip", name) for name in trip_names]
+    
+    # Calculate total amount from all trips
+    total_amount = sum((trip.rate * trip.quantity) for trip in trips)
+    
+    # Create group item code
+    group_item_code = f"GRP-{trips[0].name}-{len(trips)}"
+    
+    # Create service item
+    if not frappe.db.exists("Item", group_item_code):
+        item = frappe.get_doc({
+            "doctype": "Item",
+            "item_code": group_item_code,
+            "item_name": f"Group Service Item for {len(trips)} Trips",
+            "item_group": "Services",
+            "stock_uom": "Each",
+            "is_stock_item": 0,
+            "is_fixed_asset": 0,
+            "description": f"Group Service Item for Trips: {', '.join(trip_names)}"
+        })
+        item.insert(ignore_permissions=True)
+        
+        # Set quantity as 1 since we're creating a single consolidated item
+        item.quantity = 1
+        # Set rate as the total amount since quantity is 1
+        item.rate = total_amount
+        item.amount = total_amount
+    
+    # Update all trips to Invoiced status
+    for trip in trips:
+        trip.sales_invoice_status = "Invoiced"
+        trip.save(ignore_permissions=True)
+    
+    return group_item_code

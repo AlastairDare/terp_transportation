@@ -1,11 +1,68 @@
 frappe.listview_settings['Trip'] = {
-    add_fields: ["truck", "date", "sales_invoice_status", "billing_customer"],
+    add_fields: ["truck", "date", "sales_invoice_status", "billing_customer", "rate", "quantity"],
     
     filters: [
         ["Trip", "docstatus", "<", "2"]
     ],
 
     onload(listview) {
+        // Add Group Service Item button
+        listview.page.add_action_item('Create Group Service Item', () => {
+            const selected = listview.get_checked_items();
+            
+            if (selected.length < 2) {
+                frappe.throw('Please select at least 2 trips to group');
+                return;
+            }
+
+            // Check if all selected trips have same billing customer
+            const customers = [...new Set(selected.map(trip => trip.billing_customer))];
+            if (customers.length > 1) {
+                frappe.throw('All selected trips must have the same billing customer');
+                return;
+            }
+
+            // Check if any selected trips are already invoiced
+            if (selected.some(trip => trip.sales_invoice_status === 'Invoiced')) {
+                frappe.throw('Some selected trips are already invoiced');
+                return;
+            }
+
+            // Create group service item
+            frappe.call({
+                method: 'transportation.trip.trip.create_group_service_item',
+                args: {
+                    trip_names: selected.map(trip => trip.name)
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        frappe.msgprint({
+                            title: 'Service Item Created',
+                            indicator: 'green',
+                            message: `
+                                <div>
+                                    <p>Group service item created successfully:</p>
+                                    <p style="margin-top: 10px; font-weight: bold;">${r.message}</p>
+                                    <div style="margin-top: 15px;">
+                                        <button class="btn btn-xs btn-default" 
+                                                onclick="frappe.utils.copy_to_clipboard('${r.message}').then(() => {
+                                                    frappe.show_alert({
+                                                        message: 'Item code copied to clipboard',
+                                                        indicator: 'green'
+                                                    });
+                                                })">
+                                            Copy Item Code
+                                        </button>
+                                    </div>
+                                </div>
+                            `
+                        });
+                        listview.refresh();
+                    }
+                }
+            });
+        });
+
         // Truck filter
         listview.page.add_field({
             fieldtype: 'Link',
@@ -103,7 +160,9 @@ function refreshList(listview, filters) {
                 "date",
                 "truck",
                 "delivery_note_number",
-                "billing_customer"
+                "billing_customer",
+                "rate",
+                "quantity"
             ],
             order_by: "modified desc"
         },
