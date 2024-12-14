@@ -14,12 +14,11 @@ frappe.listview_settings['Trip'] = {
             options: 'Transportation Asset',
             onchange: () => {
                 const value = listview.page.fields_dict.truck.get_value();
-                listview.filter_area.clear();
-                listview.filter_area.add([[listview.doctype, "docstatus", "<", "2"]]);
+                const filters = [["Trip", "docstatus", "<", "2"]];
                 if (value) {
-                    listview.filter_area.add([[listview.doctype, "truck", "=", value]]);
+                    filters.push(["Trip", "truck", "=", value]);
                 }
-                listview.refresh();
+                refreshList(listview, filters);
             }
         });
 
@@ -31,12 +30,11 @@ frappe.listview_settings['Trip'] = {
             options: '\nNot Invoiced\nInvoiced',
             onchange: () => {
                 const value = listview.page.fields_dict.sales_invoice_status.get_value();
-                listview.filter_area.clear();
-                listview.filter_area.add([[listview.doctype, "docstatus", "<", "2"]]);
+                const filters = [["Trip", "docstatus", "<", "2"]];
                 if (value) {
-                    listview.filter_area.add([[listview.doctype, "sales_invoice_status", "=", value]]);
+                    filters.push(["Trip", "sales_invoice_status", "=", value]);
                 }
-                listview.refresh();
+                refreshList(listview, filters);
             }
         });
 
@@ -48,12 +46,11 @@ frappe.listview_settings['Trip'] = {
             options: 'Customer',
             onchange: () => {
                 const value = listview.page.fields_dict.billing_customer.get_value();
-                listview.filter_area.clear();
-                listview.filter_area.add([[listview.doctype, "docstatus", "<", "2"]]);
+                const filters = [["Trip", "docstatus", "<", "2"]];
                 if (value) {
-                    listview.filter_area.add([[listview.doctype, "billing_customer", "=", value]]);
+                    filters.push(["Trip", "billing_customer", "=", value]);
                 }
-                listview.refresh();
+                refreshList(listview, filters);
             }
         });
 
@@ -64,27 +61,57 @@ frappe.listview_settings['Trip'] = {
             label: 'Trip Date',
             onchange: () => {
                 const dateRange = listview.page.fields_dict.date.get_value();
-                listview.filter_area.clear();
-                listview.filter_area.add([[listview.doctype, "docstatus", "<", "2"]]);
+                const filters = [["Trip", "docstatus", "<", "2"]];
                 
                 if (dateRange && dateRange.length === 2 && dateRange[0] && dateRange[1]) {
-                    listview.filter_area.add([
-                        [listview.doctype, "date", ">=", dateRange[0]],
-                        [listview.doctype, "date", "<=", dateRange[1]]
-                    ]);
+                    filters.push(["Trip", "date", "between", [dateRange[0], dateRange[1]]]);
                 }
-                listview.refresh();
+                refreshList(listview, filters);
             }
         });
 
         // Clear filters button
         listview.page.add_inner_button('Clear Filters', () => {
-            listview.filter_area.clear();
-            listview.filter_area.add([[listview.doctype, "docstatus", "<", "2"]]);
             Object.values(listview.page.fields_dict).forEach(field => {
                 field.set_value('');
             });
-            listview.refresh();
+            refreshList(listview, [["Trip", "docstatus", "<", "2"]]);
         });
     }
 };
+
+function refreshList(listview, filters) {
+    frappe.call({
+        method: "frappe.client.get_list",
+        args: {
+            doctype: "Trip",
+            filters: filters,
+            fields: [
+                "name",
+                "owner",
+                "creation",
+                "modified",
+                "modified_by",
+                "_user_tags",
+                "_comments",
+                "_assign",
+                "_liked_by",
+                "docstatus",
+                "idx",
+                "status",
+                "sales_invoice_status",
+                "date",
+                "truck",
+                "delivery_note_number",
+                "billing_customer"
+            ],
+            order_by: "modified desc"
+        },
+        callback: function(r) {
+            if (r.message) {
+                listview.data = r.message;
+                listview.render_list();
+            }
+        }
+    });
+}
