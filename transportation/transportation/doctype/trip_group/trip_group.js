@@ -1,7 +1,5 @@
-// transportation/doctype/trip_group/trip_group.js
 frappe.ui.form.on('Trip Group', {
     refresh: function(frm) {
-        // Button to create service item
         frm.add_custom_button(__('Create Service Item'), function() {
             frappe.call({
                 method: 'transportation.transportation.doctype.trip_group.trip_group.create_service_item',
@@ -9,31 +7,31 @@ frappe.ui.form.on('Trip Group', {
                     'trip_group': frm.doc.name
                 },
                 callback: function(r) {
-                    frappe.show_alert({message: 'Service Item Created', indicator: 'green'});
                     frm.reload_doc();
                 }
             });
         });
-
-        // Calculate total on form load
         calculate_total(frm);
     },
-
-    // Recalculate when child table is changed
-    trips_remove: function(frm) {
+    validate: function(frm) {
         calculate_total(frm);
     }
 });
 
-// Handle child table row changes
 frappe.ui.form.on('Trip Group Detail', {
-    rate: function(frm) {
+    trips_add: function(frm, cdt, cdn) {
         calculate_total(frm);
     },
-    quantity: function(frm) {
+    trips_remove: function(frm, cdt, cdn) {
         calculate_total(frm);
     },
-    trips_add: function(frm) {
+    trip: function(frm, cdt, cdn) {
+        calculate_total(frm);
+    },
+    rate: function(frm, cdt, cdn) {
+        calculate_total(frm);
+    },
+    quantity: function(frm, cdt, cdn) {
         calculate_total(frm);
     }
 });
@@ -48,8 +46,14 @@ function calculate_total(frm) {
         });
     }
     frm.set_value('total_amount', total);
-    // Save the form to persist the calculation
-    if(frm.doc.__unsaved) {
-        frm.save();
+    
+    // If there's a service item, update it
+    if(frm.doc.service_item) {
+        frappe.call({
+            method: 'transportation.transportation.doctype.trip_group.trip_group.create_service_item',
+            args: {
+                'trip_group': frm.doc.name
+            }
+        });
     }
-}   
+}
