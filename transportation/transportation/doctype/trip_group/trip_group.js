@@ -48,7 +48,7 @@ frappe.ui.form.on('Trip Group', {
     }
  });
  
- function calculate_total(frm, update_service_item) {
+ function calculate_total(frm) {
     let total = 0;
     if (frm.doc.trips) {
         frm.doc.trips.forEach(function(trip) {
@@ -61,15 +61,17 @@ frappe.ui.form.on('Trip Group', {
     if(frm.doc.total_amount !== total) {
         frm.set_value('total_amount', total);
         
-        // Only update service item when explicitly told to
-        if(update_service_item && frm.doc.service_item) {
+        // Update service item if it exists
+        if(frm.doc.service_item) {
             frappe.call({
                 method: 'transportation.transportation.doctype.trip_group.trip_group.create_service_item',
                 args: {
                     'trip_group': frm.doc.name
                 },
-                quiet: true // Suppress default messages
+                quiet: true
             });
         }
+        
+        frm.save();
     }
- }
+}
