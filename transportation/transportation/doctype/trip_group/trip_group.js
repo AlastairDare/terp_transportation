@@ -11,32 +11,32 @@ frappe.ui.form.on('Trip Group', {
                 }
             });
         });
-        calculate_total(frm);
+        calculate_total(frm, false); // Don't update service item on refresh
     },
-    validate: function(frm) {
-        calculate_total(frm);
+    before_save: function(frm) {
+        calculate_total(frm, true); // Update service item before save
     }
 });
 
 frappe.ui.form.on('Trip Group Detail', {
     trips_add: function(frm, cdt, cdn) {
-        calculate_total(frm);
+        calculate_total(frm, false);
     },
     trips_remove: function(frm, cdt, cdn) {
-        calculate_total(frm);
+        calculate_total(frm, false);
     },
     trip: function(frm, cdt, cdn) {
-        calculate_total(frm);
+        calculate_total(frm, false);
     },
     rate: function(frm, cdt, cdn) {
-        calculate_total(frm);
+        calculate_total(frm, false);
     },
     quantity: function(frm, cdt, cdn) {
-        calculate_total(frm);
+        calculate_total(frm, false);
     }
 });
 
-function calculate_total(frm) {
+function calculate_total(frm, update_service_item) {
     let total = 0;
     if (frm.doc.trips) {
         frm.doc.trips.forEach(function(trip) {
@@ -45,15 +45,19 @@ function calculate_total(frm) {
             }
         });
     }
-    frm.set_value('total_amount', total);
     
-    // If there's a service item, update it
-    if(frm.doc.service_item) {
-        frappe.call({
-            method: 'transportation.transportation.doctype.trip_group.trip_group.create_service_item',
-            args: {
-                'trip_group': frm.doc.name
-            }
-        });
+    if(frm.doc.total_amount !== total) {
+        frm.set_value('total_amount', total);
+        
+        // Only update service item when explicitly told to
+        if(update_service_item && frm.doc.service_item) {
+            frappe.call({
+                method: 'transportation.transportation.doctype.trip_group.trip_group.create_service_item',
+                args: {
+                    'trip_group': frm.doc.name
+                },
+                quiet: true // Suppress default messages
+            });
+        }
     }
 }

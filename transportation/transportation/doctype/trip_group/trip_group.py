@@ -185,24 +185,22 @@ def create_service_item(trip_group):
             "is_fixed_asset": 0,
             "description": f"Group Service Item for Trip Group: {doc.name}",
             "standard_rate": doc.total_amount,
-            "is_sales_item": 1
+            "is_sales_item": 1,
+            "has_variants": 0,
+            "include_item_in_manufacturing": 0,
+            "opening_stock": 0,
+            "valuation_rate": doc.total_amount,
+            "standard_rate": doc.total_amount
         })
         item.insert(ignore_permissions=True)
-        
-        # Set standard rate after insert to ensure it's updated
-        if doc.total_amount:
-            item.standard_rate = doc.total_amount
-            item.save(ignore_permissions=True)
-            
         doc.service_item = item_code
         doc.save(ignore_permissions=True)
-        
-        frappe.msgprint(_("Service Item created successfully"), alert=True)
         return item_code
     else:
-        # Update existing item's rate
+        # Only update if total has changed
         item = frappe.get_doc("Item", item_code)
-        item.standard_rate = doc.total_amount
-        item.save(ignore_permissions=True)
-        frappe.msgprint(_("Service Item updated successfully"), alert=True)
+        if item.standard_rate != doc.total_amount:
+            item.standard_rate = doc.total_amount
+            item.valuation_rate = doc.total_amount
+            item.save(ignore_permissions=True)
         return item_code
