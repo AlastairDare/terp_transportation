@@ -72,8 +72,8 @@ doc_events = {
         "after_insert": "transportation.transportation.doctype.tolls.tolls.after_insert"
     },
     "Trip Group": {
-        "validate": "transportation.transportation.doctype.trip_group.trip_group.validate_trip_group",
-        "after_insert": "transportation.transportation.doctype.trip_group.trip_group.create_service_item",
+        "validate": "transportation.transportation.doctype.trip_group.trip_group.validate",
+        "before_save": "transportation.transportation.doctype.trip_group.trip_group.before_save",
         "on_update": "transportation.transportation.doctype.trip_group.trip_group.update_service_item",
         "on_trash": "transportation.transportation.doctype.trip_group.trip_group.prevent_deletion_if_invoiced"
     },

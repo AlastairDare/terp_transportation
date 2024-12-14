@@ -1,5 +1,75 @@
+from __future__ import unicode_literals
 import frappe
+import json
 from frappe import _
+from frappe.model.document import Document
+
+class TripGroup(Document):
+    pass
+
+def validate(doc, method):
+    """Validate Trip Group document before saving."""
+    try:
+        # Validate trips aren't in other groups
+        for trip_row in doc.trips:
+            existing_groups = frappe.get_all(
+                "Trip Group Detail",
+                filters={
+                    "trip": trip_row.trip,
+                    "parent": ["!=", doc.name],
+                    "parenttype": "Trip Group"
+                }
+            )
+            if existing_groups:
+                frappe.throw(_(f"Trip {trip_row.trip} is already part of another group"))
+
+        # Calculate total amount
+        total = 0
+        for trip in doc.trips:
+            if trip.rate and trip.quantity:
+                total += float(trip.rate) * float(trip.quantity)
+        doc.total_amount = total
+        
+        frappe.log_error(f"Total amount calculated: {total}", "Trip Group Validation")
+        
+    except Exception as e:
+        frappe.log_error(f"Error in validate: {str(e)}", "Trip Group Error")
+        frappe.throw(_("Validation failed. Error: {0}").format(str(e)))
+
+def before_save(doc, method):
+    """Before save hook to handle service item creation"""
+    try:
+        if not frappe.db.exists("Item", f"GRP-{doc.name}"):
+            item = frappe.get_doc({
+                "doctype": "Item",
+                "item_code": f"GRP-{doc.name}",
+                "item_name": f"GRP-{doc.name}",
+                "item_group": "Services",
+                "stock_uom": "Each",
+                "is_stock_item": 0,
+                "is_fixed_asset": 0,
+                "description": f"Group Service Item for Trip Group: {doc.name}",
+                "standard_rate": doc.total_amount
+            })
+            
+            item.insert(ignore_permissions=True)
+            doc.service_item = f"GRP-{doc.name}"
+            
+            frappe.msgprint(
+                msg=f"""
+                    <div>
+                        <p>{_("Group Service Item created successfully: {0}").format(doc.service_item)}</p>
+                    </div>
+                """,
+                title=_("Service Item Created"),
+                indicator="green"
+            )
+            
+        frappe.log_error(f"Service item handled for {doc.name}", "Trip Group")
+            
+    except Exception as e:
+        frappe.log_error(f"Error in before_save: {str(e)}", "Trip Group Error")
+        frappe.throw(_("Failed to process Trip Group. Error: {0}").format(str(e)))
 
 def validate_trip_group(doc, method):
     validate_trips(doc)
@@ -98,41 +168,3 @@ def update_invoice_status(trip_group, invoice_name):
         trip = frappe.get_doc("Trip", trip_detail.trip)
         trip.sales_invoice_status = "Invoiced"
         trip.save(ignore_permissions=True)
-
-# transportation/doctype/trip/trip.py
-# Add this to your existing trip.py
-@frappe.whitelist()
-def create_group_service_item(trip_names):
-    """Create a Trip Group from multiple trips"""
-    if not trip_names:
-        return
-        
-    # Convert string to list if needed
-    if isinstance(trip_names, str):
-        trip_names = json.loads(trip_names)
-        
-    # Validate trips aren't already in groups
-    for trip_name in trip_names:
-        existing_groups = frappe.get_all(
-            "Trip Group Detail",
-            filters={
-                "trip": trip_name,
-                "parenttype": "Trip Group"
-            }
-        )
-        if existing_groups:
-            frappe.throw(_(f"Trip {trip_name} is already part of another group"))
-    
-    # Get first trip for license plate
-    first_trip = frappe.get_doc("Trip", trip_names[0])
-    
-    # Create Trip Group
-    trip_group = frappe.get_doc({
-        "doctype": "Trip Group",
-        "license_plate": first_trip.license_plate,
-        "trips": [{"trip": trip_name} for trip_name in trip_names]
-    })
-    
-    trip_group.insert(ignore_permissions=True)
-    
-    return trip_group.name
