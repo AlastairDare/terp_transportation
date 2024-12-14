@@ -204,3 +204,8 @@ def create_service_item(trip_group):
             item.valuation_rate = doc.total_amount
             item.save(ignore_permissions=True)
         return item_code
+    
+@frappe.whitelist()
+def after_save(doc, method):
+    if doc.service_item:
+        frappe.db.set_value("Item", doc.service_item, "standard_rate", doc.total_amount)

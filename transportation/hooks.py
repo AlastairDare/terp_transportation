@@ -75,7 +75,8 @@ doc_events = {
         "validate": "transportation.transportation.doctype.trip_group.trip_group.validate",
         "before_save": "transportation.transportation.doctype.trip_group.trip_group.before_save",
         "on_update": "transportation.transportation.doctype.trip_group.trip_group.update_service_item",
-        "on_trash": "transportation.transportation.doctype.trip_group.trip_group.prevent_deletion_if_invoiced"
+        "on_trash": "transportation.transportation.doctype.trip_group.trip_group.prevent_deletion_if_invoiced",
+        "after_save": "transportation.transportation.doctype.trip_group.trip_group.after_save"
     },
     "Sales Invoice": {
         "on_submit": "transportation.transportation.doctype.trip_group.trip_group.handle_sales_invoice_submit"
