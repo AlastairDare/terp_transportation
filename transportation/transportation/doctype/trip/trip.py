@@ -435,18 +435,6 @@ def create_group_service_item(trip_names):
     # Convert string to list if needed
     if isinstance(trip_names, str):
         trip_names = json.loads(trip_names)
-        
-    # Validate trips aren't already in groups
-    for trip_name in trip_names:
-        existing_groups = frappe.get_all(
-            "Trip Group Detail",
-            filters={
-                "trip": trip_name,
-                "parenttype": "Trip Group"
-            }
-        )
-        if existing_groups:
-            frappe.throw(_(f"Trip {trip_name} is already part of another group"))
     
     # Get first trip for license plate
     first_trip = frappe.get_doc("Trip", trip_names[0])

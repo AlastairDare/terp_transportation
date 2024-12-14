@@ -168,3 +168,30 @@ def update_invoice_status(trip_group, invoice_name):
         trip = frappe.get_doc("Trip", trip_detail.trip)
         trip.sales_invoice_status = "Invoiced"
         trip.save(ignore_permissions=True)
+
+@frappe.whitelist()
+def create_service_item(trip_group):
+    doc = frappe.get_doc("Trip Group", trip_group)
+    item_code = f"GRP-{doc.name}"
+    
+    if not frappe.db.exists("Item", item_code):
+        item = frappe.get_doc({
+            "doctype": "Item",
+            "item_code": item_code,
+            "item_name": item_code,
+            "item_group": "Services",
+            "stock_uom": "Each",
+            "is_stock_item": 0,
+            "is_fixed_asset": 0,
+            "description": f"Group Service Item for Trip Group: {doc.name}",
+            "standard_rate": doc.total_amount or 0
+        })
+        item.insert(ignore_permissions=True)
+        doc.service_item = item_code
+        doc.save(ignore_permissions=True)
+        
+        frappe.msgprint(_("Service Item created successfully"), alert=True)
+        return item_code
+    else:
+        frappe.msgprint(_("Service Item already exists"), alert=True)
+        return None
