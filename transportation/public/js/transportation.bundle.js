@@ -5,6 +5,7 @@ import '../../transportation/doctype/transportation_asset/transportation_asset.j
 import '../../transportation/doctype/asset_unified_maintenance/asset_unified_maintenance.js';
 import '../../transportation/doctype/trip/trip.js';
 import '../../transportation/doctype/trip/trip_list.js';
+import '../../transportation/doctype/trip_group/trip_group.js';
 import '../../transportation/doctype/expense/expense.js';
 import '../../transportation/doctype/refuel/refuel.js';
 import '../../transportation/doctype/notifications_config/notifications_config.js';
