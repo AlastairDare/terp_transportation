@@ -6,8 +6,8 @@ frappe.listview_settings['Trip'] = {
     ],
 
     onload(listview) {
-        // Add Group Service Item button
-        listview.page.add_action_item('Create Group Service Item', () => {
+        // Add Group Service Item button using the same method as notifications config
+        listview.page.set_primary_action('Create Group Item', () => {
             const selected = listview.get_checked_items();
             
             if (selected.length < 2) {
