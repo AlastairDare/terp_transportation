@@ -30,7 +30,7 @@ frappe.listview_settings['Trip'] = {
 
             // Create group service item
             frappe.call({
-                method: 'transportation.trip.trip.create_group_service_item',
+                method: 'transportation.transportation.doctype.trip.trip.create_group_service_item',
                 args: {
                     trip_names: selected.map(trip => trip.name)
                 },
