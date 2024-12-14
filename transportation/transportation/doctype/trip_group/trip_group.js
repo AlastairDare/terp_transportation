@@ -11,14 +11,26 @@ frappe.ui.form.on('Trip Group', {
                 }
             });
         });
-        calculate_total(frm, false); // Don't update service item on refresh
+        calculate_total(frm, false);
     },
     before_save: function(frm) {
-        calculate_total(frm, true); // Update service item before save
+        calculate_total(frm, true);
+    },
+    after_save: function(frm) {
+        // Update service item after save if it exists
+        if(frm.doc.service_item) {
+            frappe.call({
+                method: 'transportation.transportation.doctype.trip_group.trip_group.create_service_item',
+                args: {
+                    'trip_group': frm.doc.name
+                },
+                quiet: true
+            });
+        }
     }
-});
-
-frappe.ui.form.on('Trip Group Detail', {
+ });
+ 
+ frappe.ui.form.on('Trip Group Detail', {
     trips_add: function(frm, cdt, cdn) {
         calculate_total(frm, false);
     },
@@ -34,9 +46,9 @@ frappe.ui.form.on('Trip Group Detail', {
     quantity: function(frm, cdt, cdn) {
         calculate_total(frm, false);
     }
-});
-
-function calculate_total(frm, update_service_item) {
+ });
+ 
+ function calculate_total(frm, update_service_item) {
     let total = 0;
     if (frm.doc.trips) {
         frm.doc.trips.forEach(function(trip) {
@@ -60,4 +72,4 @@ function calculate_total(frm, update_service_item) {
             });
         }
     }
-}
+ }
