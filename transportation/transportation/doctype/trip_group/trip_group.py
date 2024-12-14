@@ -29,12 +29,32 @@ class TripGroup(Document):
 
     def calculate_total_amount(self):
         """Calculate total amount from all trips"""
+        frappe.log_error("Starting calculate_total_amount", "Trip Group Debug")
+        if not self.trips:
+            frappe.log_error("No trips found", "Trip Group Debug")
+            return
+            
         try:
-            self.total_amount = sum((trip.rate * trip.quantity) for trip in self.trips)
-            frappe.log_error(f"Trips count: {len(self.trips)}, Total: {self.total_amount}", "Trip Group Amount Calc")
+            total = 0
+            for trip in self.trips:
+                if not hasattr(trip, 'rate') or not hasattr(trip, 'quantity'):
+                    frappe.log_error(f"Missing rate or quantity for trip {trip.trip}", "Trip Group Debug")
+                    continue
+                    
+                if trip.rate is None or trip.quantity is None:
+                    frappe.log_error(f"Rate or quantity is None for trip {trip.trip}", "Trip Group Debug")
+                    continue
+                    
+                amount = float(trip.rate) * float(trip.quantity)
+                frappe.log_error(f"Trip {trip.trip}: Rate={trip.rate}, Qty={trip.quantity}, Amount={amount}", "Trip Group Debug")
+                total += amount
+                
+            self.total_amount = total
+            frappe.log_error(f"Final total: {total}", "Trip Group Debug")
+            
         except Exception as e:
-            frappe.log_error(f"Error calculating total: {str(e)}", "Trip Group Error")
-
+            frappe.log_error(f"Error in calculate_total: {str(e)} at line {e.__traceback__.tb_lineno}", "Trip Group Error")
+        
     def after_insert(self):
         try:
             frappe.log_error("Attempting after_insert", "Trip Group")
