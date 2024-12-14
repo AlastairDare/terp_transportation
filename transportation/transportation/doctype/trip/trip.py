@@ -449,12 +449,13 @@ def create_group_service_item(trip_names):
         item = frappe.get_doc({
             "doctype": "Item",
             "item_code": group_item_code,
-            "item_name": f"Group Service Item for {len(trips)} Trips",
+            "item_name": group_item_code,  # Changed to match item_code
             "item_group": "Services",
             "stock_uom": "Each",
             "is_stock_item": 0,
             "is_fixed_asset": 0,
-            "description": f"Group Service Item for Trips: {', '.join(trip_names)}"
+            "description": f"Group Service Item for Trips: {', '.join(trip_names)}",
+            "standard_rate": total_amount  # This sets the default rate for the item
         })
         item.insert(ignore_permissions=True)
         
