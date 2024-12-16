@@ -55,6 +55,21 @@ class TripGroup(Document):
                         frappe.log_error(f"Updated service item rates to: {self.total_amount}", "Trip Group Debug")
                 except Exception as e:
                     frappe.log_error(f"Error updating service item: {str(e)}", "Trip Group Error")
+                    
+    def before_save(self):
+        frappe.log_error("before_save triggered", "Trip Group Debug")
+
+    def after_save(self):
+        frappe.log_error("after_save triggered", "Trip Group Debug")
+
+    def before_submit(self):
+        frappe.log_error("before_submit triggered", "Trip Group Debug")
+
+    def on_update(self):
+        frappe.log_error("on_update triggered", "Trip Group Debug")
+
+    def on_change(self):
+        frappe.log_error("on_change triggered", "Trip Group Debug")
 
 def prevent_deletion_if_invoiced(doc, method):
     """Prevent deletion if Trip Group is invoiced"""
