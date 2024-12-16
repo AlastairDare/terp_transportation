@@ -92,6 +92,10 @@ def update_invoice_status(trip_group, invoice_name):
 def create_service_item(trip_group):
     """Create or update service item for Trip Group"""
     doc = frappe.get_doc("Trip Group", trip_group)
+    
+    # Calculate total first
+    calculate_total_amount(doc)
+    
     item_code = f"GRP-{doc.name}"
     
     try:
