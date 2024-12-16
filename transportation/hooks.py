@@ -72,7 +72,8 @@ doc_events = {
         "after_insert": "transportation.transportation.doctype.tolls.tolls.after_insert"
     },
     "Trip Group": {
-    "on_trash": "transportation.transportation.doctype.trip_group.trip_group.prevent_deletion_if_invoiced"
+    "on_update": "transportation.transportation.doctype.trip_group.trip_group.on_update",
+    "before_delete": "transportation.transportation.doctype.trip_group.trip_group.prevent_deletion_if_invoiced"
     },
     "Sales Invoice": {
         "on_submit": "transportation.transportation.doctype.trip_group.trip_group.handle_sales_invoice_submit"

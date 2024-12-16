@@ -55,10 +55,6 @@ function calculate_total(frm) {
     // Only update if the total has actually changed
     if (flt(frm.doc.total_amount) !== flt(total)) {
         frm.set_value('total_amount', total);
-        
-        // Don't trigger another save here - let the form's natural save cycle handle it
-        if (!frm.is_dirty()) {
-            frm.save();
-        }
+        // Remove the automatic save
     }
 }
