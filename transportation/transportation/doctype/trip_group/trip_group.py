@@ -39,34 +39,22 @@ class TripGroup(Document):
     
     def on_update(self):
         """Handle updates to service item when Trip Group is modified"""
-        frappe.log_error(f"on_update triggered for Trip Group {self.name}", "Trip Group Debug")
-        frappe.log_error(f"self.service_item = {self.service_item}", "Trip Group Debug")
+        frappe.log_error("on_update triggered", "Trip Group Debug")
         
-        item_code = f"GRP-{self.name}"
-        frappe.log_error(f"generated item_code = {item_code}", "Trip Group Debug")
-        
-        if frappe.db.exists("Item", item_code):  # Changed this line to check for item_code instead
-            try:
-                item = frappe.get_doc("Item", item_code)
-                frappe.log_error(
-                    f"Current item rate: {item.standard_rate}, New total: {self.total_amount}", 
-                    "Trip Group Debug"
-                )
-                
-                if float(item.standard_rate) != float(self.total_amount):
-                    frappe.log_error("Updating service item rates", "Trip Group Debug")
-                    item.standard_rate = self.total_amount
-                    item.valuation_rate = self.total_amount
-                    item.save(ignore_permissions=True)
-                    frappe.log_error(
-                        f"Updated service item {item_code} with new rate: {self.total_amount}", 
-                        "Trip Group Update"
-                    )
-            except Exception as e:
-                frappe.log_error(
-                    f"Error updating service item rates: {str(e)}", 
-                    "Trip Group Error"
-                )
+        if self.service_item:  # Check if service_item exists
+            frappe.log_error(f"Service item found: {self.service_item}", "Trip Group Debug")
+            if frappe.db.exists("Item", self.service_item):  # Check if Item exists
+                try:
+                    item = frappe.get_doc("Item", self.service_item)
+                    frappe.log_error(f"Current item rate: {item.standard_rate}, New total: {self.total_amount}", "Trip Group Debug")
+                    
+                    if float(item.standard_rate) != float(self.total_amount):
+                        item.standard_rate = self.total_amount
+                        item.valuation_rate = self.total_amount
+                        item.save(ignore_permissions=True)
+                        frappe.log_error(f"Updated service item rates to: {self.total_amount}", "Trip Group Debug")
+                except Exception as e:
+                    frappe.log_error(f"Error updating service item: {str(e)}", "Trip Group Error")
 
 def prevent_deletion_if_invoiced(doc, method):
     """Prevent deletion if Trip Group is invoiced"""
