@@ -39,15 +39,27 @@ class TripGroup(Document):
     
     def on_update(self):
         """Handle updates to service item when Trip Group is modified"""
-        if self.service_item and frappe.db.exists("Item", self.service_item):
+        frappe.log_error(f"on_update triggered for Trip Group {self.name}", "Trip Group Debug")
+        frappe.log_error(f"self.service_item = {self.service_item}", "Trip Group Debug")
+        
+        item_code = f"GRP-{self.name}"
+        frappe.log_error(f"generated item_code = {item_code}", "Trip Group Debug")
+        
+        if frappe.db.exists("Item", item_code):  # Changed this line to check for item_code instead
             try:
-                item = frappe.get_doc("Item", self.service_item)
-                if item.standard_rate != self.total_amount:
+                item = frappe.get_doc("Item", item_code)
+                frappe.log_error(
+                    f"Current item rate: {item.standard_rate}, New total: {self.total_amount}", 
+                    "Trip Group Debug"
+                )
+                
+                if float(item.standard_rate) != float(self.total_amount):
+                    frappe.log_error("Updating service item rates", "Trip Group Debug")
                     item.standard_rate = self.total_amount
                     item.valuation_rate = self.total_amount
                     item.save(ignore_permissions=True)
                     frappe.log_error(
-                        f"Updated service item {self.service_item} with new rate: {self.total_amount}", 
+                        f"Updated service item {item_code} with new rate: {self.total_amount}", 
                         "Trip Group Update"
                     )
             except Exception as e:
