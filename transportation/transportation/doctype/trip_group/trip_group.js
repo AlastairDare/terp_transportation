@@ -7,49 +7,43 @@ frappe.ui.form.on('Trip Group', {
                     'trip_group': frm.doc.name
                 },
                 callback: function(r) {
+                    frappe.show_alert({
+                        message: __('Service Item updated successfully'),
+                        indicator: 'green'
+                    });
                     frm.reload_doc();
                 }
             });
         });
-        calculate_total(frm, false);
+        calculate_total(frm);
     },
+    
     before_save: function(frm) {
-        calculate_total(frm, true);
-    },
-    after_save: function(frm) {
-        // Update service item after save if it exists
-        if(frm.doc.service_item) {
-            frappe.call({
-                method: 'transportation.transportation.doctype.trip_group.trip_group.create_service_item',
-                args: {
-                    'trip_group': frm.doc.name
-                },
-                quiet: true
-            });
-        }
+        calculate_total(frm);
     }
- });
- 
- frappe.ui.form.on('Trip Group Detail', {
+});
+
+frappe.ui.form.on('Trip Group Detail', {
     trips_add: function(frm, cdt, cdn) {
-        calculate_total(frm, false);
+        calculate_total(frm);
     },
     trips_remove: function(frm, cdt, cdn) {
-        calculate_total(frm, false);
+        calculate_total(frm);
     },
     trip: function(frm, cdt, cdn) {
-        calculate_total(frm, false);
+        calculate_total(frm);
     },
     rate: function(frm, cdt, cdn) {
-        calculate_total(frm, false);
+        calculate_total(frm);
     },
     quantity: function(frm, cdt, cdn) {
-        calculate_total(frm, false);
+        calculate_total(frm);
     }
- });
- 
- function calculate_total(frm) {
+});
+
+function calculate_total(frm) {
     let total = 0;
+    
     if (frm.doc.trips) {
         frm.doc.trips.forEach(function(trip) {
             if (trip.rate && trip.quantity) {
@@ -58,20 +52,13 @@ frappe.ui.form.on('Trip Group', {
         });
     }
     
-    if(frm.doc.total_amount !== total) {
+    // Only update if the total has actually changed
+    if (flt(frm.doc.total_amount) !== flt(total)) {
         frm.set_value('total_amount', total);
         
-        // Update service item if it exists
-        if(frm.doc.service_item) {
-            frappe.call({
-                method: 'transportation.transportation.doctype.trip_group.trip_group.create_service_item',
-                args: {
-                    'trip_group': frm.doc.name
-                },
-                quiet: true
-            });
+        // Don't trigger another save here - let the form's natural save cycle handle it
+        if (!frm.is_dirty()) {
+            frm.save();
         }
-        
-        frm.save();
     }
 }

@@ -5,140 +5,56 @@ from frappe import _
 from frappe.model.document import Document
 
 class TripGroup(Document):
-    pass
-
-def validate(doc, method):
-    """Validate Trip Group document before saving."""
-    try:
-        # Validate trips aren't in other groups
-        for trip_row in doc.trips:
+    def validate(self):
+        """Validate Trip Group document before saving"""
+        self.validate_trips()
+        self.calculate_total_amount()
+        
+    def validate_trips(self):
+        """Ensure trips are not already in another group"""
+        for trip_row in self.trips:
             existing_groups = frappe.get_all(
                 "Trip Group Detail",
                 filters={
                     "trip": trip_row.trip,
-                    "parent": ["!=", doc.name],
+                    "parent": ["!=", self.name],
                     "parenttype": "Trip Group"
                 }
             )
+            
             if existing_groups:
                 frappe.throw(_(f"Trip {trip_row.trip} is already part of another group"))
-
-        # Calculate total amount
-        total = 0
-        for trip in doc.trips:
-            if trip.rate and trip.quantity:
-                total += float(trip.rate) * float(trip.quantity)
-        doc.total_amount = total
-        
-        frappe.log_error(f"Total amount calculated: {total}", "Trip Group Validation")
-        
-    except Exception as e:
-        frappe.log_error(f"Error in validate: {str(e)}", "Trip Group Error")
-        frappe.throw(_("Validation failed. Error: {0}").format(str(e)))
-
-def before_save(doc, method):
-    """Before save hook to handle service item creation"""
-    try:
-        if not frappe.db.exists("Item", f"GRP-{doc.name}"):
-            item = frappe.get_doc({
-                "doctype": "Item",
-                "item_code": f"GRP-{doc.name}",
-                "item_name": f"GRP-{doc.name}",
-                "item_group": "Services",
-                "stock_uom": "Each",
-                "is_stock_item": 0,
-                "is_fixed_asset": 0,
-                "description": f"Group Service Item for Trip Group: {doc.name}",
-                "standard_rate": doc.total_amount
-            })
-            
-            item.insert(ignore_permissions=True)
-            doc.service_item = f"GRP-{doc.name}"
-            
-            frappe.msgprint(
-                msg=f"""
-                    <div>
-                        <p>{_("Group Service Item created successfully: {0}").format(doc.service_item)}</p>
-                    </div>
-                """,
-                title=_("Service Item Created"),
-                indicator="green"
-            )
-            
-        frappe.log_error(f"Service item handled for {doc.name}", "Trip Group")
-            
-    except Exception as e:
-        frappe.log_error(f"Error in before_save: {str(e)}", "Trip Group Error")
-        frappe.throw(_("Failed to process Trip Group. Error: {0}").format(str(e)))
-
-def validate_trip_group(doc, method):
-    validate_trips(doc)
-    calculate_total_amount(doc)
-
-def validate_trips(doc):
-    """Ensure trips are not already in another group"""
-    for trip_row in doc.trips:
-        existing_groups = frappe.get_all(
-            "Trip Group Detail",
-            filters={
-                "trip": trip_row.trip,
-                "parent": ["!=", doc.name],
-                "parenttype": "Trip Group"
-            }
-        )
-        
-        if existing_groups:
-            frappe.throw(_(f"Trip {trip_row.trip} is already part of another group"))
-
-def calculate_total_amount(doc):
-    """Calculate total amount from all trips"""
-    frappe.log_error("Starting total calculation", "Trip Group")
-    try:
-        total = 0
-        for trip in doc.trips:
-            trip_amount = (float(trip.rate) * float(trip.quantity)) if trip.rate and trip.quantity else 0
-            total += trip_amount
-            frappe.log_error(f"Trip {trip.trip}: Rate={trip.rate}, Qty={trip.quantity}, Amount={trip_amount}", "Trip Group")
-        
-        doc.total_amount = total
-        frappe.log_error(f"Final total: {total}", "Trip Group")
-    except Exception as e:
-        frappe.log_error(f"Error calculating total: {str(e)}", "Trip Group Error")
-
-def create_service_item(doc, method):
-    """Create service item after Trip Group is created"""
-    frappe.log_error("Starting service item creation", "Trip Group")
-    try:
-        item_code = f"GRP-{doc.name}"
-        
-        if not frappe.db.exists("Item", item_code):
-            item = frappe.get_doc({
-                "doctype": "Item",
-                "item_code": item_code,
-                "item_name": item_code,
-                "item_group": "Services",
-                "stock_uom": "Each",
-                "is_stock_item": 0,
-                "is_fixed_asset": 0,
-                "description": f"Group Service Item for Trip Group: {doc.name}",
-                "standard_rate": doc.total_amount
-            })
-            item.insert(ignore_permissions=True)
-            doc.db_set('service_item', item_code)
-            frappe.log_error(f"Created service item: {item_code}", "Trip Group")
-    except Exception as e:
-        frappe.log_error(f"Error creating service item: {str(e)}", "Trip Group Error")
-
-def update_service_item(doc, method):
-    """Update service item when Trip Group is modified"""
-    if doc.service_item:
+    
+    def calculate_total_amount(self):
+        """Calculate total amount from all trips"""
         try:
-            item = frappe.get_doc("Item", doc.service_item)
-            item.standard_rate = doc.total_amount
-            item.save(ignore_permissions=True)
-            frappe.log_error(f"Updated service item: {doc.service_item}", "Trip Group")
+            total = 0
+            for trip in self.trips:
+                if trip.rate and trip.quantity:
+                    total += float(trip.rate) * float(trip.quantity)
+            self.total_amount = total
         except Exception as e:
-            frappe.log_error(f"Error updating service item: {str(e)}", "Trip Group Error")
+            frappe.log_error(f"Error calculating total: {str(e)}", "Trip Group Error")
+            frappe.throw(_("Error calculating total amount"))
+    
+    def on_update(self):
+        """Handle updates to service item when Trip Group is modified"""
+        if self.service_item and frappe.db.exists("Item", self.service_item):
+            try:
+                item = frappe.get_doc("Item", self.service_item)
+                if item.standard_rate != self.total_amount:
+                    item.standard_rate = self.total_amount
+                    item.valuation_rate = self.total_amount
+                    item.save(ignore_permissions=True)
+                    frappe.log_error(
+                        f"Updated service item {self.service_item} with new rate: {self.total_amount}", 
+                        "Trip Group Update"
+                    )
+            except Exception as e:
+                frappe.log_error(
+                    f"Error updating service item rates: {str(e)}", 
+                    "Trip Group Error"
+                )
 
 def prevent_deletion_if_invoiced(doc, method):
     """Prevent deletion if Trip Group is invoiced"""
@@ -171,41 +87,48 @@ def update_invoice_status(trip_group, invoice_name):
 
 @frappe.whitelist()
 def create_service_item(trip_group):
+    """Create or update service item for Trip Group"""
     doc = frappe.get_doc("Trip Group", trip_group)
     item_code = f"GRP-{doc.name}"
     
-    if not frappe.db.exists("Item", item_code):
-        item = frappe.get_doc({
-            "doctype": "Item",
-            "item_code": item_code,
-            "item_name": item_code,
-            "item_group": "Services",
-            "stock_uom": "Each",
-            "is_stock_item": 0,
-            "is_fixed_asset": 0,
-            "description": f"Group Service Item for Trip Group: {doc.name}",
-            "standard_rate": doc.total_amount,
-            "is_sales_item": 1,
-            "has_variants": 0,
-            "include_item_in_manufacturing": 0,
-            "opening_stock": 0,
-            "valuation_rate": doc.total_amount,
-            "standard_rate": doc.total_amount
-        })
-        item.insert(ignore_permissions=True)
-        doc.service_item = item_code
-        doc.save(ignore_permissions=True)
+    try:
+        if not frappe.db.exists("Item", item_code):
+            # Create new service item
+            item = frappe.get_doc({
+                "doctype": "Item",
+                "item_code": item_code,
+                "item_name": item_code,
+                "item_group": "Services",
+                "stock_uom": "Each",
+                "is_stock_item": 0,
+                "is_fixed_asset": 0,
+                "description": f"Group Service Item for Trip Group: {doc.name}",
+                "standard_rate": doc.total_amount,
+                "is_sales_item": 1,
+                "has_variants": 0,
+                "include_item_in_manufacturing": 0,
+                "opening_stock": 0,
+                "valuation_rate": doc.total_amount
+            })
+            item.insert(ignore_permissions=True)
+            doc.service_item = item_code
+            doc.save(ignore_permissions=True)
+            
+            frappe.msgprint(
+                msg=f"""<div><p>{_("Group Service Item created successfully: {0}").format(item_code)}</p></div>""",
+                title=_("Service Item Created"),
+                indicator="green"
+            )
+        else:
+            # Update existing service item
+            item = frappe.get_doc("Item", item_code)
+            if item.standard_rate != doc.total_amount:
+                item.standard_rate = doc.total_amount
+                item.valuation_rate = doc.total_amount
+                item.save(ignore_permissions=True)
+        
         return item_code
-    else:
-        # Only update if total has changed
-        item = frappe.get_doc("Item", item_code)
-        if item.standard_rate != doc.total_amount:
-            item.standard_rate = doc.total_amount
-            item.valuation_rate = doc.total_amount
-            item.save(ignore_permissions=True)
-        return item_code
-    
-@frappe.whitelist()
-def after_save(doc, method):
-    if doc.service_item:
-        frappe.db.set_value("Item", doc.service_item, "standard_rate", doc.total_amount)
+        
+    except Exception as e:
+        frappe.log_error(f"Error handling service item: {str(e)}", "Trip Group Error")
+        frappe.throw(_("Failed to process service item. Error: {0}").format(str(e)))
