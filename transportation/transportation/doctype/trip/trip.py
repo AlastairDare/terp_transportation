@@ -38,10 +38,27 @@ def validate(doc, method):
 
 def before_save(doc, method):
     """Before save hook to handle item and invoice creation"""
+    # Log entry into before_save
+    frappe.log_error(
+        message=f"Entering before_save for trip {doc.name} with status {doc.status}",
+        title="Trip Before Save Entry"
+    )
+    
     if doc.status == "Complete":
         try:
+            # Log attempt to create service item
+            frappe.log_error(
+                message=f"Attempting to create/check service item for trip {doc.name}",
+                title="Service Item Creation Attempt"
+            )
+            
             # First ensure the service item exists regardless of invoice choice
             if not frappe.db.exists("Item", doc.name):
+                frappe.log_error(
+                    message=f"Service item {doc.name} does not exist, creating new item",
+                    title="Service Item Creation"
+                )
+                
                 item = frappe.get_doc({
                     "doctype": "Item",
                     "item_code": doc.name,
@@ -53,43 +70,76 @@ def before_save(doc, method):
                     "description": f"Service Item for Trip {doc.name}"
                 })
                 
-                item.insert(ignore_permissions=True)
-                
-                # Only show item creation message if we're not creating any invoices
-                if not (doc.auto_create_sales_invoice or doc.auto_create_purchase_invoice):
-                    msg = f"""
-                        <div>
-                            <p>{_("Service Item created successfully: {0}").format(doc.name)}</p>
-                            <div style="margin-top: 10px;">
-                                <button class="btn btn-xs btn-default" 
-                                        onclick="frappe.utils.copy_to_clipboard('{doc.name}').then(() => {{
-                                            frappe.show_alert({{
-                                                message: '{_("Item code copied to clipboard")}',
-                                                indicator: 'green'
-                                            }});
-                                        }})">
-                                    Copy Item Code
-                                </button>
-                            </div>
-                        </div>
-                    """
-                    
-                    frappe.msgprint(
-                        msg=msg,
-                        title=_("Service Item Created"),
-                        indicator="green"
+                try:
+                    item.insert(ignore_permissions=True)
+                    frappe.log_error(
+                        message=f"Successfully created service item {doc.name}",
+                        title="Service Item Created"
                     )
+                    
+                    # Only show item creation message if we're not creating any invoices
+                    if not (doc.auto_create_sales_invoice or doc.auto_create_purchase_invoice):
+                        msg = f"""
+                            <div>
+                                <p>{_("Service Item created successfully: {0}").format(doc.name)}</p>
+                                <div style="margin-top: 10px;">
+                                    <button class="btn btn-xs btn-default" 
+                                            onclick="frappe.utils.copy_to_clipboard('{doc.name}').then(() => {{
+                                                frappe.show_alert({{
+                                                    message: '{_("Item code copied to clipboard")}',
+                                                    indicator: 'green'
+                                                }});
+                                            }})">
+                                        Copy Item Code
+                                    </button>
+                                </div>
+                            </div>
+                        """
+                        
+                        frappe.msgprint(
+                            msg=msg,
+                            title=_("Service Item Created"),
+                            indicator="green"
+                        )
+                except Exception as e:
+                    frappe.log_error(
+                        message=f"Failed to insert service item {doc.name}. Error: {str(e)}\nFull error: {frappe.get_traceback()}",
+                        title="Service Item Creation Failed"
+                    )
+                    raise
 
             sales_invoice = None
             purchase_invoice = None
             
             # Handle sales invoice creation if enabled
             if doc.auto_create_sales_invoice:
-                sales_invoice = create_or_update_sales_invoice(doc)
+                frappe.log_error(
+                    message=f"Attempting to create/update sales invoice for trip {doc.name}",
+                    title="Sales Invoice Creation Attempt"
+                )
+                try:
+                    sales_invoice = create_or_update_sales_invoice(doc)
+                except Exception as e:
+                    frappe.log_error(
+                        message=f"Failed to create/update sales invoice for trip {doc.name}. Error: {str(e)}\nFull error: {frappe.get_traceback()}",
+                        title="Sales Invoice Creation Failed"
+                    )
+                    raise
             
-            # Handle purchase invoice creation if enabled and truck is subbie
+            # Handle purchase invoice creation if enabled
             if doc.auto_create_purchase_invoice:
-                purchase_invoice = create_or_update_purchase_invoice(doc)
+                frappe.log_error(
+                    message=f"Attempting to create/update purchase invoice for trip {doc.name}",
+                    title="Purchase Invoice Creation Attempt"
+                )
+                try:
+                    purchase_invoice = create_or_update_purchase_invoice(doc)
+                except Exception as e:
+                    frappe.log_error(
+                        message=f"Failed to create/update purchase invoice for trip {doc.name}. Error: {str(e)}\nFull error: {frappe.get_traceback()}",
+                        title="Purchase Invoice Creation Failed"
+                    )
+                    raise
             
             # Show combined message if both invoices were created
             if sales_invoice and purchase_invoice:
@@ -130,11 +180,11 @@ def before_save(doc, method):
                     title=_("Purchase Invoice Created/Updated"),
                     indicator="green"
                 )
-                
+
         except Exception as e:
             frappe.log_error(
-                message=f"Error in before_save for trip {doc.name}: {str(e)}",
-                title="Trip Save Error"
+                message=f"Error in before_save for trip {doc.name}: {str(e)}\nFull error: {frappe.get_traceback()}",
+                title="Trip Before Save Error"
             )
             frappe.throw(_("Failed to process trip completion. Error: {0}").format(str(e)))
 
