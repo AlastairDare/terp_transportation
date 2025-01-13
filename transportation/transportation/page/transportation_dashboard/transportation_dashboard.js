@@ -1,4 +1,5 @@
 frappe.provide('frappe.pages.transportation_dashboard');
+frappe.provide('frappe.pages.transportation-dashboard');
 
 frappe.pages['transportation-dashboard'].on_page_load = function(wrapper) {
     var page = frappe.ui.make_app_page({
