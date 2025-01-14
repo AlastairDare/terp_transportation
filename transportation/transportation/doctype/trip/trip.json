@@ -16,7 +16,7 @@
             "fieldname": "status",
             "fieldtype": "Select",
             "label": "Status",
-            "options": "Draft\nProcessing\nAwaiting Approval\nComplete\nError",
+            "options": "Draft\nProcessing\nPlanned\nAwaiting Approval\nComplete\nError",
             "default": "Draft",
             "reqd": 1,
             "in_list_view": 1
@@ -307,7 +307,7 @@
         {
             "fieldname": "stop_detail_section",
             "fieldtype": "Section Break",
-            "label": "Stop Detail",
+            "label": "Route Detail",
             "collapsible": 1
         },
         {
