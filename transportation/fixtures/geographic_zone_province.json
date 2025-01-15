@@ -1,6 +1,7 @@
 [
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZA-EC",
     "province_code": "ZA-EC",
     "province_name": "Eastern Cape",
     "country": "ZA",
@@ -9,6 +10,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZA-FS",
     "province_code": "ZA-FS",
     "province_name": "Free State",
     "country": "ZA",
@@ -17,6 +19,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZA-GP",
     "province_code": "ZA-GP",
     "province_name": "Gauteng",
     "country": "ZA",
@@ -25,6 +28,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZA-KZN",
     "province_code": "ZA-KZN",
     "province_name": "KwaZulu-Natal",
     "country": "ZA",
@@ -33,6 +37,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZA-LP",
     "province_code": "ZA-LP",
     "province_name": "Limpopo",
     "country": "ZA",
@@ -41,6 +46,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZA-MP",
     "province_code": "ZA-MP",
     "province_name": "Mpumalanga",
     "country": "ZA",
@@ -49,6 +55,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZA-NW",
     "province_code": "ZA-NW",
     "province_name": "North West",
     "country": "ZA",
@@ -57,6 +64,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZA-NC",
     "province_code": "ZA-NC",
     "province_name": "Northern Cape",
     "country": "ZA",
@@ -65,6 +73,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZA-WC",
     "province_code": "ZA-WC",
     "province_name": "Western Cape",
     "country": "ZA",
@@ -73,6 +82,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "NA-ER",
     "province_code": "NA-ER",
     "province_name": "Erongo",
     "country": "NA",
@@ -81,6 +91,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "NA-HA",
     "province_code": "NA-HA",
     "province_name": "Hardap",
     "country": "NA",
@@ -89,6 +100,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "NA-KA",
     "province_code": "NA-KA",
     "province_name": "//Karas",
     "country": "NA",
@@ -97,6 +109,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "NA-KE",
     "province_code": "NA-KE",
     "province_name": "Kavango East",
     "country": "NA",
@@ -105,6 +118,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "NA-KW",
     "province_code": "NA-KW",
     "province_name": "Kavango West",
     "country": "NA",
@@ -113,6 +127,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "NA-KH",
     "province_code": "NA-KH",
     "province_name": "Khomas",
     "country": "NA",
@@ -121,6 +136,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "NA-KU",
     "province_code": "NA-KU",
     "province_name": "Kunene",
     "country": "NA",
@@ -129,6 +145,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "NA-OW",
     "province_code": "NA-OW",
     "province_name": "Ohangwena",
     "country": "NA",
@@ -137,6 +154,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "NA-OH",
     "province_code": "NA-OH",
     "province_name": "Omaheke",
     "country": "NA",
@@ -145,6 +163,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "NA-OS",
     "province_code": "NA-OS",
     "province_name": "Omusati",
     "country": "NA",
@@ -153,6 +172,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "NA-ON",
     "province_code": "NA-ON",
     "province_name": "Oshana",
     "country": "NA",
@@ -161,6 +181,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "NA-OT",
     "province_code": "NA-OT",
     "province_name": "Oshikoto",
     "country": "NA",
@@ -169,6 +190,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "NA-OD",
     "province_code": "NA-OD",
     "province_name": "Otjozondjupa",
     "country": "NA",
@@ -177,6 +199,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "NA-CA",
     "province_code": "NA-CA",
     "province_name": "Zambezi",
     "country": "NA",
@@ -185,6 +208,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-BGO",
     "province_code": "AO-BGO",
     "province_name": "Bengo",
     "country": "AO",
@@ -193,6 +217,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-BGU",
     "province_code": "AO-BGU",
     "province_name": "Benguela",
     "country": "AO",
@@ -201,6 +226,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-BIE",
     "province_code": "AO-BIE",
     "province_name": "Bié",
     "country": "AO",
@@ -209,6 +235,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-CAB",
     "province_code": "AO-CAB",
     "province_name": "Cabinda",
     "country": "AO",
@@ -217,6 +244,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-CCU",
     "province_code": "AO-CCU",
     "province_name": "Cuando Cubango",
     "country": "AO",
@@ -225,6 +253,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-CNO",
     "province_code": "AO-CNO",
     "province_name": "Cuanza Norte",
     "country": "AO",
@@ -233,6 +262,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-CUS",
     "province_code": "AO-CUS",
     "province_name": "Cuanza Sul",
     "country": "AO",
@@ -241,6 +271,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-CNN",
     "province_code": "AO-CNN",
     "province_name": "Cunene",
     "country": "AO",
@@ -249,6 +280,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-HUA",
     "province_code": "AO-HUA",
     "province_name": "Huambo",
     "country": "AO",
@@ -257,6 +289,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-HUI",
     "province_code": "AO-HUI",
     "province_name": "Huíla",
     "country": "AO",
@@ -265,6 +298,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-LUA",
     "province_code": "AO-LUA",
     "province_name": "Luanda",
     "country": "AO",
@@ -273,6 +307,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-LNO",
     "province_code": "AO-LNO",
     "province_name": "Lunda Norte",
     "country": "AO",
@@ -281,6 +316,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-LSU",
     "province_code": "AO-LSU",
     "province_name": "Lunda Sul",
     "country": "AO",
@@ -289,6 +325,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-MAL",
     "province_code": "AO-MAL",
     "province_name": "Malanje",
     "country": "AO",
@@ -297,6 +334,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-MOX",
     "province_code": "AO-MOX",
     "province_name": "Moxico",
     "country": "AO",
@@ -305,6 +343,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-NAM",
     "province_code": "AO-NAM",
     "province_name": "Namibe",
     "country": "AO",
@@ -313,6 +352,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-UIG",
     "province_code": "AO-UIG",
     "province_name": "Uíge",
     "country": "AO",
@@ -321,6 +361,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "AO-ZAI",
     "province_code": "AO-ZAI",
     "province_name": "Zaire",
     "country": "AO",
@@ -329,6 +370,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "BW-CE",
     "province_code": "BW-CE",
     "province_name": "Central District",
     "country": "BW",
@@ -337,6 +379,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "BW-GH",
     "province_code": "BW-GH",
     "province_name": "Ghanzi District",
     "country": "BW",
@@ -345,6 +388,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "BW-KG",
     "province_code": "BW-KG",
     "province_name": "Kgalagadi District",
     "country": "BW",
@@ -353,6 +397,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "BW-KL",
     "province_code": "BW-KL",
     "province_name": "Kgatleng District",
     "country": "BW",
@@ -361,6 +406,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "BW-KW",
     "province_code": "BW-KW",
     "province_name": "Kweneng District",
     "country": "BW",
@@ -369,6 +415,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "BW-NE",
     "province_code": "BW-NE",
     "province_name": "North East District",
     "country": "BW",
@@ -377,6 +424,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "BW-NW",
     "province_code": "BW-NW",
     "province_name": "North West District",
     "country": "BW",
@@ -385,6 +433,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "BW-SE",
     "province_code": "BW-SE",
     "province_name": "South East District",
     "country": "BW",
@@ -393,6 +442,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "BW-SO",
     "province_code": "BW-SO",
     "province_name": "Southern District",
     "country": "BW",
@@ -401,6 +451,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZM-CE",
     "province_code": "ZM-CE",
     "province_name": "Central Province",
     "country": "ZM",
@@ -409,6 +460,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZM-CO",
     "province_code": "ZM-CO",
     "province_name": "Copperbelt Province",
     "country": "ZM",
@@ -417,6 +469,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZM-EA",
     "province_code": "ZM-EA",
     "province_name": "Eastern Province",
     "country": "ZM",
@@ -425,6 +478,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZM-LP",
     "province_code": "ZM-LP",
     "province_name": "Luapula Province",
     "country": "ZM",
@@ -433,6 +487,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZM-LK",
     "province_code": "ZM-LK",
     "province_name": "Lusaka Province",
     "country": "ZM",
@@ -441,6 +496,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZM-MU",
     "province_code": "ZM-MU",
     "province_name": "Muchinga Province",
     "country": "ZM",
@@ -449,6 +505,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZM-NO",
     "province_code": "ZM-NO",
     "province_name": "Northern Province",
     "country": "ZM",
@@ -457,6 +514,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZM-NW",
     "province_code": "ZM-NW",
     "province_name": "North-Western Province",
     "country": "ZM",
@@ -465,6 +523,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZM-SO",
     "province_code": "ZM-SO",
     "province_name": "Southern Province",
     "country": "ZM",
@@ -473,6 +532,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZM-WE",
     "province_code": "ZM-WE",
     "province_name": "Western Province",
     "country": "ZM",
@@ -481,6 +541,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZW-BU",
     "province_code": "ZW-BU",
     "province_name": "Bulawayo Province",
     "country": "ZW",
@@ -489,6 +550,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZW-HA",
     "province_code": "ZW-HA",
     "province_name": "Harare Province",
     "country": "ZW",
@@ -497,6 +559,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZW-MA",
     "province_code": "ZW-MA",
     "province_name": "Manicaland",
     "country": "ZW",
@@ -505,6 +568,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZW-MC",
     "province_code": "ZW-MC",
     "province_name": "Mashonaland Central",
     "country": "ZW",
@@ -513,6 +577,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZW-ME",
     "province_code": "ZW-ME",
     "province_name": "Mashonaland East",
     "country": "ZW",
@@ -521,6 +586,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZW-MW",
     "province_code": "ZW-MW",
     "province_name": "Mashonaland West",
     "country": "ZW",
@@ -529,6 +595,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZW-MV",
     "province_code": "ZW-MV",
     "province_name": "Masvingo Province",
     "country": "ZW",
@@ -537,6 +604,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZW-MN",
     "province_code": "ZW-MN",
     "province_name": "Matabeleland North",
     "country": "ZW",
@@ -545,6 +613,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZW-MS",
     "province_code": "ZW-MS",
     "province_name": "Matabeleland South",
     "country": "ZW",
@@ -553,6 +622,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "ZW-MI",
     "province_code": "ZW-MI",
     "province_name": "Midlands Province",
     "country": "ZW",
@@ -561,6 +631,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "MZ-CD",
     "province_code": "MZ-CD",
     "province_name": "Cabo Delgado",
     "country": "MZ",
@@ -569,6 +640,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "MZ-GZ",
     "province_code": "MZ-GZ",
     "province_name": "Gaza",
     "country": "MZ",
@@ -577,6 +649,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "MZ-IN",
     "province_code": "MZ-IN",
     "province_name": "Inhambane",
     "country": "MZ",
@@ -585,6 +658,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "MZ-MN",
     "province_code": "MZ-MN",
     "province_name": "Manica",
     "country": "MZ",
@@ -593,6 +667,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "MZ-MP",
     "province_code": "MZ-MP",
     "province_name": "Maputo Province",
     "country": "MZ",
@@ -601,6 +676,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "MZ-MC",
     "province_code": "MZ-MC",
     "province_name": "Maputo City",
     "country": "MZ",
@@ -609,6 +685,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "MZ-NM",
     "province_code": "MZ-NM",
     "province_name": "Nampula",
     "country": "MZ",
@@ -617,6 +694,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "MZ-NS",
     "province_code": "MZ-NS",
     "province_name": "Niassa",
     "country": "MZ",
@@ -625,6 +703,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "MZ-SF",
     "province_code": "MZ-SF",
     "province_name": "Sofala",
     "country": "MZ",
@@ -633,6 +712,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "MZ-TE",
     "province_code": "MZ-TE",
     "province_name": "Tete",
     "country": "MZ",
@@ -641,6 +721,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "MZ-ZB",
     "province_code": "MZ-ZB",
     "province_name": "Zambézia",
     "country": "MZ",
@@ -649,6 +730,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "LS-BE",
     "province_code": "LS-BE",
     "province_name": "Berea",
     "country": "LS",
@@ -657,6 +739,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "LS-BB",
     "province_code": "LS-BB",
     "province_name": "Butha-Buthe",
     "country": "LS",
@@ -665,6 +748,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "LS-LE",
     "province_code": "LS-LE",
     "province_name": "Leribe",
     "country": "LS",
@@ -673,6 +757,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "LS-MF",
     "province_code": "LS-MF",
     "province_name": "Mafeteng",
     "country": "LS",
@@ -681,6 +766,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "LS-MS",
     "province_code": "LS-MS",
     "province_name": "Maseru",
     "country": "LS",
@@ -689,6 +775,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "LS-MH",
     "province_code": "LS-MH",
     "province_name": "Mohale's Hoek",
     "country": "LS",
@@ -697,6 +784,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "LS-MK",
     "province_code": "LS-MK",
     "province_name": "Mokhotlong",
     "country": "LS",
@@ -705,6 +793,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "LS-QN",
     "province_code": "LS-QN",
     "province_name": "Qacha's Nek",
     "country": "LS",
@@ -713,6 +802,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "LS-QT",
     "province_code": "LS-QT",
     "province_name": "Quthing",
     "country": "LS",
@@ -721,6 +811,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "LS-TT",
     "province_code": "LS-TT",
     "province_name": "Thaba-Tseka",
     "country": "LS",
@@ -729,6 +820,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "SZ-HH",
     "province_code": "SZ-HH",
     "province_name": "Hhohho",
     "country": "SZ",
@@ -737,6 +829,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "SZ-LU",
     "province_code": "SZ-LU",
     "province_name": "Lubombo",
     "country": "SZ",
@@ -745,6 +838,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "SZ-MA",
     "province_code": "SZ-MA",
     "province_name": "Manzini",
     "country": "SZ",
@@ -753,6 +847,7 @@
     },
     {
     "doctype": "Geographic Zone Province",
+    "name": "SZ-SH",
     "province_code": "SZ-SH",
     "province_name": "Shiselweni",
     "country": "SZ",
