@@ -1,0 +1,56 @@
+[
+    {
+      "doctype": "Geographic Zone Country",
+      "country_code": "ZA",
+      "country_name": "South Africa",
+      "enabled": 1
+    },
+    {
+      "doctype": "Geographic Zone Country",
+      "country_code": "NA",
+      "country_name": "Namibia",
+      "enabled": 1
+    },
+    {
+      "doctype": "Geographic Zone Country",
+      "country_code": "BW",
+      "country_name": "Botswana",
+      "enabled": 1
+    },
+    {
+      "doctype": "Geographic Zone Country",
+      "country_code": "ZM",
+      "country_name": "Zambia",
+      "enabled": 1
+    },
+    {
+      "doctype": "Geographic Zone Country",
+      "country_code": "ZW",
+      "country_name": "Zimbabwe",
+      "enabled": 1
+    },
+    {
+      "doctype": "Geographic Zone Country",
+      "country_code": "MZ",
+      "country_name": "Mozambique",
+      "enabled": 1
+    },
+    {
+      "doctype": "Geographic Zone Country",
+      "country_code": "AO",
+      "country_name": "Angola",
+      "enabled": 1
+    },
+    {
+      "doctype": "Geographic Zone Country",
+      "country_code": "LS",
+      "country_name": "Lesotho",
+      "enabled": 1
+    },
+    {
+      "doctype": "Geographic Zone Country",
+      "country_code": "SZ",
+      "country_name": "Kingdom of Eswatini",
+      "enabled": 1
+    }
+  ]

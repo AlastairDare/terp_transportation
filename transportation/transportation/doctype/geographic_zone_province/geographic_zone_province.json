@@ -1,0 +1,51 @@
+{
+    "name": "Geographic Zone Province",
+    "doctype": "DocType",
+    "module": "Transportation",
+    "custom": 1,
+    "title_field": "province_name",
+    "public": 1,
+    "autoname": "field:province_code",
+    "fields": [
+        {
+            "fieldname": "province_code",
+            "label": "Province Code",
+            "fieldtype": "Data",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "province_name",
+            "label": "Province Name",
+            "fieldtype": "Data",
+            "reqd": 1
+        },
+        {
+            "fieldname": "country",
+            "label": "Country",
+            "fieldtype": "Link",
+            "options": "Geographic Zone Country",
+            "reqd": 1
+        },
+        {
+            "fieldname": "enabled",
+            "label": "Enabled",
+            "fieldtype": "Check",
+            "default": 1
+        },
+        {
+            "fieldname": "primary_language",
+            "label": "Primary Language",
+            "fieldtype": "Data"
+        }
+    ],
+    "permissions": [
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1
+        }
+    ]
+}

@@ -1,0 +1,40 @@
+{
+    "name": "Geographic Zone Country",
+    "doctype": "DocType",
+    "module": "Transportation",
+    "custom": 1,
+    "title_field": "country_name",
+    "public": 1,
+    "autoname": "field:country_code",
+    "fields": [
+        {
+            "fieldname": "country_code",
+            "label": "Country Code",
+            "fieldtype": "Data",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "country_name",
+            "label": "Country Name",
+            "fieldtype": "Data",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "enabled",
+            "label": "Enabled",
+            "fieldtype": "Check",
+            "default": 1
+        }
+    ],
+    "permissions": [
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1
+        }
+    ]
+}

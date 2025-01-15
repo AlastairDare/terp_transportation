@@ -1,0 +1,762 @@
+[
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZA-EC",
+    "province_name": "Eastern Cape",
+    "country": "ZA",
+    "enabled": 1,
+    "primary_language": "Xhosa"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZA-FS",
+    "province_name": "Free State",
+    "country": "ZA",
+    "enabled": 1,
+    "primary_language": "Sotho"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZA-GP",
+    "province_name": "Gauteng",
+    "country": "ZA",
+    "enabled": 1,
+    "primary_language": "English"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZA-KZN",
+    "province_name": "KwaZulu-Natal",
+    "country": "ZA",
+    "enabled": 1,
+    "primary_language": "Zulu"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZA-LP",
+    "province_name": "Limpopo",
+    "country": "ZA",
+    "enabled": 1,
+    "primary_language": "Sepedi"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZA-MP",
+    "province_name": "Mpumalanga",
+    "country": "ZA",
+    "enabled": 1,
+    "primary_language": "Swati"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZA-NW",
+    "province_name": "North West",
+    "country": "ZA",
+    "enabled": 1,
+    "primary_language": "Tswana"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZA-NC",
+    "province_name": "Northern Cape",
+    "country": "ZA",
+    "enabled": 1,
+    "primary_language": "Afrikaans"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZA-WC",
+    "province_name": "Western Cape",
+    "country": "ZA",
+    "enabled": 1,
+    "primary_language": "Afrikaans"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "NA-ER",
+    "province_name": "Erongo",
+    "country": "NA",
+    "enabled": 1,
+    "primary_language": "English"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "NA-HA",
+    "province_name": "Hardap",
+    "country": "NA",
+    "enabled": 1,
+    "primary_language": "English"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "NA-KA",
+    "province_name": "//Karas",
+    "country": "NA",
+    "enabled": 1,
+    "primary_language": "English"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "NA-KE",
+    "province_name": "Kavango East",
+    "country": "NA",
+    "enabled": 1,
+    "primary_language": "English"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "NA-KW",
+    "province_name": "Kavango West",
+    "country": "NA",
+    "enabled": 1,
+    "primary_language": "English"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "NA-KH",
+    "province_name": "Khomas",
+    "country": "NA",
+    "enabled": 1,
+    "primary_language": "English"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "NA-KU",
+    "province_name": "Kunene",
+    "country": "NA",
+    "enabled": 1,
+    "primary_language": "English"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "NA-OW",
+    "province_name": "Ohangwena",
+    "country": "NA",
+    "enabled": 1,
+    "primary_language": "English"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "NA-OH",
+    "province_name": "Omaheke",
+    "country": "NA",
+    "enabled": 1,
+    "primary_language": "English"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "NA-OS",
+    "province_name": "Omusati",
+    "country": "NA",
+    "enabled": 1,
+    "primary_language": "English"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "NA-ON",
+    "province_name": "Oshana",
+    "country": "NA",
+    "enabled": 1,
+    "primary_language": "English"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "NA-OT",
+    "province_name": "Oshikoto",
+    "country": "NA",
+    "enabled": 1,
+    "primary_language": "English"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "NA-OD",
+    "province_name": "Otjozondjupa",
+    "country": "NA",
+    "enabled": 1,
+    "primary_language": "English"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "NA-CA",
+    "province_name": "Zambezi",
+    "country": "NA",
+    "enabled": 1,
+    "primary_language": "English"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-BGO",
+    "province_name": "Bengo",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-BGU",
+    "province_name": "Benguela",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-BIE",
+    "province_name": "Bié",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-CAB",
+    "province_name": "Cabinda",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-CCU",
+    "province_name": "Cuando Cubango",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-CNO",
+    "province_name": "Cuanza Norte",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-CUS",
+    "province_name": "Cuanza Sul",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-CNN",
+    "province_name": "Cunene",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-HUA",
+    "province_name": "Huambo",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-HUI",
+    "province_name": "Huíla",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-LUA",
+    "province_name": "Luanda",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-LNO",
+    "province_name": "Lunda Norte",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-LSU",
+    "province_name": "Lunda Sul",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-MAL",
+    "province_name": "Malanje",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-MOX",
+    "province_name": "Moxico",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-NAM",
+    "province_name": "Namibe",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-UIG",
+    "province_name": "Uíge",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "AO-ZAI",
+    "province_name": "Zaire",
+    "country": "AO",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "BW-CE",
+    "province_name": "Central District",
+    "country": "BW",
+    "enabled": 1,
+    "primary_language": "Setswana"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "BW-GH",
+    "province_name": "Ghanzi District",
+    "country": "BW",
+    "enabled": 1,
+    "primary_language": "Setswana"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "BW-KG",
+    "province_name": "Kgalagadi District",
+    "country": "BW",
+    "enabled": 1,
+    "primary_language": "Setswana"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "BW-KL",
+    "province_name": "Kgatleng District",
+    "country": "BW",
+    "enabled": 1,
+    "primary_language": "Setswana"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "BW-KW",
+    "province_name": "Kweneng District",
+    "country": "BW",
+    "enabled": 1,
+    "primary_language": "Setswana"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "BW-NE",
+    "province_name": "North East District",
+    "country": "BW",
+    "enabled": 1,
+    "primary_language": "Setswana"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "BW-NW",
+    "province_name": "North West District",
+    "country": "BW",
+    "enabled": 1,
+    "primary_language": "Setswana"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "BW-SE",
+    "province_name": "South East District",
+    "country": "BW",
+    "enabled": 1,
+    "primary_language": "Setswana"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "BW-SO",
+    "province_name": "Southern District",
+    "country": "BW",
+    "enabled": 1,
+    "primary_language": "Setswana"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZM-CE",
+    "province_name": "Central Province",
+    "country": "ZM",
+    "enabled": 1,
+    "primary_language": "Bemba"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZM-CO",
+    "province_name": "Copperbelt Province",
+    "country": "ZM",
+    "enabled": 1,
+    "primary_language": "Bemba"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZM-EA",
+    "province_name": "Eastern Province",
+    "country": "ZM",
+    "enabled": 1,
+    "primary_language": "Nyanja"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZM-LP",
+    "province_name": "Luapula Province",
+    "country": "ZM",
+    "enabled": 1,
+    "primary_language": "Bemba"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZM-LK",
+    "province_name": "Lusaka Province",
+    "country": "ZM",
+    "enabled": 1,
+    "primary_language": "Nyanja"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZM-MU",
+    "province_name": "Muchinga Province",
+    "country": "ZM",
+    "enabled": 1,
+    "primary_language": "Bemba"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZM-NO",
+    "province_name": "Northern Province",
+    "country": "ZM",
+    "enabled": 1,
+    "primary_language": "Bemba"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZM-NW",
+    "province_name": "North-Western Province",
+    "country": "ZM",
+    "enabled": 1,
+    "primary_language": "Lunda"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZM-SO",
+    "province_name": "Southern Province",
+    "country": "ZM",
+    "enabled": 1,
+    "primary_language": "Tonga"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZM-WE",
+    "province_name": "Western Province",
+    "country": "ZM",
+    "enabled": 1,
+    "primary_language": "Lozi"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZW-BU",
+    "province_name": "Bulawayo Province",
+    "country": "ZW",
+    "enabled": 1,
+    "primary_language": "Ndebele"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZW-HA",
+    "province_name": "Harare Province",
+    "country": "ZW",
+    "enabled": 1,
+    "primary_language": "Shona"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZW-MA",
+    "province_name": "Manicaland",
+    "country": "ZW",
+    "enabled": 1,
+    "primary_language": "Shona"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZW-MC",
+    "province_name": "Mashonaland Central",
+    "country": "ZW",
+    "enabled": 1,
+    "primary_language": "Shona"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZW-ME",
+    "province_name": "Mashonaland East",
+    "country": "ZW",
+    "enabled": 1,
+    "primary_language": "Shona"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZW-MW",
+    "province_name": "Mashonaland West",
+    "country": "ZW",
+    "enabled": 1,
+    "primary_language": "Shona"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZW-MV",
+    "province_name": "Masvingo Province",
+    "country": "ZW",
+    "enabled": 1,
+    "primary_language": "Shona"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZW-MN",
+    "province_name": "Matabeleland North",
+    "country": "ZW",
+    "enabled": 1,
+    "primary_language": "Ndebele"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZW-MS",
+    "province_name": "Matabeleland South",
+    "country": "ZW",
+    "enabled": 1,
+    "primary_language": "Ndebele"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "ZW-MI",
+    "province_name": "Midlands Province",
+    "country": "ZW",
+    "enabled": 1,
+    "primary_language": "Shona"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "MZ-CD",
+    "province_name": "Cabo Delgado",
+    "country": "MZ",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "MZ-GZ",
+    "province_name": "Gaza",
+    "country": "MZ",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "MZ-IN",
+    "province_name": "Inhambane",
+    "country": "MZ",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "MZ-MN",
+    "province_name": "Manica",
+    "country": "MZ",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "MZ-MP",
+    "province_name": "Maputo Province",
+    "country": "MZ",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "MZ-MC",
+    "province_name": "Maputo City",
+    "country": "MZ",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "MZ-NM",
+    "province_name": "Nampula",
+    "country": "MZ",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "MZ-NS",
+    "province_name": "Niassa",
+    "country": "MZ",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "MZ-SF",
+    "province_name": "Sofala",
+    "country": "MZ",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "MZ-TE",
+    "province_name": "Tete",
+    "country": "MZ",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "MZ-ZB",
+    "province_name": "Zambézia",
+    "country": "MZ",
+    "enabled": 1,
+    "primary_language": "Portuguese"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "LS-BE",
+    "province_name": "Berea",
+    "country": "LS",
+    "enabled": 1,
+    "primary_language": "Sesotho"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "LS-BB",
+    "province_name": "Butha-Buthe",
+    "country": "LS",
+    "enabled": 1,
+    "primary_language": "Sesotho"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "LS-LE",
+    "province_name": "Leribe",
+    "country": "LS",
+    "enabled": 1,
+    "primary_language": "Sesotho"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "LS-MF",
+    "province_name": "Mafeteng",
+    "country": "LS",
+    "enabled": 1,
+    "primary_language": "Sesotho"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "LS-MS",
+    "province_name": "Maseru",
+    "country": "LS",
+    "enabled": 1,
+    "primary_language": "Sesotho"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "LS-MH",
+    "province_name": "Mohale's Hoek",
+    "country": "LS",
+    "enabled": 1,
+    "primary_language": "Sesotho"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "LS-MK",
+    "province_name": "Mokhotlong",
+    "country": "LS",
+    "enabled": 1,
+    "primary_language": "Sesotho"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "LS-QN",
+    "province_name": "Qacha's Nek",
+    "country": "LS",
+    "enabled": 1,
+    "primary_language": "Sesotho"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "LS-QT",
+    "province_name": "Quthing",
+    "country": "LS",
+    "enabled": 1,
+    "primary_language": "Sesotho"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "LS-TT",
+    "province_name": "Thaba-Tseka",
+    "country": "LS",
+    "enabled": 1,
+    "primary_language": "Sesotho"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "SZ-HH",
+    "province_name": "Hhohho",
+    "country": "SZ",
+    "enabled": 1,
+    "primary_language": "Swati"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "SZ-LU",
+    "province_name": "Lubombo",
+    "country": "SZ",
+    "enabled": 1,
+    "primary_language": "Swati"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "SZ-MA",
+    "province_name": "Manzini",
+    "country": "SZ",
+    "enabled": 1,
+    "primary_language": "Swati"
+    },
+    {
+    "doctype": "Geographic Zone Province",
+    "province_code": "SZ-SH",
+    "province_name": "Shiselweni",
+    "country": "SZ",
+    "enabled": 1,
+    "primary_language": "Swati"
+    }
+]
