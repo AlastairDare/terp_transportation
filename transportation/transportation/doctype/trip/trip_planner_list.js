@@ -1,9 +1,17 @@
-frappe.listview_settings['Planner'] = {
-    ...frappe.listview_settings['Trip'],
-    
+frappe.views.ListView = frappe.views.ListView.extend({
+    init: function(opts) {
+        $.extend(this, opts);
+    }
+});
+
+frappe.views.list_view_route_to_planned_trips = () => {
+    frappe.set_route('List', 'Trip', 'planned-trips');
+};
+
+frappe.views.list_settings['planned-trips'] = {
     filters: [
         ["Trip", "docstatus", "<", "2"],
-        ["Trip", "status", "=", "Planned"]  // Default filter for Planned status
+        ["Trip", "status", "=", "Planned"]
     ],
 
     onload(listview) {
@@ -138,8 +146,3 @@ function refreshList(listview, filters) {
         }
     });
 }
-
-// Register the route
-frappe.views.ListView.route_to_planner = function() {
-    frappe.set_route('List', 'Trip', 'Planner');
-};
