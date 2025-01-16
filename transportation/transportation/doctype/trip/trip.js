@@ -60,6 +60,17 @@ frappe.ui.form.on('Trip', {
                 }
             };
         });
+
+        if (frm.doc.truck) {
+            frappe.db.get_value('Transportation Asset', frm.doc.truck, 'is_subbie', (r) => {
+                if (r && r.is_subbie) {
+                    frm.set_df_property('purchase_invoice_setup_section', 'hidden', 0);
+                } else {
+                    frm.set_df_property('purchase_invoice_setup_section', 'hidden', 1);
+                }
+                frm.refresh_field('purchase_invoice_setup_section');
+            });
+        }
     },
 
     truck: function(frm) {
