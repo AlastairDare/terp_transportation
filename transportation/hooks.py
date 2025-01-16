@@ -60,8 +60,7 @@ doc_events = {
         "validate": "transportation.transportation.doctype.transportation_asset.transportation_asset.validate"
     },
     "Trip": {
-        "validate": "transportation.transportation.doctype.trip.trip.validate",
-        "before_save": "transportation.transportation.doctype.trip.trip.before_save"
+        "validate": "transportation.transportation.doctype.trip.trip.validate"
     },
     "Refuel": {
     "validate": "transportation.transportation.doctype.refuel.refuel.validate",

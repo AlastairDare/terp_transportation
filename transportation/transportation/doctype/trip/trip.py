@@ -36,157 +36,134 @@ def validate(doc, method):
             frappe.throw(_("Second mass cannot be less than first mass"))
         doc.net_mass = doc.second_mass - doc.first_mass
 
-def before_save(doc, method):
-    """Before save hook to handle item and invoice creation"""
-    # Log entry into before_save
-    frappe.log_error(
-        message=f"Entering before_save for trip {doc.name} with status {doc.status}",
-        title="Trip Before Save Entry"
-    )
+@frappe.whitelist()
+def create_sales_invoice_for_trip(trip_name):
+    """Create sales invoice for a trip"""
+    if not trip_name:
+        frappe.throw(_("Trip name is required"))
+        
+    doc = frappe.get_doc("Trip", trip_name)
     
-    if doc.status == "Complete":
-        try:
-            # Log attempt to create service item
-            frappe.log_error(
-                message=f"Attempting to create/check service item for trip {doc.name}",
-                title="Service Item Creation Attempt"
-            )
+    # Validate required fields
+    if not doc.billing_customer:
+        frappe.throw(_("Billing Customer is required for sales invoice creation"))
+    if not doc.quantity or doc.quantity <= 0:
+        frappe.throw(_("Quantity must be greater than 0"))
+    if not doc.rate or doc.rate <= 0:
+        frappe.throw(_("Rate must be greater than 0"))
+    if not doc.taxes_and_charges:
+        frappe.throw(_("Taxes and Charges is required"))
+        
+    try:
+        # First ensure the service item exists
+        if not frappe.db.exists("Item", doc.name):
+            item = frappe.get_doc({
+                "doctype": "Item",
+                "item_code": doc.name,
+                "item_name": f"{doc.name}",
+                "item_group": "Services",
+                "stock_uom": "Each",
+                "is_stock_item": 0,
+                "is_fixed_asset": 0,
+                "description": f"Service Item for Trip {doc.name}"
+            })
+            item.insert(ignore_permissions=True)
             
-            # First ensure the service item exists regardless of invoice choice
-            if not frappe.db.exists("Item", doc.name):
-                frappe.log_error(
-                    message=f"Service item {doc.name} does not exist, creating new item",
-                    title="Service Item Creation"
-                )
-                
-                item = frappe.get_doc({
-                    "doctype": "Item",
-                    "item_code": doc.name,
-                    "item_name": f"{doc.name}",
-                    "item_group": "Trips",
-                    "stock_uom": "Each",
-                    "is_stock_item": 0,
-                    "is_fixed_asset": 0,
-                    "description": f"Service Item for Trip {doc.name}"
-                })
-                
-                try:
-                    item.insert(ignore_permissions=True)
-                    frappe.log_error(
-                        message=f"Successfully created service item {doc.name}",
-                        title="Service Item Created"
-                    )
-                    
-                    # Only show item creation message if we're not creating any invoices
-                    if not (doc.auto_create_sales_invoice or doc.auto_create_purchase_invoice):
-                        msg = f"""
-                            <div>
-                                <p>{_("Service Item created successfully: {0}").format(doc.name)}</p>
-                                <div style="margin-top: 10px;">
-                                    <button class="btn btn-xs btn-default" 
-                                            onclick="frappe.utils.copy_to_clipboard('{doc.name}').then(() => {{
-                                                frappe.show_alert({{
-                                                    message: '{_("Item code copied to clipboard")}',
-                                                    indicator: 'green'
-                                                }});
-                                            }})">
-                                        Copy Item Code
-                                    </button>
-                                </div>
-                            </div>
-                        """
-                        
-                        frappe.msgprint(
-                            msg=msg,
-                            title=_("Service Item Created"),
-                            indicator="green"
-                        )
-                except Exception as e:
-                    frappe.log_error(
-                        message=f"Failed to insert service item {doc.name}. Error: {str(e)}\nFull error: {frappe.get_traceback()}",
-                        title="Service Item Creation Failed"
-                    )
-                    raise
+        # Create or update sales invoice
+        if doc.linked_sales_invoice:
+            sales_invoice = frappe.get_doc("Sales Invoice", doc.linked_sales_invoice)
+            update_sales_invoice(sales_invoice, doc)
+            sales_invoice.save()
+        else:
+            sales_invoice = create_new_sales_invoice(doc)
+            doc.linked_sales_invoice = sales_invoice.name
+            doc.save()
+            
+        frappe.msgprint(
+            msg=f"""
+                <div>
+                    <p>{_("Sales Invoice created/updated successfully: ")} 
+                    <a href='/app/sales-invoice/{sales_invoice.name}'>{sales_invoice.name}</a>
+                    </p>
+                </div>
+            """,
+            title=_("Sales Invoice Created/Updated"),
+            indicator="green"
+        )
+        
+        return sales_invoice.name
+            
+    except Exception as e:
+        frappe.log_error(
+            message=f"Error creating sales invoice for trip {doc.name}: {str(e)}\nFull error: {frappe.get_traceback()}",
+            title="Sales Invoice Creation Error"
+        )
+        frappe.throw(_("Failed to create sales invoice. Error: {0}").format(str(e)))
 
-            sales_invoice = None
-            purchase_invoice = None
+@frappe.whitelist()
+def create_purchase_invoice_for_trip(trip_name):
+    """Create purchase invoice for a trip"""
+    if not trip_name:
+        frappe.throw(_("Trip name is required"))
+        
+    doc = frappe.get_doc("Trip", trip_name)
+    
+    # Validate required fields
+    if not doc.billing_supplier:
+        frappe.throw(_("Billing Supplier is required for purchase invoice creation"))
+    if not doc.purchase_quantity or doc.purchase_quantity <= 0:
+        frappe.throw(_("Purchase Quantity must be greater than 0"))
+    if not doc.purchase_rate or doc.purchase_rate <= 0:
+        frappe.throw(_("Purchase Rate must be greater than 0"))
+    if not doc.purchase_taxes_and_charges:
+        frappe.throw(_("Purchase Taxes and Charges is required"))
+        
+    try:
+        # Create the purchase item if it doesn't exist
+        item_code = f"PURCH-{doc.name}"
+        if not frappe.db.exists("Item", item_code):
+            item = frappe.get_doc({
+                "doctype": "Item",
+                "item_code": item_code,
+                "item_name": f"Purchase Item for {doc.name}",
+                "item_group": "Services",
+                "stock_uom": "Each",
+                "is_stock_item": 0,
+                "is_fixed_asset": 0,
+                "description": f"Purchase Service Item for Trip {doc.name}"
+            })
+            item.insert(ignore_permissions=True)
             
-            # Handle sales invoice creation if enabled
-            if doc.auto_create_sales_invoice:
-                frappe.log_error(
-                    message=f"Attempting to create/update sales invoice for trip {doc.name}",
-                    title="Sales Invoice Creation Attempt"
-                )
-                try:
-                    sales_invoice = create_or_update_sales_invoice(doc)
-                except Exception as e:
-                    frappe.log_error(
-                        message=f"Failed to create/update sales invoice for trip {doc.name}. Error: {str(e)}\nFull error: {frappe.get_traceback()}",
-                        title="Sales Invoice Creation Failed"
-                    )
-                    raise
+        # Create or update purchase invoice
+        if doc.linked_purchase_invoice:
+            purchase_invoice = frappe.get_doc("Purchase Invoice", doc.linked_purchase_invoice)
+            update_purchase_invoice(purchase_invoice, doc)
+            purchase_invoice.save()
+        else:
+            purchase_invoice = create_new_purchase_invoice(doc)
+            doc.linked_purchase_invoice = purchase_invoice.name
+            doc.save()
             
-            # Handle purchase invoice creation if enabled
-            if doc.auto_create_purchase_invoice:
-                frappe.log_error(
-                    message=f"Attempting to create/update purchase invoice for trip {doc.name}",
-                    title="Purchase Invoice Creation Attempt"
-                )
-                try:
-                    purchase_invoice = create_or_update_purchase_invoice(doc)
-                except Exception as e:
-                    frappe.log_error(
-                        message=f"Failed to create/update purchase invoice for trip {doc.name}. Error: {str(e)}\nFull error: {frappe.get_traceback()}",
-                        title="Purchase Invoice Creation Failed"
-                    )
-                    raise
+        frappe.msgprint(
+            msg=f"""
+                <div>
+                    <p>{_("Purchase Invoice created/updated successfully: ")} 
+                    <a href='/app/purchase-invoice/{purchase_invoice.name}'>{purchase_invoice.name}</a>
+                    </p>
+                </div>
+            """,
+            title=_("Purchase Invoice Created/Updated"),
+            indicator="green"
+        )
+        
+        return purchase_invoice.name
             
-            # Show combined message if both invoices were created
-            if sales_invoice and purchase_invoice:
-                frappe.msgprint(
-                    msg=f"""
-                        <div>
-                            <p>{_("Invoices created/updated successfully:")}</p>
-                            <ul>
-                                <li>Sales Invoice: <a href='/app/sales-invoice/{sales_invoice.name}'>{sales_invoice.name}</a></li>
-                                <li>Purchase Invoice: <a href='/app/purchase-invoice/{purchase_invoice.name}'>{purchase_invoice.name}</a></li>
-                            </ul>
-                        </div>
-                    """,
-                    title=_("Invoices Created/Updated"),
-                    indicator="green"
-                )
-            elif sales_invoice:
-                frappe.msgprint(
-                    msg=f"""
-                        <div>
-                            <p>{_("Sales Invoice created/updated successfully: ")} 
-                            <a href='/app/sales-invoice/{sales_invoice.name}'>{sales_invoice.name}</a>
-                            </p>
-                        </div>
-                    """,
-                    title=_("Sales Invoice Created/Updated"),
-                    indicator="green"
-                )
-            elif purchase_invoice:
-                frappe.msgprint(
-                    msg=f"""
-                        <div>
-                            <p>{_("Purchase Invoice created/updated successfully: ")} 
-                            <a href='/app/purchase-invoice/{purchase_invoice.name}'>{purchase_invoice.name}</a>
-                            </p>
-                        </div>
-                    """,
-                    title=_("Purchase Invoice Created/Updated"),
-                    indicator="green"
-                )
-
-        except Exception as e:
-            frappe.log_error(
-                message=f"Error in before_save for trip {doc.name}: {str(e)}\nFull error: {frappe.get_traceback()}",
-                title="Trip Before Save Error"
-            )
-            frappe.throw(_("Failed to process trip completion. Error: {0}").format(str(e)))
+    except Exception as e:
+        frappe.log_error(
+            message=f"Error creating purchase invoice for trip {doc.name}: {str(e)}\nFull error: {frappe.get_traceback()}",
+            title="Purchase Invoice Creation Error"
+        )
+        frappe.throw(_("Failed to create purchase invoice. Error: {0}").format(str(e)))
 
 def handle_service_item(doc):
     """Create service item if it doesn't exist"""

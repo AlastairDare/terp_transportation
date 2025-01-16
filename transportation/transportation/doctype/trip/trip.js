@@ -1,7 +1,47 @@
 frappe.ui.form.on('Trip', {
     refresh: function(frm) {
         frm.toggle_display('approver', frm.doc.status === "Complete");
-        console.log("Refresh triggered - Status:", frm.doc.status);
+        frm.add_custom_button(__('Create Sales Invoice'), function() {
+            frappe.call({
+                method: 'transportation.transportation.doctype.trip.trip.create_sales_invoice_for_trip',
+                args: {
+                    'trip_name': frm.doc.name
+                },
+                freeze: true,
+                freeze_message: __('Creating Sales Invoice...'),
+                callback: function(r) {
+                    if (r.message) {
+                        frm.reload_doc();
+                    }
+                }
+            });
+        }, __('Create Invoice'));
+
+        frm.add_custom_button(__('Create Purchase Invoice'), function() {
+            frappe.call({
+                method: 'transportation.transportation.doctype.trip.trip.create_purchase_invoice_for_trip',
+                args: {
+                    'trip_name': frm.doc.name
+                },
+                freeze: true,
+                freeze_message: __('Creating Purchase Invoice...'),
+                callback: function(r) {
+                    if (r.message) {
+                        frm.reload_doc();
+                    }
+                }
+            });
+        }, __('Create Invoice'));
+
+        // Disable respective buttons if invoices already exist
+        if (frm.doc.linked_sales_invoice) {
+            frm.get_custom_button(__('Create Sales Invoice'), __('Create Invoice'))
+                .addClass('disabled');
+        }
+        if (frm.doc.linked_purchase_invoice) {
+            frm.get_custom_button(__('Create Purchase Invoice'), __('Create Invoice'))
+                .addClass('disabled');
+        }
     },
 
     onload: function(frm) {
@@ -99,33 +139,6 @@ frappe.ui.form.on('Trip', {
         // Validate sales invoice fields if needed
         if (frm.doc.status === "Complete" && frm.doc.auto_create_sales_invoice) {
             validateSalesInvoiceFields(frm);
-        }
-    },
-
-    after_save: function(frm) {
-        if (frm.doc.status === "Complete") {
-            // Check if item exists
-            frappe.call({
-                method: 'frappe.client.get_value',
-                args: {
-                    doctype: 'Item',
-                    filters: { name: frm.doc.name },
-                    fieldname: ['name']
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        frappe.show_alert({
-                            message: __('Service Item {0} already exists', [frm.doc.name]),
-                            indicator: 'blue'
-                        });
-                    }
-                }
-            });
-        } else {
-            frappe.show_alert({
-                message: __("Change status to 'Complete' to generate a Service Item."),
-                indicator: 'blue'
-            });
         }
     },
 
