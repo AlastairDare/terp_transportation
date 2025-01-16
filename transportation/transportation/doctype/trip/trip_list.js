@@ -1,105 +1,44 @@
 frappe.listview_settings['Trip'] = {
-    add_fields: ["truck", "date", "sales_invoice_status", "billing_customer", "rate", "quantity"],
+    add_fields: [
+        "name",
+        "date",
+        "truck",
+        "billing_customer",
+        "amount",
+        "billing_supplier",
+        "purchase_amount"
+    ],
     
     filters: [
         ["Trip", "docstatus", "<", "2"]
     ],
 
     onload(listview) {
-        // Add Group Service Item button - proper list view method
-        listview.page.add_button('Create Group Item', () => {
-            const selected = listview.get_checked_items();
-            
-            if (selected.length < 2) {
-                frappe.throw('Please select at least 2 trips to group');
-                return;
-            }
-
-            // Check if all selected trips have same billing customer
-            const customers = [...new Set(selected.map(trip => trip.billing_customer))];
-            if (customers.length > 1) {
-                frappe.throw('All selected trips must have the same billing customer');
-                return;
-            }
-
-            // Check if any selected trips are already invoiced
-            if (selected.some(trip => trip.sales_invoice_status === 'Invoiced')) {
-                frappe.throw('Some selected trips are already invoiced');
-                return;
-            }
-
-            // Create group service item
-            frappe.call({
-                method: 'transportation.transportation.doctype.trip.trip.create_group_service_item',
-                args: {
-                    trip_names: selected.map(trip => trip.name)
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        frappe.msgprint({
-                            title: 'Service Item Created',
-                            indicator: 'green',
-                            message: `
-                                <div>
-                                    <p>Group service item created successfully:</p>
-                                    <p style="margin-top: 10px; font-weight: bold;">${r.message}</p>
-                                    <div style="margin-top: 15px;">
-                                        <button class="btn btn-xs btn-default" 
-                                                onclick="frappe.utils.copy_to_clipboard('${r.message}').then(() => {
-                                                    frappe.show_alert({
-                                                        message: 'Item code copied to clipboard',
-                                                        indicator: 'green'
-                                                    });
-                                                })">
-                                            Copy Item Code
-                                        </button>
-                                    </div>
-                                </div>
-                            `
-                        });
-                        listview.refresh();
-                    }
-                }
-            });
-        }, 'primary');
-
-        // Truck filter
+        // Disable standard filter area
+        listview.page.hide_icon_group();
+        
+        // Hide last updated button
+        listview.page.btn_primary.hide();
+        
+        // Custom filters
         listview.page.add_field({
-            fieldtype: 'Link',
-            fieldname: 'truck',
-            label: 'Truck',
-            options: 'Transportation Asset',
+            fieldtype: 'Date',
+            fieldname: 'date',
+            label: 'Date',
             onchange: () => {
-                const value = listview.page.fields_dict.truck.get_value();
+                const value = listview.page.fields_dict.date.get_value();
                 const filters = [["Trip", "docstatus", "<", "2"]];
                 if (value) {
-                    filters.push(["Trip", "truck", "=", value]);
+                    filters.push(["Trip", "date", "=", value]);
                 }
                 refreshList(listview, filters);
             }
         });
 
-        // Invoice status filter
-        listview.page.add_field({
-            fieldtype: 'Select',
-            fieldname: 'sales_invoice_status',
-            label: 'Invoice Status',
-            options: '\nNot Invoiced\nInvoiced',
-            onchange: () => {
-                const value = listview.page.fields_dict.sales_invoice_status.get_value();
-                const filters = [["Trip", "docstatus", "<", "2"]];
-                if (value) {
-                    filters.push(["Trip", "sales_invoice_status", "=", value]);
-                }
-                refreshList(listview, filters);
-            }
-        });
-
-        // Billing customer filter
         listview.page.add_field({
             fieldtype: 'Link',
             fieldname: 'billing_customer',
-            label: 'Billing Customer',
+            label: 'Customer Name',
             options: 'Customer',
             onchange: () => {
                 const value = listview.page.fields_dict.billing_customer.get_value();
@@ -111,17 +50,16 @@ frappe.listview_settings['Trip'] = {
             }
         });
 
-        // Date range filter
         listview.page.add_field({
-            fieldtype: 'DateRange',
-            fieldname: 'date',
-            label: 'Trip Date',
+            fieldtype: 'Link',
+            fieldname: 'billing_supplier',
+            label: 'Supplier Name',
+            options: 'Supplier',
             onchange: () => {
-                const dateRange = listview.page.fields_dict.date.get_value();
+                const value = listview.page.fields_dict.billing_supplier.get_value();
                 const filters = [["Trip", "docstatus", "<", "2"]];
-                
-                if (dateRange && dateRange.length === 2 && dateRange[0] && dateRange[1]) {
-                    filters.push(["Trip", "date", "between", [dateRange[0], dateRange[1]]]);
+                if (value) {
+                    filters.push(["Trip", "billing_supplier", "=", value]);
                 }
                 refreshList(listview, filters);
             }
@@ -134,6 +72,29 @@ frappe.listview_settings['Trip'] = {
             });
             refreshList(listview, [["Trip", "docstatus", "<", "2"]]);
         });
+    },
+
+    // Custom formatter for columns
+    formatters: {
+        truck: function(value, df, doc) {
+            if (!value) return '';
+            
+            // Get asset_number from Transportation Asset
+            frappe.db.get_value('Transportation Asset', 
+                {'license_plate': value},
+                'asset_number',
+                function(r) {
+                    if (r && r.asset_number) {
+                        $(df.parent).find(`[data-fieldname="${df.fieldname}"]`).text(r.asset_number);
+                    }
+                }
+            );
+            return value;
+        }
+    },
+
+    get_indicator: function(doc) {
+        return [__(doc.name), 'blue', 'name,=,' + doc.name];
     }
 };
 
@@ -145,26 +106,14 @@ function refreshList(listview, filters) {
             filters: filters,
             fields: [
                 "name",
-                "owner",
-                "creation",
-                "modified",
-                "modified_by",
-                "_user_tags",
-                "_comments",
-                "_assign",
-                "_liked_by",
-                "docstatus",
-                "idx",
-                "status",
-                "sales_invoice_status",
                 "date",
                 "truck",
-                "delivery_note_number",
                 "billing_customer",
-                "rate",
-                "quantity"
+                "amount",
+                "billing_supplier",
+                "purchase_amount"
             ],
-            order_by: "modified desc"
+            order_by: "date desc"
         },
         callback: function(r) {
             if (r.message) {
@@ -174,3 +123,42 @@ function refreshList(listview, filters) {
         }
     });
 }
+
+// Configure list view columns
+frappe.listview_settings['Trip'].columns = [
+    {
+        label: 'ID',
+        fieldname: 'name',
+        width: 120
+    },
+    {
+        label: 'Date',
+        fieldname: 'date',
+        width: 100
+    },
+    {
+        label: 'Truck Name',
+        fieldname: 'truck',
+        width: 120
+    },
+    {
+        label: 'Customer Name',
+        fieldname: 'billing_customer',
+        width: 150
+    },
+    {
+        label: 'Sales Invoice Total',
+        fieldname: 'amount',
+        width: 130
+    },
+    {
+        label: 'Supplier Name',
+        fieldname: 'billing_supplier',
+        width: 150
+    },
+    {
+        label: 'Purchase Invoice Amount',
+        fieldname: 'purchase_amount',
+        width: 150
+    }
+];
