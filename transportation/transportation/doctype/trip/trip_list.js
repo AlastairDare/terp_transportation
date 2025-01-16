@@ -1,4 +1,13 @@
 frappe.listview_settings['Trip'] = {
+    // Force specific columns in list view
+    list_view_fields: [
+        "date",
+        "truck",
+        "billing_customer",
+        "amount",
+        "billing_supplier",
+        "purchase_amount"
+    ],
     // Hide the name/ID column and filter
     hide_name_column: true,
     hide_name_filter: true,
@@ -20,9 +29,27 @@ frappe.listview_settings['Trip'] = {
     ],
 
     onload(listview) {
-        // Hide standard filter sections
-        $('.standard-filter-section').hide();
-        $('.filter-section').hide();
+        // Hide standard filter sections and ensure our filters are the only ones showing
+        $('.standard-filter-section, .filter-section').hide();
+        
+        // Hide sidebar by default and adjust layout
+        $('.layout-side-section').hide();
+        $('.layout-main-section').css('width', '100%');
+        
+        // Hide the sidebar toggle button
+        $('.sidebar-toggle-btn').hide();
+        
+        // Remove unwanted list columns and ensure only our specified columns show
+        setTimeout(() => {
+            // Hide any unwanted columns by their data-fieldname
+            $('[data-fieldname="_assign"], [data-fieldname="_comments"], [data-fieldname="_user_tags"], [data-fieldname="modified"], [data-fieldname="modified_by"]').hide();
+            
+            // Ensure our desired columns are visible and in correct order
+            const desiredColumns = ['date', 'truck', 'billing_customer', 'amount', 'billing_supplier', 'purchase_amount'];
+            desiredColumns.forEach(field => {
+                $(`[data-fieldname="${field}"]`).show();
+            });
+        }, 100);
 
         // Add Group Service Item button
         listview.page.add_button('Create Group Item', () => {

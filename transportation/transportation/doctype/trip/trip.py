@@ -6,7 +6,18 @@ from frappe.model.document import Document
 from typing import Any, Dict, Optional
 
 class Trip(Document):
-    pass
+    def get_list_settings(self):
+        return {
+            'fields': [
+                'date',
+                'truck',
+                'billing_customer',
+                'amount',
+                'billing_supplier',
+                'purchase_amount'
+            ],
+            'order_by': 'date desc'
+        }
 
 def validate(doc, method):
     """Validate Trip document before saving."""
