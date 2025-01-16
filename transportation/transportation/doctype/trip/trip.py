@@ -77,7 +77,10 @@ def create_sales_invoice_for_trip(trip_name):
         else:
             sales_invoice = create_new_sales_invoice(doc)
             doc.linked_sales_invoice = sales_invoice.name
-            doc.save()
+            
+        # Update the sales invoice status
+        doc.sales_invoice_status = "Invoice Created"
+        doc.save(ignore_permissions=True)
             
         frappe.msgprint(
             msg=f"""
@@ -142,7 +145,10 @@ def create_purchase_invoice_for_trip(trip_name):
         else:
             purchase_invoice = create_new_purchase_invoice(doc)
             doc.linked_purchase_invoice = purchase_invoice.name
-            doc.save()
+            
+        # Update the purchase invoice status
+        doc.purchase_invoice_status = "Invoice Created"
+        doc.save(ignore_permissions=True)
             
         frappe.msgprint(
             msg=f"""
