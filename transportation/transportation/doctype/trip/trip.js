@@ -1,14 +1,14 @@
 frappe.ui.form.on('Trip', {
     refresh: function(frm) {
         frm.toggle_display('approver', frm.doc.status === "Complete");
-        frm.add_custom_button(__('Create Sales Invoice'), function() {
+        frm.add_custom_button(__(frm.doc.linked_sales_invoice ? 'Update Sales Invoice' : 'Create Sales Invoice'), function() {
             frappe.call({
                 method: 'transportation.transportation.doctype.trip.trip.create_sales_invoice_for_trip',
                 args: {
                     'trip_name': frm.doc.name
                 },
                 freeze: true,
-                freeze_message: __('Creating Sales Invoice...'),
+                freeze_message: __(frm.doc.linked_sales_invoice ? 'Updating Sales Invoice...' : 'Creating Sales Invoice...'),
                 callback: function(r) {
                     if (r.message) {
                         frm.reload_doc();
@@ -16,15 +16,15 @@ frappe.ui.form.on('Trip', {
                 }
             });
         }, __('Create Invoice'));
-
-        frm.add_custom_button(__('Create Purchase Invoice'), function() {
+    
+        frm.add_custom_button(__(frm.doc.linked_purchase_invoice ? 'Update Purchase Invoice' : 'Create Purchase Invoice'), function() {
             frappe.call({
                 method: 'transportation.transportation.doctype.trip.trip.create_purchase_invoice_for_trip',
                 args: {
                     'trip_name': frm.doc.name
                 },
                 freeze: true,
-                freeze_message: __('Creating Purchase Invoice...'),
+                freeze_message: __(frm.doc.linked_purchase_invoice ? 'Updating Purchase Invoice...' : 'Creating Purchase Invoice...'),
                 callback: function(r) {
                     if (r.message) {
                         frm.reload_doc();
@@ -33,15 +33,6 @@ frappe.ui.form.on('Trip', {
             });
         }, __('Create Invoice'));
 
-        // Disable respective buttons if invoices already exist
-        if (frm.doc.linked_sales_invoice) {
-            frm.get_custom_button(__('Create Sales Invoice'), __('Create Invoice'))
-                .addClass('disabled');
-        }
-        if (frm.doc.linked_purchase_invoice) {
-            frm.get_custom_button(__('Create Purchase Invoice'), __('Create Invoice'))
-                .addClass('disabled');
-        }
     },
 
     onload: function(frm) {
