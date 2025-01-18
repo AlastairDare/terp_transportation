@@ -91,12 +91,12 @@ def show_partial_group_warning(group_name, invoice_name):
             'server_action': 'transportation.transportation.doctype.trip_group.invoice_handler.handle_partial_group_confirmation',
             'args': {
                 'invoice_name': invoice_name,
-                'is_sales': isinstance(frappe.get_doc('Sales Invoice', invoice_name), 'Sales Invoice')
+                'is_sales': True if invoice_name.startswith('SINV') else False
             }
         },
         secondary_action={
             'label': _('Cancel'),
-            'action': lambda: frappe.validated = False
+            'action': lambda: setattr(frappe, 'validated', False)
         }
     )
 

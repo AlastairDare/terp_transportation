@@ -52,17 +52,14 @@ frappe.listview_settings['Trip'] = {
             });
         }, 100);
 
-        // Add Create Trip Group dropdown
-        listview.page.add_dropdown('Create Trip Group', [
-            {
-                label: 'Create Sales Invoice Group',
-                click: () => createTripGroup(listview, 'Sales Invoice Group')
-            },
-            {
-                label: 'Create Purchase Invoice Group',
-                click: () => createTripGroup(listview, 'Purchase Invoice Group')
-            }
-        ], 'primary');
+        // Add Create Trip Group buttons
+        listview.page.add_custom_button(__('Create Sales Invoice Group'), function() {
+            createTripGroup(listview, 'Sales Invoice Group');
+        }, __('Create Trip Group'));
+
+        listview.page.add_custom_button(__('Create Purchase Invoice Group'), function() {
+            createTripGroup(listview, 'Purchase Invoice Group');
+        }, __('Create Trip Group'));
 
         // Truck filter
         listview.page.add_field({
