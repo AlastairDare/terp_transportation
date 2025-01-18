@@ -1,95 +1,37 @@
 frappe.listview_settings['Trip'] = {
+    add_fields: [
+        "name",
+        "billing_customer",
+        "amount", 
+        "date",
+        "supplier_name"
+    ],
+
     list_view_fields: [
         "name",
         "billing_customer",
         "amount",
         "date",
-        "billing_supplier"
+        "supplier_name"
     ],
-    hide_name_column: false,
-    hide_name_filter: false,
 
-    add_fields: [
-        "name",
-        "billing_customer", 
-        "amount",
-        "date",
-        "billing_supplier",
-        "sales_invoice_status",
-        "purchase_invoice_status"
-    ],
-    
     filters: [
         ["Trip", "docstatus", "<", "2"]
     ],
 
+    hide_name_column: false,
+    hide_name_filter: false,
+
     onload(listview) {
-        // Hide standard filter sections and ensure our filters are the only ones showing
-        $('.standard-filter-section, .filter-section').hide();
-        
-        // Hide sidebar by default and adjust layout
-        $('.layout-side-section').hide();
-        $('.layout-main-section').css('width', '100%');
-        
-        // Hide the sidebar toggle button
-        $('.sidebar-toggle-btn').hide();
-
-        // Add Create/Update Sales Invoice button
+        // Add Custom Buttons
         listview.page.add_custom_button(__('Create/Update Sales Invoice'), function() {
-            const selected = listview.get_checked_items();
-            if (!selected.length) {
-                frappe.throw('Please select at least one trip');
-                return;
-            }
-
-            frappe.call({
-                method: 'transportation.transportation.doctype.trip.trip.create_sales_invoice_for_trip',
-                args: {
-                    trip: selected[0].name
-                },
-                freeze: true,
-                freeze_message: __('Creating Sales Invoice...'),
-                callback: function(r) {
-                    if (r.message) {
-                        frappe.msgprint({
-                            title: __('Success'),
-                            indicator: 'green',
-                            message: __('Sales Invoice {0} created/updated', [r.message])
-                        });
-                        listview.refresh();
-                    }
-                }
-            });
+            handleInvoiceCreation(listview, 'sales');
         });
 
-        // Add Create/Update Purchase Invoice button
         listview.page.add_custom_button(__('Create/Update Purchase Invoice'), function() {
-            const selected = listview.get_checked_items();
-            if (!selected.length) {
-                frappe.throw('Please select at least one trip');
-                return;
-            }
-
-            frappe.call({
-                method: 'transportation.transportation.doctype.trip.trip.create_purchase_invoice_for_trip',
-                args: {
-                    trip: selected[0].name
-                },
-                freeze: true,
-                freeze_message: __('Creating Purchase Invoice...'),
-                callback: function(r) {
-                    if (r.message) {
-                        frappe.msgprint({
-                            title: __('Success'),
-                            indicator: 'green',
-                            message: __('Purchase Invoice {0} created/updated', [r.message])
-                        });
-                        listview.refresh();
-                    }
-                }
-            });
+            handleInvoiceCreation(listview, 'purchase');
         });
-        
+
         // Add Trip Group buttons
         listview.page.add_custom_button(__('Create Sales Invoice Group'), function() {
             createTripGroup(listview, 'Sales Invoice Group');
@@ -99,68 +41,36 @@ frappe.listview_settings['Trip'] = {
             createTripGroup(listview, 'Purchase Invoice Group');
         }, __('Create Trip Group'));
 
-        // Truck filter
+        // Add filters
         listview.page.add_field({
             fieldtype: 'Link',
             fieldname: 'truck',
             label: 'Truck',
             options: 'Transportation Asset',
-            onchange: () => {
-                const value = listview.page.fields_dict.truck.get_value();
-                const filters = [["Trip", "docstatus", "<", "2"]];
-                if (value) {
-                    filters.push(["Trip", "truck", "=", value]);
-                }
-                refreshList(listview, filters);
-            }
+            onchange: () => updateFilters(listview)
         });
 
-        // Invoice status filter
         listview.page.add_field({
             fieldtype: 'Select',
             fieldname: 'sales_invoice_status',
             label: 'Invoice Status',
             options: '\nNot Invoiced\nInvoiced',
-            onchange: () => {
-                const value = listview.page.fields_dict.sales_invoice_status.get_value();
-                const filters = [["Trip", "docstatus", "<", "2"]];
-                if (value) {
-                    filters.push(["Trip", "sales_invoice_status", "=", value]);
-                }
-                refreshList(listview, filters);
-            }
+            onchange: () => updateFilters(listview)
         });
 
-        // Billing customer filter
         listview.page.add_field({
             fieldtype: 'Link',
             fieldname: 'billing_customer',
             label: 'Billing Customer',
             options: 'Customer',
-            onchange: () => {
-                const value = listview.page.fields_dict.billing_customer.get_value();
-                const filters = [["Trip", "docstatus", "<", "2"]];
-                if (value) {
-                    filters.push(["Trip", "billing_customer", "=", value]);
-                }
-                refreshList(listview, filters);
-            }
+            onchange: () => updateFilters(listview)
         });
 
-        // Date range filter
         listview.page.add_field({
             fieldtype: 'DateRange',
             fieldname: 'date',
             label: 'Trip Date',
-            onchange: () => {
-                const dateRange = listview.page.fields_dict.date.get_value();
-                const filters = [["Trip", "docstatus", "<", "2"]];
-                
-                if (dateRange && dateRange.length === 2 && dateRange[0] && dateRange[1]) {
-                    filters.push(["Trip", "date", "between", [dateRange[0], dateRange[1]]]);
-                }
-                refreshList(listview, filters);
-            }
+            onchange: () => updateFilters(listview)
         });
 
         // Clear filters button
@@ -168,51 +78,63 @@ frappe.listview_settings['Trip'] = {
             Object.values(listview.page.fields_dict).forEach(field => {
                 field.set_value('');
             });
-            refreshList(listview, [["Trip", "docstatus", "<", "2"]]);
+            updateFilters(listview);
         });
-
-        // Remove unwanted columns and ensure only our desired columns show
-        setTimeout(() => {
-            $('[data-fieldname="_assign"], [data-fieldname="_comments"], [data-fieldname="_user_tags"], [data-fieldname="modified"], [data-fieldname="modified_by"]').hide();
-            
-            const desiredColumns = ['name', 'billing_customer', 'amount', 'date', 'billing_supplier'];
-            desiredColumns.forEach(field => {
-                $(`[data-fieldname="${field}"]`).show();
-            });
-        }, 100);
     }
 };
 
-function refreshList(listview, filters) {
+function handleInvoiceCreation(listview, type) {
+    const selected = listview.get_checked_items();
+    if (!selected.length) {
+        frappe.throw('Please select at least one trip');
+        return;
+    }
+
     frappe.call({
-        method: "frappe.client.get_list",
+        method: `transportation.transportation.doctype.trip.trip.create_${type}_invoice_for_trip`,
         args: {
-            doctype: "Trip",
-            filters: filters,
-            fields: [
-                "name",
-                "billing_customer",
-                "amount",
-                "date",
-                "billing_supplier",
-                "sales_invoice_status",
-                "purchase_invoice_status",
-                "_assign",
-                "_liked_by",
-                "_comments",
-                "_user_tags",
-                "modified",
-                "modified_by"
-            ],
-            order_by: "modified desc"
+            trip: selected[0].name
         },
+        freeze: true,
+        freeze_message: __(`Creating ${type === 'sales' ? 'Sales' : 'Purchase'} Invoice...`),
         callback: function(r) {
             if (r.message) {
-                listview.data = r.message;
-                listview.render_list();
+                frappe.msgprint({
+                    title: __('Success'),
+                    indicator: 'green',
+                    message: __(`${type === 'sales' ? 'Sales' : 'Purchase'} Invoice {0} created/updated`, [r.message])
+                });
+                listview.refresh();
             }
         }
     });
+}
+
+function updateFilters(listview) {
+    const filters = [["Trip", "docstatus", "<", "2"]];
+    
+    const truckValue = listview.page.fields_dict.truck.get_value();
+    if (truckValue) {
+        filters.push(["Trip", "truck", "=", truckValue]);
+    }
+    
+    const statusValue = listview.page.fields_dict.sales_invoice_status.get_value();
+    if (statusValue) {
+        filters.push(["Trip", "sales_invoice_status", "=", statusValue]);
+    }
+    
+    const customerValue = listview.page.fields_dict.billing_customer.get_value();
+    if (customerValue) {
+        filters.push(["Trip", "billing_customer", "=", customerValue]);
+    }
+    
+    const dateRange = listview.page.fields_dict.date.get_value();
+    if (dateRange && dateRange.length === 2 && dateRange[0] && dateRange[1]) {
+        filters.push(["Trip", "date", "between", [dateRange[0], dateRange[1]]]);
+    }
+    
+    listview.filters = filters;
+    listview.refresh();
 }
 
 function createTripGroup(listview, groupType) {
