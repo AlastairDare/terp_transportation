@@ -20,7 +20,8 @@ frappe.listview_settings['Trip'] = {
         "amount",
         "billing_supplier",
         "purchase_amount",
-        "sales_invoice_status"  // needed for group functionality
+        "sales_invoice_status",
+        "purchase_invoice_status"  // Added for group validation
     ],
     
     // Keep existing filters
@@ -51,62 +52,17 @@ frappe.listview_settings['Trip'] = {
             });
         }, 100);
 
-        // Add Group Service Item button
-        listview.page.add_button('Create Group Item', () => {
-            const selected = listview.get_checked_items();
-            
-            if (selected.length < 2) {
-                frappe.throw('Please select at least 2 trips to group');
-                return;
+        // Add Create Trip Group dropdown
+        listview.page.add_dropdown('Create Trip Group', [
+            {
+                label: 'Create Sales Invoice Group',
+                click: () => createTripGroup(listview, 'Sales Invoice Group')
+            },
+            {
+                label: 'Create Purchase Invoice Group',
+                click: () => createTripGroup(listview, 'Purchase Invoice Group')
             }
-
-            // Check if all selected trips have same billing customer
-            const customers = [...new Set(selected.map(trip => trip.billing_customer))];
-            if (customers.length > 1) {
-                frappe.throw('All selected trips must have the same billing customer');
-                return;
-            }
-
-            // Check if any selected trips are already invoiced
-            if (selected.some(trip => trip.sales_invoice_status === 'Invoiced')) {
-                frappe.throw('Some selected trips are already invoiced');
-                return;
-            }
-
-            // Create group service item
-            frappe.call({
-                method: 'transportation.transportation.doctype.trip.trip.create_group_service_item',
-                args: {
-                    trip_names: selected.map(trip => trip.name)
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        frappe.msgprint({
-                            title: 'Service Item Created',
-                            indicator: 'green',
-                            message: `
-                                <div>
-                                    <p>Group service item created successfully:</p>
-                                    <p style="margin-top: 10px; font-weight: bold;">${r.message}</p>
-                                    <div style="margin-top: 15px;">
-                                        <button class="btn btn-xs btn-default" 
-                                                onclick="frappe.utils.copy_to_clipboard('${r.message}').then(() => {
-                                                    frappe.show_alert({
-                                                        message: 'Item code copied to clipboard',
-                                                        indicator: 'green'
-                                                    });
-                                                })">
-                                            Copy Item Code
-                                        </button>
-                                    </div>
-                                </div>
-                            `
-                        });
-                        listview.refresh();
-                    }
-                }
-            });
-        }, 'primary');
+        ], 'primary');
 
         // Truck filter
         listview.page.add_field({
@@ -199,6 +155,86 @@ frappe.listview_settings['Trip'] = {
     }
 };
 
+function createTripGroup(listview, groupType) {
+    const selected = listview.get_checked_items();
+    
+    // Validate minimum selection
+    if (selected.length < 2) {
+        frappe.throw('Please select at least 2 trips to group');
+        return;
+    }
+
+    // Check for existing group associations and billing party consistency
+    if (groupType === 'Sales Invoice Group') {
+        // Check for existing sales invoice groups
+        if (selected.some(trip => trip.sales_invoice_status !== 'Not Invoiced')) {
+            frappe.throw('Some selected trips are already in a Sales Invoice Group');
+            return;
+        }
+
+        // Check billing customer consistency
+        const customers = [...new Set(selected.map(trip => trip.billing_customer))];
+        if (customers.length > 1) {
+            frappe.throw('All selected trips must have the same billing customer');
+            return;
+        }
+        if (!customers[0]) {
+            frappe.throw('Selected trips must have a billing customer');
+            return;
+        }
+    } else {
+        // Check for existing purchase invoice groups
+        if (selected.some(trip => trip.purchase_invoice_status !== 'Not Invoiced')) {
+            frappe.throw('Some selected trips are already in a Purchase Invoice Group');
+            return;
+        }
+
+        // Check billing supplier consistency
+        const suppliers = [...new Set(selected.map(trip => trip.billing_supplier))];
+        if (suppliers.length > 1) {
+            frappe.throw('All selected trips must have the same billing supplier');
+            return;
+        }
+        if (!suppliers[0]) {
+            frappe.throw('Selected trips must have a billing supplier');
+            return;
+        }
+    }
+
+    // Create the trip group
+    frappe.call({
+        method: 'transportation.transportation.doctype.trip_group.trip_group.create_trip_group',
+        args: {
+            trips: selected.map(trip => trip.name),
+            group_type: groupType,
+            summarize_lines: 1
+        },
+        freeze: true,
+        freeze_message: __('Creating Trip Group...'),
+        callback: function(r) {
+            if (r.message) {
+                const billingParty = groupType === 'Sales Invoice Group' 
+                    ? selected[0].billing_customer 
+                    : selected[0].billing_supplier;
+                
+                frappe.msgprint({
+                    title: __('Trip Group Created'),
+                    indicator: 'green',
+                    message: __(
+                        `{0} Trip Group <a href="/app/trip-group/{1}">{1}</a> created with {2} trips for {3}`,
+                        [groupType === 'Sales Invoice Group' ? 'Sales Invoice' : 'Purchase Invoice',
+                         r.message,
+                         selected.length,
+                         billingParty]
+                    )
+                });
+                
+                listview.refresh();
+            }
+        }
+    });
+}
+
 function refreshList(listview, filters) {
     frappe.call({
         method: "frappe.client.get_list",
@@ -214,6 +250,7 @@ function refreshList(listview, filters) {
                 "billing_supplier",
                 "purchase_amount",
                 "sales_invoice_status",
+                "purchase_invoice_status",
                 "_assign",
                 "_liked_by",
                 "_comments",

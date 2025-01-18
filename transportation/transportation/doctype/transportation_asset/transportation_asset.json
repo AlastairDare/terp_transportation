@@ -60,6 +60,14 @@
             "depends_on": "eval:doc.transportation_asset_type=='Truck'"
         },
         {
+            "fieldname": "supplier",
+            "label": "Supplier",
+            "fieldtype": "Link",
+            "options": "Supplier",
+            "description": "Default supplier for billing when this asset is used in trips",
+            "depends_on": "eval:doc.is_subbie==1" 
+        },
+        {
             "fieldname": "col_break_1",
             "fieldtype": "Column Break"
         },

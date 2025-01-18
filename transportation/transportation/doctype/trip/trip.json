@@ -115,7 +115,7 @@
             "fieldname": "sales_invoice_status",
             "fieldtype": "Select",
             "label": "Sales Invoice Status",
-            "options": "Not Invoiced\nInvoice Created\nInvoiced",
+            "options": "Not Invoiced\nInvoice Draft Created\nInvoiced",
             "default": "Not Invoiced",
             "reqd": 1,
             "in_list_view": 1
@@ -130,7 +130,7 @@
         {
             "fieldname": "auto_create_sales_invoice",
             "fieldtype": "Check",
-            "label": "Auto-Create Sales Invoice",
+            "label": "Create Sales Invoice From Trip",
             "default": 0
         },
         {
@@ -180,7 +180,7 @@
             "fieldname": "purchase_invoice_status",
             "fieldtype": "Select",
             "label": "Purchase Invoice Status",
-            "options": "Not Invoiced\nInvoice Created\nInvoiced",
+            "options": "Not Invoiced\nInvoice Draft Created\nInvoiced",
             "default": "Not Invoiced",
             "reqd": 1,
             "in_list_view": 1
@@ -195,7 +195,7 @@
         {
             "fieldname": "auto_create_purchase_invoice",
             "fieldtype": "Check",
-            "label": "Auto-Create Purchase Invoice",
+            "label": "Create Purchase Invoice From Trip",
             "default": 0
         },
         {
@@ -203,7 +203,9 @@
             "fieldtype": "Link",
             "label": "Billing Supplier",
             "options": "Supplier",
-            "depends_on": "eval:doc.auto_create_purchase_invoice==1"
+            "depends_on": "eval:doc.auto_create_purchase_invoice==1",
+            "read_only": 1,
+            "fetch_from": "truck.supplier"
         },
         {
             "fieldname": "purchase_quantity",

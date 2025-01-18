@@ -1,50 +1,32 @@
 {
-    "custom": 1,
-    "autoname": "hash",
-    "engine": "InnoDB",
-    "module": "Transportation",
-    "name": "Trip Group Detail",
+    "actions": [],
+    "creation": "2024-01-18 12:00:00.000000",
     "doctype": "DocType",
-    "istable": 1,
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "trip"
+    ],
     "fields": [
         {
             "fieldname": "trip",
             "fieldtype": "Link",
+            "in_list_view": 1,
             "label": "Trip",
             "options": "Trip",
-            "reqd": 1,
-            "in_list_view": 1
-        },
-        {
-            "fieldname": "date",
-            "fieldtype": "Date",
-            "label": "Trip Date",
-            "fetch_from": "trip.date",
-            "in_list_view": 1,
-            "read_only": 1
-        },
-        {
-            "fieldname": "quantity",
-            "fieldtype": "Float",
-            "label": "Quantity",
-            "fetch_from": "trip.quantity",
-            "in_list_view": 1,
-            "read_only": 1
-        },
-        {
-            "fieldname": "rate",
-            "fieldtype": "Currency",
-            "label": "Rate",
-            "fetch_from": "trip.rate",
-            "in_list_view": 1,
-            "read_only": 1
-        },
-        {
-            "fieldname": "amount",
-            "fieldtype": "Currency",
-            "label": "Amount",
-            "fetch_from": "trip.amount",
-            "read_only": 1
+            "reqd": 1
         }
-    ]
+    ],
+    "index_web_pages_for_search": 0,
+    "istable": 1,
+    "links": [],
+    "modified": "2024-01-18 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Transportation",
+    "name": "Trip Group Detail",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "track_changes": 1
 }

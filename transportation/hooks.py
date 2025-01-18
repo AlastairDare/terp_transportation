@@ -77,6 +77,9 @@ doc_events = {
     },
     "Sales Invoice": {
         "on_submit": "transportation.transportation.doctype.trip_group.trip_group.handle_sales_invoice_submit"
+    },
+    "Purchase Invoice": {
+        "on_submit": "transportation.transportation.doctype.trip_group.trip_group.handle_purchase_invoice_submit"
     }
 
 }

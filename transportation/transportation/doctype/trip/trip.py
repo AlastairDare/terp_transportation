@@ -71,12 +71,12 @@ def create_sales_invoice_for_trip(trip_name):
             item = frappe.get_doc({
                 "doctype": "Item",
                 "item_code": doc.name,
-                "item_name": f"{doc.name}",
+                "item_name": f"SALES-{doc.name}",
                 "item_group": "Services",
                 "stock_uom": "Each",
                 "is_stock_item": 0,
                 "is_fixed_asset": 0,
-                "description": f"Service Item for Trip {doc.name}"
+                "description": f"Service Item for Sales Invoice of Trip '{doc.name}'"
             })
             item.insert(ignore_permissions=True)
             
@@ -139,12 +139,12 @@ def create_purchase_invoice_for_trip(trip_name):
             item = frappe.get_doc({
                 "doctype": "Item",
                 "item_code": item_code,
-                "item_name": f"Purchase Item for {doc.name}",
+                "item_name": f"PURCH-{doc.name}",
                 "item_group": "Services",
                 "stock_uom": "Each",
                 "is_stock_item": 0,
                 "is_fixed_asset": 0,
-                "description": f"Purchase Service Item for Trip {doc.name}"
+                "description": f"Service Item for Purchase Invoice of Trip '{doc.name}'"
             })
             item.insert(ignore_permissions=True)
             
@@ -181,53 +181,6 @@ def create_purchase_invoice_for_trip(trip_name):
             title="Purchase Invoice Creation Error"
         )
         frappe.throw(_("Failed to create purchase invoice. Error: {0}").format(str(e)))
-
-def handle_service_item(doc):
-    """Create service item if it doesn't exist"""
-    try:
-        if frappe.db.exists("Item", doc.name):
-            frappe.msgprint(
-                msg=_("Service Item {0} already exists").format(doc.name),
-                title=_("Service Item Status"),
-                indicator="blue"
-            )
-            return
-
-        item = frappe.get_doc({
-            "doctype": "Item",
-            "item_code": doc.name,
-            "item_name": f"{doc.name}",
-            "item_group": "Services",
-            "stock_uom": "Each",
-            "is_stock_item": 0,
-            "is_fixed_asset": 0,
-            "description": f"Service Item for Trip {doc.name}"
-        })
-        
-        item.insert(ignore_permissions=True)
-        
-        frappe.msgprint(
-            msg=f"""
-                <div>
-                    <p>{_("Service Item created successfully: {0}").format(doc.name)}</p>
-                    <div style="margin-top: 10px;">
-                        <button class="btn btn-xs btn-default" 
-                                onclick="frappe.ui.form.handle_copy_to_clipboard('{doc.name}')">
-                            Copy Item Code
-                        </button>
-                    </div>
-                </div>
-            """,
-            title=_("Service Item Created"),
-            indicator="green"
-        )
-
-    except Exception as e:
-        frappe.log_error(
-            message=f"Error creating service item for trip {doc.name}: {str(e)}",
-            title="Service Item Creation Error"
-        )
-        frappe.throw(_("Failed to create service item. Error: {0}").format(str(e)))
 
 def get_truck_query(doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict) -> list:
     """Filter Transportation Assets to show only Trucks."""
@@ -310,70 +263,6 @@ def get_last_odometer_reading(truck: str, current_doc: Optional[str] = None) -> 
         "trip_date": None
     }
     
-def create_or_update_sales_invoice(doc):
-    """Create or update sales invoice based on trip data"""
-    try:
-        if doc.linked_sales_invoice:
-            # Update existing invoice
-            sales_invoice = frappe.get_doc("Sales Invoice", doc.linked_sales_invoice)
-            update_sales_invoice(sales_invoice, doc)
-            sales_invoice.save()
-            frappe.msgprint(
-                msg=f"""
-                    <div>
-                        <p>{_("Sales Invoice updated successfully: ")} 
-                        <a href='/app/sales-invoice/{sales_invoice.name}'>{sales_invoice.name}</a>
-                        </p>
-                    </div>
-                """,
-                title=_("Sales Invoice Updated"),
-                indicator="green"
-            )
-        else:
-            # Create new invoice
-            sales_invoice = create_new_sales_invoice(doc)
-            doc.linked_sales_invoice = sales_invoice.name
-            frappe.msgprint(
-                msg=f"""
-                    <div>
-                        <p>{_("Sales Invoice created successfully: ")} 
-                        <a href='/app/sales-invoice/{sales_invoice.name}'>{sales_invoice.name}</a>
-                        </p>
-                    </div>
-                """,
-                title=_("Sales Invoice Created"),
-                indicator="green"
-            )
-            
-    except Exception as e:
-        frappe.log_error(
-            message=f"Error creating/updating sales invoice for trip {doc.name}: {str(e)}",
-            title="Sales Invoice Creation Error"
-        )
-        frappe.throw(_("Failed to create/update sales invoice. Error: {0}").format(str(e)))
-        
-def create_or_update_purchase_invoice(doc):
-    """Create or update purchase invoice based on trip data"""
-    try:
-        if doc.linked_purchase_invoice:
-            # Update existing invoice
-            purchase_invoice = frappe.get_doc("Purchase Invoice", doc.linked_purchase_invoice)
-            update_purchase_invoice(purchase_invoice, doc)
-            purchase_invoice.save()
-            return purchase_invoice
-        else:
-            # Create new invoice
-            purchase_invoice = create_new_purchase_invoice(doc)
-            doc.linked_purchase_invoice = purchase_invoice.name
-            return purchase_invoice
-            
-    except Exception as e:
-        frappe.log_error(
-            message=f"Error creating/updating purchase invoice for trip {doc.name}: {str(e)}",
-            title="Purchase Invoice Creation Error"
-        )
-        frappe.throw(_("Failed to create/update purchase invoice. Error: {0}").format(str(e)))
-
 def create_new_purchase_invoice(doc):
     """Create a new purchase invoice from trip data"""
     # Create the purchase item first
@@ -409,46 +298,20 @@ def create_new_purchase_invoice(doc):
 def update_purchase_invoice(purchase_invoice, doc):
     """Update existing purchase invoice with new trip data"""
     try:
-        frappe.log_error(
-            message=f"Starting purchase invoice update for trip {doc.name}, invoice {purchase_invoice.name}",
-            title="Purchase Invoice Update Started"
-        )
-        
         purchase_invoice.supplier = doc.billing_supplier
         purchase_invoice.taxes_and_charges = doc.purchase_taxes_and_charges
-        
-        frappe.log_error(
-            message=f"Header fields updated. Supplier: {doc.billing_supplier}, Taxes: {doc.purchase_taxes_and_charges}",
-            title="Purchase Invoice Header Update"
-        )
         
         item_code = f"PURCH-{doc.name}"
         item_found = False
         for item in purchase_invoice.items:
             if item.item_code == item_code:
-                frappe.log_error(
-                    message=f"Updating existing item {item.item_code}. Old values - Qty: {item.qty}, Rate: {item.rate}, Amount: {item.amount}",
-                    title="Purchase Invoice Item Update"
-                )
-                
                 item.qty = doc.purchase_quantity
                 item.rate = doc.purchase_rate
                 item.amount = doc.purchase_quantity * doc.purchase_rate
-                
-                frappe.log_error(
-                    message=f"Item updated. New values - Qty: {item.qty}, Rate: {item.rate}, Amount: {item.amount}",
-                    title="Purchase Invoice Item Updated"
-                )
-                
                 item_found = True
                 break
         
-        if not item_found:
-            frappe.log_error(
-                message=f"Item {item_code} not found in invoice. Adding new item.",
-                title="Purchase Invoice New Item"
-            )
-            
+        if not item_found:         
             purchase_invoice.append("items", {
                 "item_code": item_code,
                 "qty": doc.purchase_quantity,
@@ -460,12 +323,7 @@ def update_purchase_invoice(purchase_invoice, doc):
         purchase_invoice.flags.ignore_permissions = True
         purchase_invoice.calculate_taxes_and_totals()
         purchase_invoice.save()
-        
-        frappe.log_error(
-            message=f"Purchase invoice {purchase_invoice.name} successfully updated",
-            title="Purchase Invoice Update Complete"
-        )
-        
+               
     except Exception as e:
         frappe.log_error(
             message=f"Error updating purchase invoice {purchase_invoice.name} for trip {doc.name}. Error: {str(e)}\nFull error: {frappe.get_traceback()}",
@@ -492,48 +350,22 @@ def create_new_sales_invoice(doc):
 
 def update_sales_invoice(sales_invoice, doc):
     """Update existing sales invoice with new trip data"""
-    try:
-        frappe.log_error(
-            message=f"Starting sales invoice update for trip {doc.name}, invoice {sales_invoice.name}",
-            title="Sales Invoice Update Started"
-        )
-        
+    try:       
         # Update header level fields
         sales_invoice.customer = doc.billing_customer
         sales_invoice.taxes_and_charges = doc.taxes_and_charges
         
-        frappe.log_error(
-            message=f"Header fields updated. Customer: {doc.billing_customer}, Taxes: {doc.taxes_and_charges}",
-            title="Sales Invoice Header Update"
-        )
-        
         # Update or add item
         item_found = False
         for item in sales_invoice.items:
-            if item.item_code == doc.name:
-                frappe.log_error(
-                    message=f"Updating existing item {item.item_code}. Old values - Qty: {item.qty}, Rate: {item.rate}, Amount: {item.amount}",
-                    title="Sales Invoice Item Update"
-                )
-                
+            if item.item_code == doc.name:              
                 item.qty = doc.quantity
                 item.rate = doc.rate
                 item.amount = doc.quantity * doc.rate
-                
-                frappe.log_error(
-                    message=f"Item updated. New values - Qty: {item.qty}, Rate: {item.rate}, Amount: {item.amount}",
-                    title="Sales Invoice Item Updated"
-                )
-                
                 item_found = True
                 break
         
-        if not item_found:
-            frappe.log_error(
-                message=f"Item {doc.name} not found in invoice. Adding new item.",
-                title="Sales Invoice New Item"
-            )
-            
+        if not item_found:           
             sales_invoice.append("items", {
                 "item_code": f"SALES-{doc.name}",
                 "qty": doc.quantity,
@@ -545,12 +377,7 @@ def update_sales_invoice(sales_invoice, doc):
         sales_invoice.flags.ignore_permissions = True
         sales_invoice.calculate_taxes_and_totals()
         sales_invoice.save()
-        
-        frappe.log_error(
-            message=f"Sales invoice {sales_invoice.name} successfully updated",
-            title="Sales Invoice Update Complete"
-        )
-        
+             
     except Exception as e:
         frappe.log_error(
             message=f"Error updating sales invoice {sales_invoice.name} for trip {doc.name}. Error: {str(e)}\nFull error: {frappe.get_traceback()}",
