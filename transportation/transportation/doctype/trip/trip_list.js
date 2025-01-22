@@ -20,36 +20,28 @@ frappe.listview_settings['Trip'] = {
     ],
 
     onload(listview) {
+        // Hide unwanted sections
         $('.standard-filter-section, .filter-section').hide();
-        // Collapse sidebar by default but allow toggling
-        frappe.ui.toolbar.toggle_sidebar();
         
-        setTimeout(() => {
-            $('[data-fieldname="_assign"], [data-fieldname="_comments"], [data-fieldname="_user_tags"], [data-fieldname="modified"], [data-fieldname="modified_by"]').hide();
-            
-            const desiredColumns = ['name', 'billing_customer', 'amount', 'date'];
-            desiredColumns.forEach(field => {
-                $(`[data-fieldname="${field}"]`).show();
-            });
-        }, 100);
-
         // Add Create Trip Group dropdown button
-        listview.page.add_dropdown_button(__('Create Trip Group'), [
-            {
-                label: __('Create Sales Invoice Trip Group'),
-                click: () => {
-                    const selected = listview.get_checked_items();
-                    createTripGroup(listview, 'Sales Invoice Group');
+        listview.page.add_action_item(__('Create Trip Group'), () => {
+            const dropdown_options = [
+                {
+                    label: __('Create Sales Invoice Trip Group'),
+                    click: () => {
+                        createTripGroup(listview, 'Sales Invoice Group');
+                    }
+                },
+                {
+                    label: __('Create Purchase Invoice Trip Group'),
+                    click: () => {
+                        createTripGroup(listview, 'Purchase Invoice Group');
+                    }
                 }
-            },
-            {
-                label: __('Create Purchase Invoice Trip Group'),
-                click: () => {
-                    const selected = listview.get_checked_items();
-                    createTripGroup(listview, 'Purchase Invoice Group');
-                }
-            }
-        ], 'primary');
+            ];
+            
+            frappe.ui.toolbar.make_dropdown(dropdown_options);
+        });
 
         // Truck filter
         listview.page.add_field({
