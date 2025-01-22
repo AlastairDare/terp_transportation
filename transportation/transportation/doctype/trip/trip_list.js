@@ -1,13 +1,4 @@
 frappe.listview_settings['Trip'] = {
-    list_view_fields: [   // Keep this as list_view_fields, not get_fields()
-        "asset_number",   // Add asset_number here
-        "billing_customer",
-        "amount",
-        "date",
-        "sales_invoice_status",
-        "billing_supplier",
-        "purchase_invoice_status"
-    ],
     hide_name_column: true,
     hide_name_filter: false,
 

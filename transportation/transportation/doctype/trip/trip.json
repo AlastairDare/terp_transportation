@@ -7,8 +7,6 @@
     "autoname": "format:TRIP-{license_plate}-{########}",
     "engine": "InnoDB",
     "title_field": "asset_number",
-    "search_fields": "asset_number,truck,status,billing_customer",
-    "show_title_field_in_link": 1,
     "show_title_field_in_list": 1,
     "fields": [
         {
