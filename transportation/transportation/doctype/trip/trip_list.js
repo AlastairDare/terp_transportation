@@ -1,27 +1,24 @@
 frappe.listview_settings['Trip'] = {
-    get_fields() {
-        return [
-            "asset_number",
-            "billing_customer",
-            "amount",
-            "date",
-            "sales_invoice_status",
-            "billing_supplier",
-            "purchase_invoice_status"
-        ];
-    },
+    list_view_fields: [
+        "billing_customer",
+        "amount",
+        "date",
+        "sales_invoice_status",
+        "billing_supplier",
+        "purchase_invoice_status"
+    ],
     hide_name_column: true,
     hide_name_filter: false,
 
     add_fields: [
+        "name",
         "asset_number",
         "billing_customer",
         "amount",
         "date",
         "sales_invoice_status",
         "billing_supplier",
-        "purchase_invoice_status",
-        "name"
+        "purchase_invoice_status"
     ],
     
     filters: [
@@ -149,8 +146,8 @@ function refreshList(listview, filters) {
             doctype: "Trip",
             filters: filters,
             fields: [
-                "asset_number",
                 "name",
+                "asset_number",
                 "billing_customer",
                 "amount",
                 "date",
