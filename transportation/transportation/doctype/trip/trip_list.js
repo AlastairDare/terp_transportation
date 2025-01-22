@@ -1,5 +1,6 @@
 frappe.listview_settings['Trip'] = {
-    list_view_fields: [
+    list_view_fields: [   // Keep this as list_view_fields, not get_fields()
+        "asset_number",   // Add asset_number here
         "billing_customer",
         "amount",
         "date",
