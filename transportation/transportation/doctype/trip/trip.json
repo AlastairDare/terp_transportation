@@ -6,6 +6,7 @@
     "doctype": "DocType",
     "autoname": "format:TRIP-{license_plate}-{########}",
     "engine": "InnoDB",
+    "title_field": "asset_number",
     "fields": [
         {
             "fieldname": "trip_information_section",
@@ -75,6 +76,15 @@
             "options": "Transportation Asset",
             "reqd": 0,
             "get_query": "transportation.trip.trip.get_truck_query"
+        },
+        {
+            "fieldname": "asset_number",
+            "fieldtype": "Data",
+            "label": "Asset Number",
+            "fetch_from": "truck.asset_number",
+            "hidden": 1,
+            "read_only": 1,
+            "in_list_view": 1
         },
         {
             "fetch_from": "truck.license_plate",
