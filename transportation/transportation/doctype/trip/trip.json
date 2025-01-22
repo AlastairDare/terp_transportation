@@ -31,8 +31,7 @@
             "label": "Status",
             "options": "Draft\nProcessing\nPlanned\nAwaiting Approval\nComplete\nError",
             "default": "Draft",
-            "reqd": 1,
-            "in_list_view": 1
+            "reqd": 1
         },
         {
             "fieldname": "driver",
@@ -74,7 +73,6 @@
             "fieldtype": "Link",
             "label": "Truck",
             "options": "Transportation Asset",
-            "in_list_view": 1,
             "reqd": 0,
             "get_query": "transportation.trip.trip.get_truck_query"
         },
@@ -117,8 +115,7 @@
             "label": "Sales Invoice Status",
             "options": "Not Invoiced\nInvoice Draft Created\nInvoiced",
             "default": "Not Invoiced",
-            "reqd": 1,
-            "in_list_view": 1
+            "reqd": 1
         },
         {
             "fieldname": "linked_sales_invoice",
@@ -143,7 +140,8 @@
             "fieldname": "billing_customer",
             "fieldtype": "Link",
             "label": "Billing Customer",
-            "options": "Customer"
+            "options": "Customer",
+            "in_list_view":1
         },
         {
             "fieldname": "quantity",
@@ -160,7 +158,8 @@
             "fieldname": "amount",
             "fieldtype": "Currency",
             "label": "Amount",
-            "read_only": 1
+            "read_only": 1,
+            "in_list_view":1
         },
         {
             "fieldname": "taxes_and_charges",
@@ -182,8 +181,7 @@
             "label": "Purchase Invoice Status",
             "options": "Not Invoiced\nInvoice Draft Created\nInvoiced",
             "default": "Not Invoiced",
-            "reqd": 1,
-            "in_list_view": 1
+            "reqd": 1
         },
         {
             "fieldname": "linked_purchase_invoice",
@@ -205,7 +203,8 @@
             "options": "Supplier",
             "depends_on": "eval:doc.auto_create_purchase_invoice==1",
             "read_only": 1,
-            "fetch_from": "truck.supplier"
+            "fetch_from": "truck.supplier",
+            "in_list_view":1
         },
         {
             "fieldname": "purchase_quantity",
@@ -277,7 +276,6 @@
             "fieldname": "delivery_note_number",
             "fieldtype": "Data",
             "label": "Delivery Note Number",
-            "in_list_view": 1,
             "reqd": 0
         },
         {
