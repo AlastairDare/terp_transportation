@@ -1,40 +1,53 @@
 frappe.listview_settings['Trip'] = {
-    list_view_fields: [
-        "billing_customer",
-        "amount",
-        "date"
-    ],
+    get_fields() {
+        return [
+            "asset_number",
+            "billing_customer",
+            "amount",
+            "date",
+            "sales_invoice_status",
+            "billing_supplier",
+            "purchase_invoice_status"
+        ];
+    },
     hide_name_column: true,
     hide_name_filter: false,
 
     add_fields: [
-        "name",
+        "asset_number",
         "billing_customer",
         "amount",
         "date",
-        "sales_invoice_status", // needed for validation
-        "billing_supplier",     // needed for validation
-        "purchase_invoice_status" // needed for validation
+        "sales_invoice_status",
+        "billing_supplier",
+        "purchase_invoice_status",
+        "name"
     ],
     
     filters: [
         ["Trip", "docstatus", "<", "2"]
     ],
 
+    onload(listview) {
+        // Initial setup of filters and buttons
+        this.setup_page(listview);
+    },
+
     refresh(listview) {
-        // Hide sidebar for this list view only
-        $('.layout-side-section').hide();
-        $('.layout-main-section').css('width', '100%');
+        // Clear and re-hide elements that might have reappeared
+        this.hide_page_elements();
+    },
+
+    setup_page(listview) {
+        // Hide unwanted elements
+        this.hide_page_elements();
         
-        // Hide standard filter sections and other unwanted elements
-        $('.standard-filter-section, .filter-section').hide();
-        $('.sort-selector').hide();
-        $('.filter-selector').hide();
-        $('.filter-button').hide();
-        
-        // Clear existing buttons to prevent duplicates
+        // Remove any existing custom buttons and filters
         listview.page.clear_primary_action();
         $('.page-actions .custom-btn-group').remove();
+        
+        // Clear any existing custom fields
+        listview.page.clear_fields();
 
         // Add Create Sales Invoice Trip Group button
         listview.page.add_button('Create Sales Invoice Trip Group', () => {
@@ -111,6 +124,21 @@ frappe.listview_settings['Trip'] = {
                 refreshList(listview, filters);
             }
         });
+    },
+
+    hide_page_elements() {
+        // Hide sidebar for this list view only
+        $('.layout-side-section').hide();
+        $('.layout-main-section').css('width', '100%');
+        
+        // Hide standard filter sections and other unwanted elements
+        $('.standard-filter-section, .filter-section').hide();
+        $('.sort-selector').hide();
+        $('.filter-selector').hide();
+        $('.filter-button').hide();
+        $('.tag-filters-area').hide();
+        $('.filter-list').hide();
+        $('.result').hide();
     }
 };
 
@@ -121,6 +149,7 @@ function refreshList(listview, filters) {
             doctype: "Trip",
             filters: filters,
             fields: [
+                "asset_number",
                 "name",
                 "billing_customer",
                 "amount",
