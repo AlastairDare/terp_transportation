@@ -1,11 +1,10 @@
 frappe.listview_settings['Trip'] = {
     list_view_fields: [
-        "name",
         "billing_customer",
         "amount",
         "date"
     ],
-    hide_name_column: false,
+    hide_name_column: true,
     hide_name_filter: false,
 
     add_fields: [
@@ -26,6 +25,16 @@ frappe.listview_settings['Trip'] = {
         // Hide sidebar for this list view only
         $('.layout-side-section').hide();
         $('.layout-main-section').css('width', '100%');
+        
+        // Hide standard filter sections and other unwanted elements
+        $('.standard-filter-section, .filter-section').hide();
+        $('.sort-selector').hide();
+        $('.filter-selector').hide();
+        $('.filter-button').hide();
+        
+        // Clear existing buttons to prevent duplicates
+        listview.page.clear_primary_action();
+        $('.page-actions .custom-btn-group').remove();
 
         // Add Create Sales Invoice Trip Group button
         listview.page.add_button('Create Sales Invoice Trip Group', () => {
