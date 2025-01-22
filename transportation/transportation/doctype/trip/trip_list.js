@@ -1,112 +1,55 @@
 frappe.listview_settings['Trip'] = {
-    // Force specific columns in list view
     list_view_fields: [
         "name",
         "billing_customer",
         "amount",
-        "date",
-        "supplier_name"
+        "date"
     ],
-    // Show the name/ID column and filter
     hide_name_column: false,
     hide_name_filter: false,
 
-    // Fields needed for functionality and display
     add_fields: [
         "name",
         "billing_customer",
         "amount",
-        "date",
-        "supplier_name",
-        "sales_invoice_status",
-        "billing_supplier"  // needed for validation
+        "date"
     ],
     
-    // Keep existing filters
     filters: [
         ["Trip", "docstatus", "<", "2"]
     ],
 
     onload(listview) {
-        // Hide standard filter sections and ensure our filters are the only ones showing
         $('.standard-filter-section, .filter-section').hide();
+        // Collapse sidebar by default but allow toggling
+        frappe.ui.toolbar.toggle_sidebar();
         
-        // Hide sidebar by default and adjust layout
-        $('.layout-side-section').hide();
-        $('.layout-main-section').css('width', '100%');
-        
-        // Hide the sidebar toggle button
-        $('.sidebar-toggle-btn').hide();
-        
-        // Remove unwanted list columns and ensure only our specified columns show
         setTimeout(() => {
-            // Hide any unwanted columns by their data-fieldname
             $('[data-fieldname="_assign"], [data-fieldname="_comments"], [data-fieldname="_user_tags"], [data-fieldname="modified"], [data-fieldname="modified_by"]').hide();
             
-            // Ensure our desired columns are visible and in correct order
-            const desiredColumns = ['name', 'billing_customer', 'amount', 'date', 'supplier_name'];
+            const desiredColumns = ['name', 'billing_customer', 'amount', 'date'];
             desiredColumns.forEach(field => {
                 $(`[data-fieldname="${field}"]`).show();
             });
         }, 100);
 
-        // Add Create/Update Sales Invoice button
-        listview.page.add_button('Create/Update Sales Invoice', () => {
-            const selected = listview.get_checked_items();
-            
-            if (!selected.length) {
-                frappe.throw('Please select at least one trip');
-                return;
-            }
-
-            frappe.call({
-                method: 'transportation.transportation.doctype.trip.trip.create_sales_invoice_for_trip',
-                args: {
-                    trip: selected[0].name
-                },
-                freeze: true,
-                freeze_message: __('Creating Sales Invoice...'),
-                callback: function(r) {
-                    if (r.message) {
-                        frappe.msgprint({
-                            title: __('Success'),
-                            indicator: 'green',
-                            message: __('Sales Invoice {0} created/updated', [r.message])
-                        });
-                        listview.refresh();
-                    }
+        // Add Create Trip Group dropdown button
+        listview.page.add_dropdown_button(__('Create Trip Group'), [
+            {
+                label: __('Create Sales Invoice Trip Group'),
+                click: () => {
+                    const selected = listview.get_checked_items();
+                    createTripGroup(listview, 'Sales Invoice Group');
                 }
-            });
-        }, 'primary');
-
-        // Add Create/Update Purchase Invoice button
-        listview.page.add_button('Create/Update Purchase Invoice', () => {
-            const selected = listview.get_checked_items();
-            
-            if (!selected.length) {
-                frappe.throw('Please select at least one trip');
-                return;
-            }
-
-            frappe.call({
-                method: 'transportation.transportation.doctype.trip.trip.create_purchase_invoice_for_trip',
-                args: {
-                    trip: selected[0].name
-                },
-                freeze: true,
-                freeze_message: __('Creating Purchase Invoice...'),
-                callback: function(r) {
-                    if (r.message) {
-                        frappe.msgprint({
-                            title: __('Success'),
-                            indicator: 'green',
-                            message: __('Purchase Invoice {0} created/updated', [r.message])
-                        });
-                        listview.refresh();
-                    }
+            },
+            {
+                label: __('Create Purchase Invoice Trip Group'),
+                click: () => {
+                    const selected = listview.get_checked_items();
+                    createTripGroup(listview, 'Purchase Invoice Group');
                 }
-            });
-        }, 'primary');
+            }
+        ], 'primary');
 
         // Truck filter
         listview.page.add_field({
@@ -192,10 +135,7 @@ function refreshList(listview, filters) {
                 "name",
                 "billing_customer",
                 "amount",
-                "date",
-                "supplier_name",
-                "sales_invoice_status",
-                "billing_supplier"  // needed for validation
+                "date"
             ],
             order_by: "modified desc"
         },
@@ -216,38 +156,6 @@ function createTripGroup(listview, groupType) {
         return;
     }
 
-    if (groupType === 'Sales Invoice Group') {
-        if (selected.some(trip => trip.sales_invoice_status !== 'Not Invoiced')) {
-            frappe.throw('Some selected trips are already in a Sales Invoice Group');
-            return;
-        }
-
-        const customers = [...new Set(selected.map(trip => trip.billing_customer))];
-        if (customers.length > 1) {
-            frappe.throw('All selected trips must have the same billing customer');
-            return;
-        }
-        if (!customers[0]) {
-            frappe.throw('Selected trips must have a billing customer');
-            return;
-        }
-    } else {
-        if (selected.some(trip => trip.purchase_invoice_status !== 'Not Invoiced')) {
-            frappe.throw('Some selected trips are already in a Purchase Invoice Group');
-            return;
-        }
-
-        const suppliers = [...new Set(selected.map(trip => trip.billing_supplier))];
-        if (suppliers.length > 1) {
-            frappe.throw('All selected trips must have the same billing supplier');
-            return;
-        }
-        if (!suppliers[0]) {
-            frappe.throw('Selected trips must have a billing supplier');
-            return;
-        }
-    }
-
     frappe.call({
         method: 'transportation.transportation.doctype.trip_group.trip_group.create_trip_group',
         args: {
@@ -259,22 +167,10 @@ function createTripGroup(listview, groupType) {
         freeze_message: __('Creating Trip Group...'),
         callback: function(r) {
             if (r.message) {
-                const billingParty = groupType === 'Sales Invoice Group' 
-                    ? selected[0].billing_customer 
-                    : selected[0].billing_supplier;
-                
-                frappe.msgprint({
-                    title: __('Trip Group Created'),
-                    indicator: 'green',
-                    message: __(
-                        `{0} Trip Group <a href="/app/trip-group/{1}">{1}</a> created with {2} trips for {3}`,
-                        [groupType === 'Sales Invoice Group' ? 'Sales Invoice' : 'Purchase Invoice',
-                         r.message,
-                         selected.length,
-                         billingParty]
-                    )
+                frappe.show_alert({
+                    message: __('Trip Group {0} created successfully', [r.message]),
+                    indicator: 'green'
                 });
-                
                 listview.refresh();
             }
         }
