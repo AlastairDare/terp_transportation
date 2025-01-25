@@ -3,7 +3,7 @@ frappe.listview_settings['Trip'] = {
     hide_name_filter: false,
 
     add_fields: [
-        "name",
+        "asset_number",
         "asset_number",
         "billing_customer",
         "amount",
@@ -117,8 +117,8 @@ frappe.listview_settings['Trip'] = {
 
     hide_page_elements() {
         // Hide sidebar for this list view only
-        $('.layout-side-section').hide();
-        $('.layout-main-section').css('width', '100%');
+       //$('.layout-side-section').hide();
+        //$('.layout-main-section').css('width', '100%');
         
         // Hide standard filter sections and other unwanted elements
         $('.standard-filter-section, .filter-section').hide();
@@ -127,7 +127,6 @@ frappe.listview_settings['Trip'] = {
         $('.filter-button').hide();
         $('.tag-filters-area').hide();
         $('.filter-list').hide();
-        $('.result').hide();
     }
 };
 
