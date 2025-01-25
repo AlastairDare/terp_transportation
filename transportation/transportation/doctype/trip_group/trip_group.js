@@ -63,45 +63,41 @@ frappe.ui.form.on('Trip Group', {
         frm.trigger('update_totals');
     },
 
-    update_totals: function(frm) {
+    update_totals: async function(frm) {
         let total_net_mass = 0;
         let total_value = 0;
         let trip_dates = [];
         
-        // Calculate totals from trips
-        (frm.doc.trips || []).forEach(function(trip) {
+        // Wait for all trip data to be fetched
+        const trips = await Promise.all((frm.doc.trips || []).map(trip => 
             frappe.db.get_doc('Trip', trip.trip)
-                .then(trip_doc => {
-                    if (trip_doc.net_mass) {
-                        total_net_mass += parseFloat(trip_doc.net_mass);
-                    }
-                    
-                    if (frm.doc.group_type === "Sales Invoice Group") {
-                        total_value += parseFloat(trip_doc.amount || 0);
-                        if (trip_doc.date) {
-                            trip_dates.push(trip_doc.date);
-                        }
-                    } else {
-                        total_value += parseFloat(trip_doc.purchase_amount || 0);
-                        if (trip_doc.date) {
-                            trip_dates.push(trip_doc.date);
-                        }
-                    }
-                    
-                    // Update the form values
-                    frm.set_value('trip_count', frm.doc.trips.length);
-                    frm.set_value('total_net_mass', total_net_mass);
-                    frm.set_value('total_value', total_value);
-                    
-                    if (trip_dates.length > 0) {
-                        if (frm.doc.group_type === "Sales Invoice Group") {
-                            frm.set_value('first_trip_date', new Date(Math.min(...trip_dates)));
-                        } else {
-                            frm.set_value('last_trip_date', new Date(Math.max(...trip_dates)));
-                        }
-                    }
-                });
+        ));
+        
+        trips.forEach(trip_doc => {
+            if (trip_doc.net_mass) {
+                total_net_mass += parseFloat(trip_doc.net_mass);
+            }
+            
+            if (frm.doc.group_type === "Sales Invoice Group") {
+                total_value += parseFloat(trip_doc.amount || 0);
+            } else {
+                total_value += parseFloat(trip_doc.purchase_amount || 0);
+            }
+            
+            if (trip_doc.date) {
+                trip_dates.push(trip_doc.date);
+            }
         });
+        
+        // Update form values
+        frm.set_value('trip_count', frm.doc.trips.length);
+        frm.set_value('total_net_mass', total_net_mass);
+        frm.set_value('total_value', total_value);
+        
+        if (trip_dates.length > 0) {
+            frm.set_value('first_trip_date', new Date(Math.min(...trip_dates)));
+            frm.set_value('last_trip_date', new Date(Math.max(...trip_dates)));
+        }
     },
 
     // Handle adding trips to the group

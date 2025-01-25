@@ -110,7 +110,7 @@
         {
             "fieldname": "sales_invoice_setup_section",
             "fieldtype": "Section Break",
-            "label": "Sales Invoice Setup",
+            "label": "Sales Invoice Detail",
             "insert_after": "trip_information_section",
             "collapsible": 1
         },
@@ -169,7 +169,7 @@
         {
             "fieldname": "purchase_invoice_setup_section",
             "fieldtype": "Section Break",
-            "label": "Purchase Invoice Setup",
+            "label": "Purchase Invoice Detail",
             "insert_after": "taxes_and_charges",
             "collapsible": 1
         },

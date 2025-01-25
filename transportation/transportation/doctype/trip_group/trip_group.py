@@ -60,18 +60,15 @@ class TripGroup(Document):
                     
             if self.group_type == "Sales Invoice Group":
                 self.total_value += trip_doc.amount or 0
-                if trip_doc.date:
-                    trip_dates.append(trip_doc.date)
             else:
                 self.total_value += trip_doc.purchase_amount or 0
-                if trip_doc.date:
-                    trip_dates.append(trip_doc.date)
+                
+            if trip_doc.date:
+                trip_dates.append(trip_doc.date)
             
         if trip_dates:
-            if self.group_type == "Sales Invoice Group":
-                self.first_trip_date = min(trip_dates)
-            else:
-                self.last_trip_date = max(trip_dates)
+            self.first_trip_date = min(trip_dates)
+            self.last_trip_date = max(trip_dates)
 
     def on_update(self):
         self.handle_removed_trips()
