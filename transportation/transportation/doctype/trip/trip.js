@@ -135,14 +135,6 @@ frappe.ui.form.on('Trip', {
         calculateNetMass(frm);
     },
 
-    time_start: function(frm) {
-        validateTimes(frm);
-    },
-
-    time_end: function(frm) {
-        validateTimes(frm);
-    },
-    
     quantity_is_net_mass: function(frm) {
         if (frm.doc.quantity_is_net_mass) {
             if (frm.doc.net_mass) {
@@ -250,21 +242,6 @@ function updateQuantitiesFromNetMass(frm, netMass) {
     }
     if (frm.doc.purchase_quantity_is_net_mass) {
         frm.set_value('purchase_quantity', netMass);
-    }
-}
-
-function validateTimes(frm) {
-    if (frm.doc.time_start && frm.doc.time_end) {
-        let startTime = moment(frm.doc.time_start, 'HH:mm:ss');
-        let endTime = moment(frm.doc.time_end, 'HH:mm:ss');
-        
-        if (endTime.isBefore(startTime)) {
-            frappe.show_alert({
-                message: __('End time cannot be before start time'),
-                indicator: 'red'
-            });
-            frm.set_value('time_end', '');
-        }
     }
 }
 

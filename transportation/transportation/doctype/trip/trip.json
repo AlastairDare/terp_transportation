@@ -301,24 +301,6 @@
             "reqd": 0
         },
         {
-            "fieldname": "time_log_section",
-            "fieldtype": "Section Break",
-            "label": "Time Logs",
-            "collapsible": 1
-        },
-        {
-            "fieldname": "time_start",
-            "fieldtype": "Time",
-            "label": "Start Time",
-            "reqd": 0
-        },
-        {
-            "fieldname": "time_end",
-            "fieldtype": "Time",
-            "label": "End Time",
-            "reqd": 0
-        },
-        {
             "fieldname": "stop_detail_section",
             "fieldtype": "Section Break",
             "label": "Route Detail",
