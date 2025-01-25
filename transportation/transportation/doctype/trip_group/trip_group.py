@@ -10,6 +10,9 @@ class TripGroup(Document):
         self.update_totals()
         
     def validate_trips(self):
+        if not hasattr(self, 'trips') or not self.trips:
+            frappe.throw(_("At least one trip must be added to the group"))
+        
         if not self.trips:
             frappe.throw(_("At least one trip must be added to the group"))
             
@@ -44,17 +47,17 @@ class TripGroup(Document):
                     frappe.throw(_("Trip {0} has different billing supplier").format(trip_doc.name))
 
     def update_totals(self):
-        self.trip_count = len(self.trips)
+        self.trip_count = len(self.trips or [])
         self.total_net_mass = 0
         self.total_value = 0
-        
-        trip_dates = []
-        for trip in self.trips:
-            trip_doc = frappe.get_doc("Trip", trip.trip)
             
+        trip_dates = []
+        for trip in (self.trips or []):
+            trip_doc = frappe.get_doc("Trip", trip.trip)
+                
             if trip_doc.net_mass:
                 self.total_net_mass += trip_doc.net_mass
-                
+                    
             if self.group_type == "Sales Invoice Group":
                 self.total_value += trip_doc.amount or 0
                 if trip_doc.date:
@@ -63,7 +66,7 @@ class TripGroup(Document):
                 self.total_value += trip_doc.purchase_amount or 0
                 if trip_doc.date:
                     trip_dates.append(trip_doc.date)
-        
+            
         if trip_dates:
             if self.group_type == "Sales Invoice Group":
                 self.first_trip_date = min(trip_dates)
@@ -75,13 +78,13 @@ class TripGroup(Document):
 
     def handle_removed_trips(self):
         """Handle any trips that were removed from the group"""
-        if not hasattr(self, '_doc_before_save'):
+        if not hasattr(self, '_doc_before_save') or not self._doc_before_save:
             return
-            
+                
         old_trips = {t.trip for t in (self._doc_before_save.trips or [])}
         current_trips = {t.trip for t in (self.trips or [])}
         removed_trips = old_trips - current_trips
-        
+            
         if removed_trips and self.group_invoice_status != "Not Invoiced":
             # Reset invoice status for removed trips
             for trip_name in removed_trips:
@@ -91,10 +94,10 @@ class TripGroup(Document):
                 else:
                     trip_doc.purchase_invoice_status = "Not Invoiced"
                 trip_doc.save()
-                
+                    
             # Update the linked invoice
             self.update_invoice_after_removal(removed_trips)
-            
+                
             # Show message
             frappe.msgprint(
                 _("Updated invoice and reset status for removed trips: {0}").format(
@@ -228,6 +231,9 @@ def create_group_purchase_invoice(doc):
 @frappe.whitelist()
 def create_trip_group(trips, group_type, summarize_lines=1):
     """Create a new Trip Group from selected trips"""
+    if group_type not in ["Sales Invoice Group", "Purchase Invoice Group"]:
+        frappe.throw(_("Invalid group type"))
+    
     if isinstance(trips, str):
         trips = json.loads(trips)
         

@@ -166,6 +166,10 @@ function refreshList(listview, filters) {
 
 function createTripGroup(listview, groupType) {
     const selected = listview.get_checked_items();
+    if (!selected || !Array.isArray(selected)) {
+        frappe.throw('Error: Unable to get selected trips');
+        return;
+    }
     
     if (selected.length < 2) {
         frappe.throw('Please select at least 2 trips to group');
