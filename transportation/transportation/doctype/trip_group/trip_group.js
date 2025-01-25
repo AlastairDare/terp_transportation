@@ -1,5 +1,8 @@
 frappe.ui.form.on('Trip Group', {
-    refresh: function(frm) {
+    refresh: async function(frm) {
+        // Call update_totals first to ensure dates are populated
+        await frm.trigger('update_totals');
+     
         // Add the Create/Update Invoice button
         if (frm.doc.group_invoice_status === "Not Invoiced") {
             let button_label = frm.doc.group_type === "Sales Invoice Group" 
@@ -22,7 +25,7 @@ frappe.ui.form.on('Trip Group', {
                 });
             }, __('Actions'));
         }
-    },
+     },
 
     onload: function(frm) {
         // Recalculate totals on load
