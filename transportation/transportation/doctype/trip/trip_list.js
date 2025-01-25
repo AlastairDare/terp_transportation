@@ -1,9 +1,7 @@
 frappe.listview_settings['Trip'] = {
-    //hide_name_column: true,
     hide_name_filter: false,
 
     add_fields: [
-        "asset_number",
         "asset_number",
         "billing_customer",
         "amount",
@@ -21,82 +19,86 @@ frappe.listview_settings['Trip'] = {
         "billing_supplier",
         "name"
     ],
-
     
     filters: [
         ["Trip", "docstatus", "<", "2"]
     ],
 
     onload(listview) {
-        // Initial setup of filters and buttons
         this.setup_page(listview);
     },
 
     refresh(listview) {
-        // Clear and re-hide elements that might have reappeared
         this.hide_page_elements();
     },
 
     setup_page(listview) {
-        // Hide unwanted elements
         this.hide_page_elements();
         
-        // Remove any existing custom buttons and filters
         listview.page.clear_primary_action();
         $('.page-actions .custom-btn-group').remove();
-        
-        // Clear any existing custom fields
         listview.page.clear_fields();
 
-        // Add Create Sales Invoice Trip Group button
         listview.page.add_button('Create Sales Invoice Trip Group', () => {
             const selected = listview.get_checked_items();
             createTripGroup(listview, 'Sales Invoice Group');
         }, 'primary');
 
-        // Add Create Purchase Invoice Trip Group button
         listview.page.add_button('Create Purchase Invoice Trip Group', () => {
             const selected = listview.get_checked_items();
             createTripGroup(listview, 'Purchase Invoice Group');
         }, 'primary');
 
-        // Truck filter
+        // Trip ID filter
         listview.page.add_field({
-            fieldtype: 'Link',
-            fieldname: 'truck',
-            label: 'Truck',
-            options: 'Transportation Asset',
+            fieldtype: 'Data',
+            fieldname: 'name',
+            label: 'ID',
             onchange: () => {
-                const value = listview.page.fields_dict.truck.get_value();
+                const value = listview.page.fields_dict.name.get_value();
                 const filters = [["Trip", "docstatus", "<", "2"]];
                 if (value) {
-                    filters.push(["Trip", "truck", "=", value]);
+                    filters.push(["Trip", "name", "like", "%" + value + "%"]);
                 }
                 refreshList(listview, filters);
             }
         });
 
-        // Invoice status filter
+        // Truck Name filter
         listview.page.add_field({
-            fieldtype: 'Select',
-            fieldname: 'sales_invoice_status',
-            label: 'Invoice Status',
-            options: '\nNot Invoiced\nInvoiced',
+            fieldtype: 'Data',
+            fieldname: 'asset_number',
+            label: 'Truck Name',
             onchange: () => {
-                const value = listview.page.fields_dict.sales_invoice_status.get_value();
+                const value = listview.page.fields_dict.asset_number.get_value();
                 const filters = [["Trip", "docstatus", "<", "2"]];
                 if (value) {
-                    filters.push(["Trip", "sales_invoice_status", "=", value]);
+                    filters.push(["Trip", "asset_number", "like", "%" + value + "%"]);
                 }
                 refreshList(listview, filters);
             }
         });
 
-        // Billing customer filter
+        // Trip Date filter
+        listview.page.add_field({
+            fieldtype: 'Date',
+            fieldname: 'date',
+            label: 'Trip Date',
+            onchange: () => {
+                const value = listview.page.fields_dict.date.get_value();
+                const filters = [["Trip", "docstatus", "<", "2"]];
+                if (value) {
+                    filters.push(["Trip", "date", "=", value]);
+                }
+                refreshList(listview, filters);
+            }
+        });
+
+        // Customer Name filter
         listview.page.add_field({
             fieldtype: 'Link',
             fieldname: 'billing_customer',
-            label: 'Billing Customer',
+            label: 'Customer Name',
             options: 'Customer',
             onchange: () => {
                 const value = listview.page.fields_dict.billing_customer.get_value();
@@ -108,17 +110,17 @@ frappe.listview_settings['Trip'] = {
             }
         });
 
-        // Date range filter
+        // Supplier Name filter
         listview.page.add_field({
-            fieldtype: 'DateRange',
-            fieldname: 'date',
-            label: 'Trip Date',
+            fieldtype: 'Link',
+            fieldname: 'billing_supplier',
+            label: 'Supplier Name',
+            options: 'Supplier',
             onchange: () => {
-                const dateRange = listview.page.fields_dict.date.get_value();
+                const value = listview.page.fields_dict.billing_supplier.get_value();
                 const filters = [["Trip", "docstatus", "<", "2"]];
-                
-                if (dateRange && dateRange.length === 2 && dateRange[0] && dateRange[1]) {
-                    filters.push(["Trip", "date", "between", [dateRange[0], dateRange[1]]]);
+                if (value) {
+                    filters.push(["Trip", "billing_supplier", "=", value]);
                 }
                 refreshList(listview, filters);
             }
@@ -126,11 +128,6 @@ frappe.listview_settings['Trip'] = {
     },
 
     hide_page_elements() {
-        // Hide sidebar for this list view only
-       //$('.layout-side-section').hide();
-        //$('.layout-main-section').css('width', '100%');
-        
-        // Hide standard filter sections and other unwanted elements
         $('.standard-filter-section, .filter-section').hide();
         $('.sort-selector').hide();
         $('.filter-selector').hide();
