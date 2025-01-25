@@ -21,16 +21,6 @@ class Trip(Document):
 
 def validate(doc, method):
     """Validate Trip document before saving."""
-    # Handle approver setting based on whether it's a new doc or status change
-    if doc.status == "Complete":
-        if not doc.get("__islocal"):
-            # Existing document
-            if doc.has_value_changed('status') and doc._doc_before_save and doc._doc_before_save.status == "Awaiting Approval":
-                doc.approver = frappe.session.user
-        else:
-            # New document
-            doc.approver = frappe.session.user
-
     # Validate odometer readings
     if doc.odo_start and doc.odo_end:
         if doc.odo_end < doc.odo_start:
@@ -46,6 +36,14 @@ def validate(doc, method):
         if doc.second_mass < doc.first_mass:
             frappe.throw(_("Second mass cannot be less than first mass"))
         doc.net_mass = doc.second_mass - doc.first_mass
+
+    # Add this new block here
+    # Update quantities from net_mass if flags are set
+    if doc.net_mass:
+        if doc.quantity_is_net_mass:
+            doc.quantity = doc.net_mass
+        if doc.purchase_quantity_is_net_mass:
+            doc.purchase_quantity = doc.net_mass
 
 @frappe.whitelist()
 def create_sales_invoice_for_trip(trip_name):
@@ -385,27 +383,3 @@ def update_sales_invoice(sales_invoice, doc):
         )
         raise
 
-        
-@frappe.whitelist()
-def create_group_service_item(trip_names):
-    """Create a Trip Group from multiple trips"""
-    if not trip_names:
-        return
-        
-    # Convert string to list if needed
-    if isinstance(trip_names, str):
-        trip_names = json.loads(trip_names)
-    
-    # Get first trip for license plate
-    first_trip = frappe.get_doc("Trip", trip_names[0])
-    
-    # Create Trip Group
-    trip_group = frappe.get_doc({
-        "doctype": "Trip Group",
-        "license_plate": first_trip.license_plate,
-        "trips": [{"trip": trip_name} for trip_name in trip_names]
-    })
-    
-    trip_group.insert(ignore_permissions=True)
-    
-    return trip_group.name

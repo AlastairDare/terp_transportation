@@ -1,6 +1,5 @@
 frappe.ui.form.on('Trip', {
     refresh: function(frm) {
-        frm.toggle_display('approver', frm.doc.status === "Complete");
         frm.add_custom_button(__(frm.doc.linked_sales_invoice ? 'Update Sales Invoice' : 'Create Sales Invoice'), function() {
             frappe.call({
                 method: 'transportation.transportation.doctype.trip.trip.create_sales_invoice_for_trip',
@@ -82,16 +81,6 @@ frappe.ui.form.on('Trip', {
             return;
         }
         
-        // Check is_subbie and control purchase section visibility
-        frappe.db.get_value('Transportation Asset', frm.doc.truck, 'is_subbie', (r) => {
-            if (r && r.is_subbie) {
-                frm.set_df_property('purchase_invoice_setup_section', 'hidden', 0);
-            } else {
-                frm.set_df_property('purchase_invoice_setup_section', 'hidden', 1);
-            }
-            frm.refresh_field('purchase_invoice_setup_section');
-        });
-        
         // Get the last odometer reading
         frappe.call({
             method: 'transportation.transportation.doctype.trip.trip.get_last_odometer_reading',
@@ -126,32 +115,7 @@ frappe.ui.form.on('Trip', {
             }
             if (!frm.doc.date) {
                 frappe.throw(__("Trip Date is required for completing a trip"));
-            }
-            if (frm.doc.auto_create_purchase_invoice) {
-                validatePurchaseInvoiceFields(frm);
-            }   
-        }
-    },
-
-    before_save: function(frm) {
-        // Perform any necessary calculations or validations before saving
-        calculateTotalDistance(frm);
-        calculateNetMass(frm);
-        
-        // Validate sales invoice fields if needed
-        if (frm.doc.status === "Complete" && frm.doc.auto_create_sales_invoice) {
-            validateSalesInvoiceFields(frm);
-        }
-    },
-
-    status: function(frm) {
-        // Handle status change
-        console.log("Status changed to:", frm.doc.status);
-        if (frm.doc.status === "Complete" && frm.doc.__previous_status === "Awaiting Approval") {
-            frm.set_value('approver', frappe.session.user);
-            frm.toggle_display('approver', true);
-        } else if (frm.doc.status !== "Complete") {
-            frm.toggle_display('approver', false);
+            }  
         }
     },
 
@@ -178,26 +142,6 @@ frappe.ui.form.on('Trip', {
     time_end: function(frm) {
         validateTimes(frm);
     },
-
-    auto_create_sales_invoice: function(frm) {
-        if (!frm.doc.auto_create_sales_invoice) {
-            frappe.confirm(
-                'Unchecking this will clear all sales invoice related fields. Continue?',
-                function() {
-                    // User clicked Yes
-                    frm.set_value('billing_customer', '');
-                    frm.set_value('quantity', 1);
-                    frm.set_value('rate', '');
-                    frm.set_value('amount', '');
-                    frm.set_value('taxes_and_charges', '');
-                },
-                function() {
-                    // User clicked No
-                    frm.set_value('auto_create_sales_invoice', 1);
-                }
-            );
-        }
-    },
     
     quantity_is_net_mass: function(frm) {
         if (frm.doc.quantity_is_net_mass) {
@@ -210,15 +154,26 @@ frappe.ui.form.on('Trip', {
                 });
                 frm.set_value('quantity', 0);
             }
-        } else {
-            frm.set_value('quantity', 1);
+        }
+    },
+
+    //Parallel process to quantity_is_net_mass function for the Purchase Invoice process
+    purchase_quantity_is_net_mass: function(frm) {
+        if (frm.doc.purchase_quantity_is_net_mass) {
+            if (frm.doc.net_mass) {
+                frm.set_value('purchase_quantity', frm.doc.net_mass);
+            } else {
+                frappe.show_alert({
+                    message: __('Value for Net mass needs to be filled in to populate Purchase Quantity'),
+                    indicator: 'yellow'
+                });
+                frm.set_value('purchase_quantity', 0);
+            }
         }
     },
     
     net_mass: function(frm) {
-        if (frm.doc.quantity_is_net_mass) {
-            frm.set_value('quantity', frm.doc.net_mass || 0);
-        }
+        updateQuantitiesFromNetMass(frm, frm.doc.net_mass);
     },
     
     quantity: function(frm) {
@@ -235,26 +190,6 @@ frappe.ui.form.on('Trip', {
             return;
         }
         calculateAmount(frm);
-    },
-
-    auto_create_purchase_invoice: function(frm) {
-        if (!frm.doc.auto_create_purchase_invoice) {
-            frappe.confirm(
-                'Unchecking this will clear all purchase invoice related fields. Continue?',
-                function() {
-                    // User clicked Yes
-                    frm.set_value('billing_supplier', '');
-                    frm.set_value('purchase_quantity', 1);
-                    frm.set_value('purchase_rate', '');
-                    frm.set_value('purchase_amount', '');
-                    frm.set_value('purchase_taxes_and_charges', '');
-                },
-                function() {
-                    // User clicked No
-                    frm.set_value('auto_create_purchase_invoice', 1);
-                }
-            );
-        }
     },
 
     purchase_quantity: function(frm) {
@@ -294,7 +229,9 @@ function calculateTotalDistance(frm) {
 function calculateNetMass(frm) {
     if (frm.doc.first_mass && frm.doc.second_mass) {
         if (frm.doc.second_mass >= frm.doc.first_mass) {
-            frm.set_value('net_mass', frm.doc.second_mass - frm.doc.first_mass);
+            const netMass = frm.doc.second_mass - frm.doc.first_mass;
+            frm.set_value('net_mass', netMass);
+            updateQuantitiesFromNetMass(frm, netMass);
         } else {
             frappe.show_alert({
                 message: __('Second mass cannot be less than first mass'),
@@ -303,6 +240,16 @@ function calculateNetMass(frm) {
             frm.set_value('second_mass', '');
             frm.set_value('net_mass', '');
         }
+    }
+}
+
+//Used by calculateNetMass
+function updateQuantitiesFromNetMass(frm, netMass) {
+    if (frm.doc.quantity_is_net_mass) {
+        frm.set_value('quantity', netMass);
+    }
+    if (frm.doc.purchase_quantity_is_net_mass) {
+        frm.set_value('purchase_quantity', netMass);
     }
 }
 
@@ -356,20 +303,5 @@ function validateSalesInvoiceFields(frm) {
 function calculatePurchaseAmount(frm) {
     if (frm.doc.purchase_quantity && frm.doc.purchase_rate) {
         frm.set_value('purchase_amount', frm.doc.purchase_quantity * frm.doc.purchase_rate);
-    }
-}
-
-function validatePurchaseInvoiceFields(frm) {
-    if (frm.doc.auto_create_purchase_invoice) {
-        const requiredFields = ['billing_supplier', 'purchase_quantity', 'purchase_rate', 'purchase_taxes_and_charges'];
-        const missingFields = requiredFields.filter(field => !frm.doc[field]);
-        
-        if (missingFields.length > 0) {
-            frappe.throw(__(`Please fill in the following fields for Purchase Invoice creation: ${missingFields.join(', ')}`));
-        }
-        
-        if (frm.doc.purchase_quantity <= 0) {
-            frappe.throw(__('Purchase Quantity must be greater than 0'));
-        }
     }
 }

@@ -4,6 +4,7 @@
     "creation": "2024-01-18 12:00:00.000000",
     "doctype": "DocType",
     "engine": "InnoDB",
+    "autoname": "format:TG-{#############}",
     "field_order": [
         "group_type",
         "summarize_lines",
@@ -51,7 +52,6 @@
             "read_only": 1
         },
         {
-            "depends_on": "eval:doc.group_type=='Sales Invoice Group'",
             "fieldname": "first_trip_date",
             "fieldtype": "Datetime",
             "label": "Earliest Trip Date",
@@ -59,7 +59,6 @@
             "hidden": 0
         },
         {
-            "depends_on": "eval:doc.group_type=='Purchase Invoice Group'",
             "fieldname": "last_trip_date",
             "fieldtype": "Datetime",
             "label": "Latest Trip Date",

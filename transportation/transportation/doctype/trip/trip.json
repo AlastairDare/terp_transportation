@@ -15,13 +15,6 @@
             "label": "Trip Information"
         },
         {
-            "fieldname": "approver",
-            "fieldtype": "Link",
-            "label": "Approver",
-            "options": "User",
-            "read_only": 1
-        },
-        {
             "fieldname": "trip_assignment_section",
             "fieldtype": "Section Break",
             "label": "Trip Assignment Details",
@@ -31,7 +24,7 @@
             "fieldname": "status",
             "fieldtype": "Select",
             "label": "Status",
-            "options": "Draft\nProcessing\nPlanned\nAwaiting Approval\nComplete\nError",
+            "options": "Draft\nProcessing\nPlanned\nComplete\nError",
             "default": "Draft",
             "reqd": 1
         },
@@ -137,12 +130,6 @@
             "read_only": 1
         },
         {
-            "fieldname": "auto_create_sales_invoice",
-            "fieldtype": "Check",
-            "label": "Create Sales Invoice From Trip",
-            "default": 0
-        },
-        {
             "fieldname": "quantity_is_net_mass",
             "fieldtype": "Check",
             "label": "Quantity is Net Mass",
@@ -203,9 +190,9 @@
             "read_only": 1
         },
         {
-            "fieldname": "auto_create_purchase_invoice",
+            "fieldname": "purchase_quantity_is_net_mass",
             "fieldtype": "Check",
-            "label": "Create Purchase Invoice From Trip",
+            "label": "Purchase Quantity is Net Mass",
             "default": 0
         },
         {
@@ -213,7 +200,6 @@
             "fieldtype": "Link",
             "label": "Supplier Name",
             "options": "Supplier",
-            "depends_on": "eval:doc.auto_create_purchase_invoice==1",
             "read_only": 1,
             "fetch_from": "truck.supplier",
             "in_list_view":1
@@ -222,28 +208,24 @@
             "fieldname": "purchase_quantity",
             "fieldtype": "Float",
             "label": "Purchase Quantity",
-            "default": 1,
-            "depends_on": "eval:doc.auto_create_purchase_invoice==1"
+            "default": 1
         },
         {
             "fieldname": "purchase_rate",
             "fieldtype": "Currency",
-            "label": "Purchase Rate",
-            "depends_on": "eval:doc.auto_create_purchase_invoice==1"
+            "label": "Purchase Rate"
         },
         {
             "fieldname": "purchase_amount",
             "fieldtype": "Currency",
             "label": "Purchase Amount",
-            "read_only": 1,
-            "depends_on": "eval:doc.auto_create_purchase_invoice==1"
+            "read_only": 1
         },
         {
             "fieldname": "purchase_taxes_and_charges",
             "fieldtype": "Link",
             "label": "Purchase Taxes and Charges",
-            "options": "Purchase Taxes and Charges Template",
-            "depends_on": "eval:doc.auto_create_purchase_invoice==1"
+            "options": "Purchase Taxes and Charges Template"
         },
         {
             "fieldname": "mass_details_section",
@@ -267,7 +249,7 @@
         },
         {
             "fieldname": "net_mass",
-            "fieldtype": "Int",
+            "fieldtype": "Float",
             "label": "Net Mass (Tons)",
             "description": "Mass of just the cargo",
             "reqd": 0
