@@ -171,8 +171,7 @@
             "fieldtype": "Section Break",
             "label": "Purchase Invoice Setup",
             "insert_after": "taxes_and_charges",
-            "collapsible": 1,
-            "hidden": 1
+            "collapsible": 1
         },
         {
             "fieldname": "purchase_invoice_status",
