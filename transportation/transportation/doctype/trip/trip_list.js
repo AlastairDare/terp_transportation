@@ -1,5 +1,5 @@
 frappe.listview_settings['Trip'] = {
-    hide_name_column: true,
+    //hide_name_column: true,
     hide_name_filter: false,
 
     add_fields: [
@@ -12,6 +12,16 @@ frappe.listview_settings['Trip'] = {
         "billing_supplier",
         "purchase_invoice_status"
     ],
+    order_by: "modified desc",
+    columns: [
+        "asset_number",
+        "billing_customer",
+        "amount",
+        "date",
+        "billing_supplier",
+        "name"
+    ],
+
     
     filters: [
         ["Trip", "docstatus", "<", "2"]
