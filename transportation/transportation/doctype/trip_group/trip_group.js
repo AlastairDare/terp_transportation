@@ -1,9 +1,7 @@
 frappe.ui.form.on('Trip Group', {
-    refresh: async function(frm) {
-        // Call update_totals first to ensure dates are populated
-        await frm.trigger('update_totals');
-     
-        // Add the Create/Update Invoice button
+    refresh: function(frm) {
+        frm.trigger('update_totals');
+    
         if (frm.doc.group_invoice_status === "Not Invoiced") {
             let button_label = frm.doc.group_type === "Sales Invoice Group" 
                 ? __('Create Group Sales Invoice') 
@@ -12,20 +10,16 @@ frappe.ui.form.on('Trip Group', {
             frm.add_custom_button(__(button_label), function() {
                 frappe.call({
                     method: 'transportation.transportation.doctype.trip_group.trip_group.create_group_invoice',
-                    args: {
-                        'group_name': frm.doc.name
-                    },
+                    args: { 'group_name': frm.doc.name },
                     freeze: true,
                     freeze_message: __('Creating Group Invoice...'),
                     callback: function(r) {
-                        if (r.message) {
-                            frm.reload_doc();
-                        }
+                        if (r.message) frm.reload_doc();
                     }
                 });
             }, __('Actions'));
         }
-     },
+    },
 
     onload: function(frm) {
         // Recalculate totals on load
@@ -66,41 +60,33 @@ frappe.ui.form.on('Trip Group', {
         frm.trigger('update_totals');
     },
 
-    update_totals: async function(frm) {
-        let total_net_mass = 0;
-        let total_value = 0;
-        let trip_dates = [];
-        
-        // Wait for all trip data to be fetched
-        const trips = await Promise.all((frm.doc.trips || []).map(trip => 
+    update_totals: function(frm) {
+        let promises = (frm.doc.trips || []).map(trip => 
             frappe.db.get_doc('Trip', trip.trip)
-        ));
-        
-        trips.forEach(trip_doc => {
-            if (trip_doc.net_mass) {
-                total_net_mass += parseFloat(trip_doc.net_mass);
-            }
+        );
+    
+        Promise.all(promises).then(trips => {
+            let total_net_mass = 0;
+            let total_value = 0;
+            let trip_dates = [];
+    
+            trips.forEach(trip_doc => {
+                if (trip_doc.net_mass) total_net_mass += parseFloat(trip_doc.net_mass);
+                total_value += parseFloat(frm.doc.group_type === "Sales Invoice Group" ? 
+                    (trip_doc.amount || 0) : (trip_doc.purchase_amount || 0));
+                if (trip_doc.date) trip_dates.push(trip_doc.date);
+            });
+    
+            frm.set_value('trip_count', frm.doc.trips.length);
+            frm.set_value('total_net_mass', total_net_mass);
+            frm.set_value('total_value', total_value);
             
-            if (frm.doc.group_type === "Sales Invoice Group") {
-                total_value += parseFloat(trip_doc.amount || 0);
-            } else {
-                total_value += parseFloat(trip_doc.purchase_amount || 0);
-            }
-            
-            if (trip_doc.date) {
-                trip_dates.push(trip_doc.date);
+            if (trip_dates.length > 0) {
+                frm.set_value('first_trip_date', new Date(Math.min(...trip_dates)));
+                frm.set_value('last_trip_date', new Date(Math.max(...trip_dates)));
+                frm.refresh_fields(['first_trip_date', 'last_trip_date']);
             }
         });
-        
-        // Update form values
-        frm.set_value('trip_count', frm.doc.trips.length);
-        frm.set_value('total_net_mass', total_net_mass);
-        frm.set_value('total_value', total_value);
-        
-        if (trip_dates.length > 0) {
-            frm.set_value('first_trip_date', new Date(Math.min(...trip_dates)));
-            frm.set_value('last_trip_date', new Date(Math.max(...trip_dates)));
-        }
     },
 
     // Handle adding trips to the group
