@@ -22,17 +22,14 @@ frappe.ui.form.on('Trip Group', {
     },
 
     onload: function(frm) {
-        // Recalculate totals on load
         frm.trigger('update_totals');
     },
 
     validate: function(frm) {
-        // Validate required fields before saving
         if (!frm.doc.trips || frm.doc.trips.length === 0) {
             frappe.throw(__("At least one trip must be added to the group"));
         }
 
-        // Additional validation for billing party
         if (frm.doc.group_type === "Sales Invoice Group" && !frm.doc.billing_customer) {
             frappe.throw(__("Billing Customer is required for Sales Invoice Group"));
         } else if (frm.doc.group_type === "Purchase Invoice Group" && !frm.doc.billing_supplier) {
@@ -41,22 +38,18 @@ frappe.ui.form.on('Trip Group', {
     },
 
     before_save: function(frm) {
-        // Update calculations before saving
         frm.trigger('update_totals');
     },
 
     group_type: function(frm) {
-        // Clear fields when group type changes
         frm.set_value('billing_customer', '');
         frm.set_value('billing_supplier', '');
         frm.set_value('first_trip_date', '');
         frm.set_value('last_trip_date', '');
         
-        // Clear trips table
         frm.clear_table('trips');
         frm.refresh_field('trips');
         
-        // Reset totals
         frm.trigger('update_totals');
     },
 
@@ -84,26 +77,21 @@ frappe.ui.form.on('Trip Group', {
             if (trip_dates.length > 0) {
                 frm.set_value('first_trip_date', new Date(Math.min(...trip_dates)));
                 frm.set_value('last_trip_date', new Date(Math.max(...trip_dates)));
-                frm.refresh_fields(['first_trip_date', 'last_trip_date']);
             }
         });
     },
 
-    // Handle adding trips to the group
     trips_add: function(frm, cdt, cdn) {
         let row = frappe.get_doc(cdt, cdn);
         
-        // Fetch trip details and validate
         frappe.db.get_doc('Trip', row.trip)
             .then(trip_doc => {
                 if (frm.doc.group_type === "Sales Invoice Group") {
-                    // Validate sales invoice status
                     if (trip_doc.sales_invoice_status !== "Not Invoiced") {
                         frappe.throw(__("Trip {0} already has a sales invoice", [trip_doc.name]));
                         return false;
                     }
                     
-                    // Set or validate billing customer
                     if (!frm.doc.billing_customer) {
                         frm.set_value('billing_customer', trip_doc.billing_customer);
                     } else if (frm.doc.billing_customer !== trip_doc.billing_customer) {
@@ -111,13 +99,11 @@ frappe.ui.form.on('Trip Group', {
                         return false;
                     }
                 } else {
-                    // Validate purchase invoice status
                     if (trip_doc.purchase_invoice_status !== "Not Invoiced") {
                         frappe.throw(__("Trip {0} already has a purchase invoice", [trip_doc.name]));
                         return false;
                     }
                     
-                    // Set or validate billing supplier
                     if (!frm.doc.billing_supplier) {
                         frm.set_value('billing_supplier', trip_doc.billing_supplier);
                     } else if (frm.doc.billing_supplier !== trip_doc.billing_supplier) {
@@ -126,14 +112,11 @@ frappe.ui.form.on('Trip Group', {
                     }
                 }
                 
-                // Update totals
                 frm.trigger('update_totals');
             });
     },
 
-    // Handle removing trips from the group
     trips_remove: function(frm) {
-        // Update totals when trips are removed
         frm.trigger('update_totals');
     }
 });
