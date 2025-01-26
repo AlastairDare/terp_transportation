@@ -272,9 +272,22 @@
             "reqd": 0
         },
         {
+            "fieldname": "stop_detail_section",
+            "fieldtype": "Section Break",
+            "label": "Route Detail",
+            "collapsible": 1
+        },
+        {
+            "fieldname": "drop_details_odo",
+            "fieldtype": "Table",
+            "label": "Stop Details Odometer",
+            "options": "Stop Details",
+            "reqd": 0
+        },
+        {
             "fieldname": "odometer_and_distance_section",
             "fieldtype": "Section Break",
-            "label": "Odometer & Distance",
+            "label": "Trip Metrics",
             "collapsible": 1
         },
         {
@@ -300,19 +313,6 @@
             "description": "The total distance travelled on the trip including all stops and the journey home if it is a return trip",
             "reqd": 0
         },
-        {
-            "fieldname": "stop_detail_section",
-            "fieldtype": "Section Break",
-            "label": "Route Detail",
-            "collapsible": 1
-        },
-        {
-            "fieldname": "drop_details_odo",
-            "fieldtype": "Table",
-            "label": "Drop Details Odometer",
-            "options": "Drop Details",
-            "reqd": 0
-        }
     ],
     "index_web_pages_for_search": 0,
     "issingle": 0,

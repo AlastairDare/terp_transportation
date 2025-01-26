@@ -164,25 +164,22 @@ def create_group_sales_invoice(doc):
     items = []
     
     if doc.summarize_lines:
-        # Create one summarized line
         items.append({
-            "item_code": f"SALES-GROUP-{doc.name}",
+            "item_code": f"S{doc.name}",
             "qty": 1,
             "rate": doc.total_value,
             "amount": doc.total_value
         })
     else:
-        # Create line for each trip
         for trip in doc.trips:
             trip_doc = frappe.get_doc("Trip", trip.trip)
             items.append({
-                "item_code": f"SALES-{trip_doc.name}",
+                "item_code": f"S{trip_doc.name}",
                 "qty": trip_doc.quantity,
                 "rate": trip_doc.rate,
                 "amount": trip_doc.amount
             })
     
-    # Create the sales invoice
     invoice = frappe.get_doc({
         "doctype": "Sales Invoice",
         "customer": doc.billing_customer,
@@ -197,25 +194,22 @@ def create_group_purchase_invoice(doc):
     items = []
     
     if doc.summarize_lines:
-        # Create one summarized line
         items.append({
-            "item_code": f"PURCH-GROUP-{doc.name}",
+            "item_code": f"P{doc.name}",
             "qty": 1,
             "rate": doc.total_value,
             "amount": doc.total_value
         })
     else:
-        # Create line for each trip
         for trip in doc.trips:
             trip_doc = frappe.get_doc("Trip", trip.trip)
             items.append({
-                "item_code": f"PURCH-{trip_doc.name}",
+                "item_code": f"P{trip_doc.name}",
                 "qty": trip_doc.purchase_quantity,
                 "rate": trip_doc.purchase_rate,
                 "amount": trip_doc.purchase_amount
             })
     
-    # Create the purchase invoice
     invoice = frappe.get_doc({
         "doctype": "Purchase Invoice",
         "supplier": doc.billing_supplier,

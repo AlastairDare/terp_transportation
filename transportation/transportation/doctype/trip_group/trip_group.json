@@ -56,14 +56,16 @@
             "fieldtype": "Datetime",
             "label": "Earliest Trip Date",
             "read_only": 1,
-            "hidden": 0
+            "hidden": 0,
+            "hide_timezone": 1
         },
         {
             "fieldname": "last_trip_date",
             "fieldtype": "Datetime",
             "label": "Latest Trip Date",
             "read_only": 1,
-            "hidden": 0
+            "hidden": 0,
+            "hide_timezone": 1
         },
         {
             "fieldname": "section_break_1",
