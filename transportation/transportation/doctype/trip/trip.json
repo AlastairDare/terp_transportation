@@ -312,7 +312,7 @@
             "label": "Total Distance",
             "description": "The total distance travelled on the trip including all stops and the journey home if it is a return trip",
             "reqd": 0
-        },
+        }
     ],
     "index_web_pages_for_search": 0,
     "issingle": 0,
