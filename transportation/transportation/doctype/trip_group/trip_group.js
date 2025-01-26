@@ -44,8 +44,6 @@ frappe.ui.form.on('Trip Group', {
     group_type: function(frm) {
         frm.set_value('billing_customer', '');
         frm.set_value('billing_supplier', '');
-        frm.set_value('first_trip_date', '');
-        frm.set_value('last_trip_date', '');
         
         frm.clear_table('trips');
         frm.refresh_field('trips');
@@ -61,23 +59,16 @@ frappe.ui.form.on('Trip Group', {
         Promise.all(promises).then(trips => {
             let total_net_mass = 0;
             let total_value = 0;
-            let trip_dates = [];
     
             trips.forEach(trip_doc => {
                 if (trip_doc.net_mass) total_net_mass += parseFloat(trip_doc.net_mass);
                 total_value += parseFloat(frm.doc.group_type === "Sales Invoice Group" ? 
                     (trip_doc.amount || 0) : (trip_doc.purchase_amount || 0));
-                if (trip_doc.date) trip_dates.push(trip_doc.date);
             });
     
             frm.set_value('trip_count', frm.doc.trips.length);
             frm.set_value('total_net_mass', total_net_mass);
             frm.set_value('total_value', total_value);
-            
-            if (trip_dates.length > 0) {
-                frm.set_value('first_trip_date', new Date(Math.min(...trip_dates)));
-                frm.set_value('last_trip_date', new Date(Math.max(...trip_dates)));
-            }
         });
     },
 
