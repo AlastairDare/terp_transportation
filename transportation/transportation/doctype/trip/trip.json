@@ -281,7 +281,8 @@
             "fieldname": "drop_details_odo",
             "fieldtype": "Table",
             "label": "Stop Details Odometer",
-            "options": "Stop Details",
+            "options": "Drop Details",
+            "read_only":1,
             "reqd": 0
         },
         {
