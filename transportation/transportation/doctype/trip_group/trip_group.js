@@ -78,7 +78,7 @@ frappe.ui.form.on('Trip Group', {
         frappe.db.get_doc('Trip', row.trip)
             .then(trip_doc => {
                 if (frm.doc.group_type === "Sales Invoice Group") {
-                    if (trip_doc.sales_invoice_status in ["Invoice Draft Created", "Invoiced"]) {
+                    if (["Invoice Draft Created", "Invoiced"].includes(trip_doc.sales_invoice_status)) {
                         frappe.throw(__("Trip {0} already has a sales invoice", [trip_doc.name]));
                         return false;
                     }
@@ -90,7 +90,7 @@ frappe.ui.form.on('Trip Group', {
                         return false;
                     }
                 } else {
-                    if (trip_doc.purchase_invoice_status in ["Invoice Draft Created", "Invoiced"]) {
+                    if (["Invoice Draft Created", "Invoiced"].includes(trip_doc.purchase_invoice_status)) {
                         frappe.throw(__("Trip {0} already has a purchase invoice", [trip_doc.name]));
                         return false;
                     }

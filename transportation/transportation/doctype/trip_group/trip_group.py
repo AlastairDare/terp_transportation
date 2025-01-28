@@ -12,33 +12,33 @@ class TripGroup(Document):
     def validate_trips(self):
         if not hasattr(self, 'trips') or not self.trips:
             frappe.throw(_("At least one trip must be added to the group"))
-        
+            
         if not self.trips:
             frappe.throw(_("At least one trip must be added to the group"))
-            
+                
         for trip in self.trips:
             trip_doc = frappe.get_doc("Trip", trip.trip)
-            
+                
             # Validate invoice status
             if self.group_type == "Sales Invoice Group":
-                if trip_doc.sales_invoice_status in ["Invoice Draft Created", "Invoiced"]:
+                if trip_doc.sales_invoice_status in ("Invoice Draft Created", "Invoiced"):
                     frappe.throw(_("Trip {0} already has a sales invoice").format(trip_doc.name))
                 if not trip_doc.billing_customer:
                     frappe.throw(_("Trip {0} is missing billing customer").format(trip_doc.name))
-                    
+                        
                 # Set billing customer from first trip if not set
                 if not self.billing_customer:
                     self.billing_customer = trip_doc.billing_customer
                 # Validate same customer
                 elif self.billing_customer != trip_doc.billing_customer:
                     frappe.throw(_("Trip {0} has different billing customer").format(trip_doc.name))
-                    
+                        
             else:  # Purchase Invoice Group
-                if trip_doc.purchase_invoice_status in ["Invoice Draft Created", "Invoiced"]:
+                if trip_doc.purchase_invoice_status in ("Invoice Draft Created", "Invoiced"):
                     frappe.throw(_("Trip {0} already has a purchase invoice").format(trip_doc.name))
                 if not trip_doc.billing_supplier:
                     frappe.throw(_("Trip {0} is missing billing supplier").format(trip_doc.name))
-                    
+                        
                 # Set billing supplier from first trip if not set
                 if not self.billing_supplier:
                     self.billing_supplier = trip_doc.billing_supplier
