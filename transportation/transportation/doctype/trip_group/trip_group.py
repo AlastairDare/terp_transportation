@@ -22,29 +22,29 @@ class TripGroup(Document):
             # Validate invoice status
             if self.group_type == "Sales Invoice Group":
                 if trip_doc.sales_invoice_status in ("Invoice Draft Created", "Invoiced"):
-                    frappe.throw(_("Trip {0} already has a sales invoice").format(trip_doc.name))
+                    frappe.throw(_("{0} already has a sales invoice").format(trip_doc.name))
                 if not trip_doc.billing_customer:
-                    frappe.throw(_("Trip {0} is missing billing customer").format(trip_doc.name))
+                    frappe.throw(_("{0} is missing billing customer").format(trip_doc.name))
                         
                 # Set billing customer from first trip if not set
                 if not self.billing_customer:
                     self.billing_customer = trip_doc.billing_customer
                 # Validate same customer
                 elif self.billing_customer != trip_doc.billing_customer:
-                    frappe.throw(_("Trip {0} has different billing customer").format(trip_doc.name))
+                    frappe.throw(_("{0} has different billing customer").format(trip_doc.name))
                         
             else:  # Purchase Invoice Group
                 if trip_doc.purchase_invoice_status in ("Invoice Draft Created", "Invoiced"):
-                    frappe.throw(_("Trip {0} already has a purchase invoice").format(trip_doc.name))
+                    frappe.throw(_("{0} already has a purchase invoice").format(trip_doc.name))
                 if not trip_doc.billing_supplier:
-                    frappe.throw(_("Trip {0} is missing billing supplier").format(trip_doc.name))
+                    frappe.throw(_("{0} is missing billing supplier").format(trip_doc.name))
                         
                 # Set billing supplier from first trip if not set
                 if not self.billing_supplier:
                     self.billing_supplier = trip_doc.billing_supplier
                 # Validate same supplier
                 elif self.billing_supplier != trip_doc.billing_supplier:
-                    frappe.throw(_("Trip {0} has different billing supplier").format(trip_doc.name))
+                    frappe.throw(_("{0} has different billing supplier").format(trip_doc.name))
 
     def update_totals(self):
         self.trip_count = len(self.trips or [])
@@ -160,6 +160,22 @@ def create_group_invoice(group_name):
         frappe.throw(_("Trip Group name is required"))
         
     doc = frappe.get_doc("Trip Group", group_name)
+    
+    # Pre-validate trip invoice statuses before attempting invoice creation
+    for trip in doc.trips:
+        trip_doc = frappe.get_doc("Trip", trip.trip)
+        if doc.group_type == "Sales Invoice Group":
+            if trip_doc.sales_invoice_status in ("Invoice Draft Created", "Invoiced"):
+                frappe.throw(
+                    _("Cannot create group invoice: Trip {0} already has a sales invoice").format(trip_doc.name),
+                    title=_("Invoice Creation Failed")
+                )
+        else:  # Purchase Invoice Group
+            if trip_doc.purchase_invoice_status in ("Invoice Draft Created", "Invoiced"):
+                frappe.throw(
+                    _("Cannot create group invoice: Trip {0} already has a purchase invoice").format(trip_doc.name),
+                    title=_("Invoice Creation Failed")
+                )
     
     try:
         if doc.group_type == "Sales Invoice Group":
