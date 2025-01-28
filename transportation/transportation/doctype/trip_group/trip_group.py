@@ -54,29 +54,29 @@ class TripGroup(Document):
         if not hasattr(self, 'trips') or not self.trips:
             frappe.throw(_("At least one trip must be added to the group"))
 
-        def update_totals(self):
-            self.trip_count = len(self.trips or [])
-            self.total_net_mass = 0
-            self.total_value = 0
+    def update_totals(self):
+        self.trip_count = len(self.trips or [])
+        self.total_net_mass = 0
+        self.total_value = 0
+            
+        trip_dates = []
+        for trip in (self.trips or []):
+            trip_doc = frappe.get_doc("Trip", trip.trip)
                 
-            trip_dates = []
-            for trip in (self.trips or []):
-                trip_doc = frappe.get_doc("Trip", trip.trip)
+            if trip_doc.net_mass:
+                self.total_net_mass += trip_doc.net_mass
                     
-                if trip_doc.net_mass:
-                    self.total_net_mass += trip_doc.net_mass
-                        
-                if self.group_type == "Sales Invoice Group":
-                    self.total_value += trip_doc.amount or 0
-                else:
-                    self.total_value += trip_doc.purchase_amount or 0
-                    
-                if trip_doc.date:
-                    trip_dates.append(trip_doc.date)
+            if self.group_type == "Sales Invoice Group":
+                self.total_value += trip_doc.amount or 0
+            else:
+                self.total_value += trip_doc.purchase_amount or 0
                 
-            if trip_dates:
-                self.first_trip_date = min(trip_dates)
-                self.last_trip_date = max(trip_dates)
+            if trip_doc.date:
+                trip_dates.append(trip_doc.date)
+            
+        if trip_dates:
+            self.first_trip_date = min(trip_dates)
+            self.last_trip_date = max(trip_dates)
 
     def on_update(self):
         self.handle_removed_trips()
