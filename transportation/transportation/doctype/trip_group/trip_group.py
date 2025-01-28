@@ -21,7 +21,7 @@ class TripGroup(Document):
             
             # Validate invoice status
             if self.group_type == "Sales Invoice Group":
-                if trip_doc.sales_invoice_status != "Not Invoiced":
+                if trip_doc.sales_invoice_status in ["Invoice Draft Created", "Invoiced"]:
                     frappe.throw(_("Trip {0} already has a sales invoice").format(trip_doc.name))
                 if not trip_doc.billing_customer:
                     frappe.throw(_("Trip {0} is missing billing customer").format(trip_doc.name))
@@ -34,7 +34,7 @@ class TripGroup(Document):
                     frappe.throw(_("Trip {0} has different billing customer").format(trip_doc.name))
                     
             else:  # Purchase Invoice Group
-                if trip_doc.purchase_invoice_status != "Not Invoiced":
+                if trip_doc.purchase_invoice_status in ["Invoice Draft Created", "Invoiced"]:
                     frappe.throw(_("Trip {0} already has a purchase invoice").format(trip_doc.name))
                 if not trip_doc.billing_supplier:
                     frappe.throw(_("Trip {0} is missing billing supplier").format(trip_doc.name))
