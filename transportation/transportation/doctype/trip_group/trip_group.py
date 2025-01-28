@@ -8,11 +8,10 @@ class TripGroup(Document):
     def validate(self):
         self.validate_trips()
         self.update_totals()
-        
-    def validate_trips(self):
-        if not hasattr(self, 'trips') or not self.trips:
-            frappe.throw(_("At least one trip must be added to the group"))
-            
+       
+    
+    def validate_before_invoice_creation(self):
+        """Pre-validate before any invoice creation logic starts"""
         if not self.trips:
             frappe.throw(_("At least one trip must be added to the group"))
                 
@@ -22,53 +21,62 @@ class TripGroup(Document):
             # Validate invoice status
             if self.group_type == "Sales Invoice Group":
                 if trip_doc.sales_invoice_status in ("Invoice Draft Created", "Invoiced"):
-                    frappe.throw(_("{0} already has a sales invoice").format(trip_doc.name))
+                    frappe.throw(_("Cannot create group invoice:{0} already has a sales invoice").format(trip_doc.name))
                 if not trip_doc.billing_customer:
-                    frappe.throw(_("{0} is missing billing customer").format(trip_doc.name))
+                    frappe.throw(_("Cannot create group invoice:{0} is missing billing customer").format(trip_doc.name))
                         
                 # Set billing customer from first trip if not set
                 if not self.billing_customer:
                     self.billing_customer = trip_doc.billing_customer
                 # Validate same customer
                 elif self.billing_customer != trip_doc.billing_customer:
-                    frappe.throw(_("{0} has different billing customer").format(trip_doc.name))
+                    frappe.throw(_("Cannot create group invoice:{0} has different billing customer").format(trip_doc.name))
                         
             else:  # Purchase Invoice Group
                 if trip_doc.purchase_invoice_status in ("Invoice Draft Created", "Invoiced"):
-                    frappe.throw(_("{0} already has a purchase invoice").format(trip_doc.name))
+                    frappe.throw(_("Cannot create group invoice:{0} already has a purchase invoice").format(trip_doc.name))
                 if not trip_doc.billing_supplier:
-                    frappe.throw(_("{0} is missing billing supplier").format(trip_doc.name))
+                    frappe.throw(_("Cannot create group invoice:{0} is missing billing supplier").format(trip_doc.name))
                         
                 # Set billing supplier from first trip if not set
                 if not self.billing_supplier:
                     self.billing_supplier = trip_doc.billing_supplier
                 # Validate same supplier
                 elif self.billing_supplier != trip_doc.billing_supplier:
-                    frappe.throw(_("{0} has different billing supplier").format(trip_doc.name))
+                    frappe.throw(_("Cannot create group invoice:{0} has different billing supplier").format(trip_doc.name))
 
-    def update_totals(self):
-        self.trip_count = len(self.trips or [])
-        self.total_net_mass = 0
-        self.total_value = 0
+        # Validate group status
+        if self.group_invoice_status in ("Invoice Draft Created", "Invoiced"):
+            frappe.throw(_("This Trip Group already has an invoice"))   
             
-        trip_dates = []
-        for trip in (self.trips or []):
-            trip_doc = frappe.get_doc("Trip", trip.trip)
+    def validate_trips(self):
+        """Basic validation for trip existence"""
+        if not hasattr(self, 'trips') or not self.trips:
+            frappe.throw(_("At least one trip must be added to the group"))
+
+        def update_totals(self):
+            self.trip_count = len(self.trips or [])
+            self.total_net_mass = 0
+            self.total_value = 0
                 
-            if trip_doc.net_mass:
-                self.total_net_mass += trip_doc.net_mass
+            trip_dates = []
+            for trip in (self.trips or []):
+                trip_doc = frappe.get_doc("Trip", trip.trip)
                     
-            if self.group_type == "Sales Invoice Group":
-                self.total_value += trip_doc.amount or 0
-            else:
-                self.total_value += trip_doc.purchase_amount or 0
+                if trip_doc.net_mass:
+                    self.total_net_mass += trip_doc.net_mass
+                        
+                if self.group_type == "Sales Invoice Group":
+                    self.total_value += trip_doc.amount or 0
+                else:
+                    self.total_value += trip_doc.purchase_amount or 0
+                    
+                if trip_doc.date:
+                    trip_dates.append(trip_doc.date)
                 
-            if trip_doc.date:
-                trip_dates.append(trip_doc.date)
-            
-        if trip_dates:
-            self.first_trip_date = min(trip_dates)
-            self.last_trip_date = max(trip_dates)
+            if trip_dates:
+                self.first_trip_date = min(trip_dates)
+                self.last_trip_date = max(trip_dates)
 
     def on_update(self):
         self.handle_removed_trips()
@@ -161,21 +169,8 @@ def create_group_invoice(group_name):
         
     doc = frappe.get_doc("Trip Group", group_name)
     
-    # Pre-validate trip invoice statuses before attempting invoice creation
-    for trip in doc.trips:
-        trip_doc = frappe.get_doc("Trip", trip.trip)
-        if doc.group_type == "Sales Invoice Group":
-            if trip_doc.sales_invoice_status in ("Invoice Draft Created", "Invoiced"):
-                frappe.throw(
-                    _("Cannot create group invoice: Trip {0} already has a sales invoice").format(trip_doc.name),
-                    title=_("Invoice Creation Failed")
-                )
-        else:  # Purchase Invoice Group
-            if trip_doc.purchase_invoice_status in ("Invoice Draft Created", "Invoiced"):
-                frappe.throw(
-                    _("Cannot create group invoice: Trip {0} already has a purchase invoice").format(trip_doc.name),
-                    title=_("Invoice Creation Failed")
-                )
+    # Run pre-validation checks
+    doc.validate_before_invoice_creation()
     
     try:
         if doc.group_type == "Sales Invoice Group":
@@ -190,11 +185,11 @@ def create_group_invoice(group_name):
                 trip_doc.sales_invoice_status = "Invoice Draft Created"
             else:
                 trip_doc.purchase_invoice_status = "Invoice Draft Created"
-            trip_doc.save()
+            trip_doc.save(ignore_validate=True)  # Skip validation on save
             
         # Update group status
         doc.group_invoice_status = "Invoice Draft Created"
-        doc.save()
+        doc.save(ignore_validate=True)  # Skip validation on save
         
         frappe.msgprint(
             msg=f"""
