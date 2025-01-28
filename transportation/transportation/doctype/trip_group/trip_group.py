@@ -109,6 +109,50 @@ class TripGroup(Document):
         else:
             self.update_purchase_invoice(removed_trips)
 
+def create_group_items(doc):
+    """Create Item(s) for Trip Group before invoice creation"""
+    prefix = "S" if doc.group_type == "Sales Invoice Group" else "P"
+    items_created = []
+    
+    if doc.summarize_lines:
+        # Create single item for whole group
+        item_code = f"{prefix}{doc.name}"
+        create_single_item(doc, item_code)
+        items_created.append(item_code)
+    else:
+        # Create item for each trip
+        for idx, trip in enumerate(doc.trips, 1):
+            item_code = f"{prefix}{doc.name}-{idx}"
+            create_single_item(doc, item_code, trip)
+            items_created.append(item_code)
+            
+    return items_created
+
+def create_single_item(doc, item_code, trip=None):
+    """Create individual Item record"""
+    if frappe.db.exists("Item", item_code):
+        return
+        
+    item_type = "Sales" if doc.group_type == "Sales Invoice Group" else "Purchase"
+    description = (
+        f"Service Item for {item_type} Invoice of Trip Group '{doc.name}'"
+        if trip is None else
+        f"Service Item for {item_type} Invoice of Trip '{trip.trip}' in Group '{doc.name}'"
+    )
+    
+    item = frappe.get_doc({
+        "doctype": "Item",
+        "item_code": item_code,
+        "item_name": f"{item_type}-{item_code}",
+        "item_group": "Services",
+        "stock_uom": "Each",
+        "is_stock_item": 0,
+        "is_fixed_asset": 0,
+        "description": description
+    })
+    
+    item.insert(ignore_permissions=True)
+
 @frappe.whitelist()
 def create_group_invoice(group_name):
     """Create sales or purchase invoice for trip group"""
@@ -162,19 +206,20 @@ def create_group_invoice(group_name):
 def create_group_sales_invoice(doc):
     """Create sales invoice for trip group"""
     items = []
+    item_codes = create_group_items(doc)  # Create items first
     
     if doc.summarize_lines:
         items.append({
-            "item_code": f"S{doc.name}",
+            "item_code": item_codes[0],  # Use newly created item
             "qty": 1,
             "rate": doc.total_value,
             "amount": doc.total_value
         })
     else:
-        for trip in doc.trips:
+        for idx, trip in enumerate(doc.trips):
             trip_doc = frappe.get_doc("Trip", trip.trip)
             items.append({
-                "item_code": f"S{trip_doc.name}",
+                "item_code": item_codes[idx],  # Use corresponding created item
                 "qty": trip_doc.quantity,
                 "rate": trip_doc.rate,
                 "amount": trip_doc.amount
@@ -192,19 +237,20 @@ def create_group_sales_invoice(doc):
 def create_group_purchase_invoice(doc):
     """Create purchase invoice for trip group"""
     items = []
+    item_codes = create_group_items(doc)  # Create items first
     
     if doc.summarize_lines:
         items.append({
-            "item_code": f"P{doc.name}",
+            "item_code": item_codes[0],  # Use newly created item
             "qty": 1,
             "rate": doc.total_value,
             "amount": doc.total_value
         })
     else:
-        for trip in doc.trips:
+        for idx, trip in enumerate(doc.trips):
             trip_doc = frappe.get_doc("Trip", trip.trip)
             items.append({
-                "item_code": f"P{trip_doc.name}",
+                "item_code": item_codes[idx],  # Use corresponding created item
                 "qty": trip_doc.purchase_quantity,
                 "rate": trip_doc.purchase_rate,
                 "amount": trip_doc.purchase_amount
