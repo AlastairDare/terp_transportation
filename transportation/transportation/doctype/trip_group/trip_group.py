@@ -287,13 +287,18 @@ def create_trip_group(trips, group_type, summarize_lines=1):
         
     if not trips:
         frappe.throw(_("No trips selected"))
-        
+    
+    # Get first trip's billing info since we know they're all the same from JS validation
+    first_trip = frappe.get_doc("Trip", trips[0])
+    
     # Create the Trip Group
     trip_group = frappe.get_doc({
         "doctype": "Trip Group",
         "group_type": group_type,
         "summarize_lines": summarize_lines,
-        "trips": [{"trip": trip} for trip in trips]
+        "trips": [{"trip": trip} for trip in trips],
+        "billing_customer": first_trip.billing_customer if group_type == "Sales Invoice Group" else None,
+        "billing_supplier": first_trip.billing_supplier if group_type == "Purchase Invoice Group" else None
     })
     
     # The validate method will handle all validations and calculations
