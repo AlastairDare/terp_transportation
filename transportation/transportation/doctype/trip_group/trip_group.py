@@ -185,11 +185,11 @@ def create_group_invoice(group_name):
                 trip_doc.sales_invoice_status = "Invoice Draft Created"
             else:
                 trip_doc.purchase_invoice_status = "Invoice Draft Created"
-            trip_doc.save(ignore_validate=True)  # Skip validation on save
+            trip_doc.save()  # Skip validation on save
             
         # Update group status
         doc.group_invoice_status = "Invoice Draft Created"
-        doc.save(ignore_validate=True)  # Skip validation on save
+        doc.save()  # Skip validation on save
         
         frappe.msgprint(
             msg=f"""
