@@ -79,26 +79,26 @@ frappe.ui.form.on('Trip Group', {
             .then(trip_doc => {
                 if (frm.doc.group_type === "Sales Invoice Group") {
                     if (["Invoice Draft Created", "Invoiced"].includes(trip_doc.sales_invoice_status)) {
-                        frappe.throw(__("Trip {0} already has a sales invoice", [trip_doc.name]));
+                        frappe.throw(__("{0} already has a sales invoice", [trip_doc.name]));
                         return false;
                     }
                     
                     if (!frm.doc.billing_customer) {
                         frm.set_value('billing_customer', trip_doc.billing_customer);
                     } else if (frm.doc.billing_customer !== trip_doc.billing_customer) {
-                        frappe.throw(__("Trip {0} has a different billing customer", [trip_doc.name]));
+                        frappe.throw(__("{0} has a different billing customer", [trip_doc.name]));
                         return false;
                     }
                 } else {
                     if (["Invoice Draft Created", "Invoiced"].includes(trip_doc.purchase_invoice_status)) {
-                        frappe.throw(__("Trip {0} already has a purchase invoice", [trip_doc.name]));
+                        frappe.throw(__("{0} already has a purchase invoice", [trip_doc.name]));
                         return false;
                     }
                     
                     if (!frm.doc.billing_supplier) {
                         frm.set_value('billing_supplier', trip_doc.billing_supplier);
                     } else if (frm.doc.billing_supplier !== trip_doc.billing_supplier) {
-                        frappe.throw(__("Trip {0} has a different billing supplier", [trip_doc.name]));
+                        frappe.throw(__("{0} has a different billing supplier", [trip_doc.name]));
                         return false;
                     }
                 }
