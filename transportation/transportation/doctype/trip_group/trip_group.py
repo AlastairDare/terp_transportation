@@ -244,9 +244,15 @@ def create_group_sales_invoice(doc):
     
     invoice.insert(ignore_permissions=True)
     
-    # Set the linked sales invoice field
+    # Set the linked sales invoice field for the group
     doc.linked_sales_invoice = invoice.name
     doc.save(ignore_permissions=True)
+    
+    # Update all child trips with the linked invoice
+    for trip in doc.trips:
+        trip_doc = frappe.get_doc("Trip", trip.trip)
+        trip_doc.linked_sales_invoice = invoice.name
+        trip_doc.save(ignore_permissions=True)
     
     return invoice
 
@@ -280,9 +286,15 @@ def create_group_purchase_invoice(doc):
     
     invoice.insert(ignore_permissions=True)
     
-    # Set the linked purchase invoice field
+    # Set the linked purchase invoice field for the group
     doc.linked_purchase_invoice = invoice.name
     doc.save(ignore_permissions=True)
+    
+    # Update all child trips with the linked invoice
+    for trip in doc.trips:
+        trip_doc = frappe.get_doc("Trip", trip.trip)
+        trip_doc.linked_purchase_invoice = invoice.name
+        trip_doc.save(ignore_permissions=True)
     
     return invoice
 
