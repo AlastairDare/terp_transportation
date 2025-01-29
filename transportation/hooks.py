@@ -76,10 +76,10 @@ doc_events = {
         "before_delete": "transportation.transportation.doctype.trip_group.trip_group.prevent_deletion_if_invoiced"
     },
     "Sales Invoice": {
-        "on_submit": "transportation.transportation.doctype.trip_group.trip_group.handle_sales_invoice_submit"
+        "on_submit": "transportation.transportation.doctype.trip_group.invoice_handler.handle_sales_invoice_submit"
     },
     "Purchase Invoice": {
-        "on_submit": "transportation.transportation.doctype.trip_group.trip_group.handle_purchase_invoice_submit"
+        "on_submit": "transportation.transportation.doctype.trip_group.invoice_handler.handle_purchase_invoice_submit"
     }
 
 }
