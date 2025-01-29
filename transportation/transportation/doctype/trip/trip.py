@@ -88,7 +88,7 @@ def create_sales_invoice_for_trip(trip_name):
             doc.linked_sales_invoice = sales_invoice.name
             
         # Update the sales invoice status
-        doc.sales_invoice_status = "Invoice Created"
+        doc.sales_invoice_status = "Invoice Draft Created"
         doc.save(ignore_permissions=True)
             
         frappe.msgprint(
@@ -99,7 +99,7 @@ def create_sales_invoice_for_trip(trip_name):
                     </p>
                 </div>
             """,
-            title=_("Sales Invoice Created/Updated"),
+            title=_("Sales Invoice Draft Created/Updated"),
             indicator="green"
         )
         
@@ -156,7 +156,7 @@ def create_purchase_invoice_for_trip(trip_name):
             doc.linked_purchase_invoice = purchase_invoice.name
             
         # Update the purchase invoice status
-        doc.purchase_invoice_status = "Invoice Created"
+        doc.purchase_invoice_status = "Invoice Draft Created"
         doc.save(ignore_permissions=True)
             
         frappe.msgprint(
@@ -167,7 +167,7 @@ def create_purchase_invoice_for_trip(trip_name):
                     </p>
                 </div>
             """,
-            title=_("Purchase Invoice Created/Updated"),
+            title=_("Purchase Invoice Draft Created/Updated"),
             indicator="green"
         )
         
