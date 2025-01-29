@@ -57,7 +57,7 @@ frappe.pages['transportation-dashboard'].on_page_load = function(wrapper) {
 class TransportationDashboard {
     constructor(page) {
         this.page = page;
-        this.sort_field = 'transportation_asset';
+        this.sort_field = 'asset_number'; // Changed default sort field
         this.sort_order = 'asc';
         this.selected_assets = [];
         this.setup_filters();
@@ -160,7 +160,10 @@ class TransportationDashboard {
     setup_header() {
         let header_html = '<tr>';
         this.columns.forEach(col => {
-            const sortable = ['transportation_asset', 'asset_number'].includes(col.fieldname);
+            // Skip the transportation_asset column
+            if (col.fieldname === 'transportation_asset') return;
+            
+            const sortable = ['asset_number'].includes(col.fieldname);
             const sort_icon = col.fieldname === this.sort_field ? 
                 (this.sort_order === 'asc' ? ' ↑' : ' ↓') : '';
             
@@ -191,7 +194,8 @@ class TransportationDashboard {
         frappe.call({
             method: 'transportation.transportation.page.transportation_dashboard.transportation_dashboard.get_columns',
             callback: (c) => {
-                this.columns = c.message;
+                // Filter out the transportation_asset column
+                this.columns = c.message.filter(col => col.fieldname !== 'transportation_asset');
                 this.setup_header();
                 
                 frappe.call({
@@ -227,27 +231,12 @@ class TransportationDashboard {
         data.forEach(row => {
             body_html += '<tr>';
             this.columns.forEach(col => {
+                // Skip the transportation_asset column
+                if (col.fieldname === 'transportation_asset') return;
+                
                 let value = row[col.fieldname] ?? 0;
                 
-                // Special handling for transportation_asset column
-                if (col.fieldname === 'transportation_asset') {
-                    // Create dashboard filters object
-                    const dashboardFilters = {
-                        truck: row.transportation_asset,
-                        from_date: $('#from_date').val(),
-                        to_date: $('#to_date').val()
-                    };
-                    
-                    console.log('Creating link with filters:', dashboardFilters);
-                    
-                    // Create the URL with dashboard filters
-                    const encoded_filters = encodeURIComponent(JSON.stringify(dashboardFilters));
-                    const list_url = `/app/trip/view/list?dashboard_filters=${encoded_filters}`;
-                    
-                    // Create the link
-                    const display_text = row.asset_number;
-                    value = `<a href="${list_url}" class="asset-link">${display_text}</a>`;
-                } else if (col.fieldtype === 'Currency') {
+                if (col.fieldtype === 'Currency') {
                     value = frappe.format(value, { fieldtype: 'Currency' });
                 } else if (col.fieldtype === 'Float') {
                     value = frappe.format(value, { fieldtype: 'Float', precision: 2 });
@@ -275,8 +264,11 @@ class TransportationDashboard {
         // Render totals row
         let footer_html = '<tr class="table-active font-weight-bold">';
         this.columns.forEach(col => {
+            // Skip the transportation_asset column
+            if (col.fieldname === 'transportation_asset') return;
+            
             let value = totals[col.fieldname];
-            if (col.fieldname === 'transportation_asset') {
+            if (col.fieldname === 'asset_number') {
                 value = 'Totals';
             } else if (value !== undefined) {
                 if (col.fieldtype === 'Currency') {
