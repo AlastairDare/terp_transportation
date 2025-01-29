@@ -243,6 +243,11 @@ def create_group_sales_invoice(doc):
     })
     
     invoice.insert(ignore_permissions=True)
+    
+    # Set the linked sales invoice field
+    doc.linked_sales_invoice = invoice.name
+    doc.save(ignore_permissions=True)
+    
     return invoice
 
 def create_group_purchase_invoice(doc):
@@ -274,6 +279,11 @@ def create_group_purchase_invoice(doc):
     })
     
     invoice.insert(ignore_permissions=True)
+    
+    # Set the linked purchase invoice field
+    doc.linked_purchase_invoice = invoice.name
+    doc.save(ignore_permissions=True)
+    
     return invoice
 
 @frappe.whitelist()
