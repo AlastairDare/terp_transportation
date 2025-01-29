@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import json
 
 @frappe.whitelist()
+@frappe.whitelist()
 def get_dashboard_data(filters=None):
     if isinstance(filters, str):
         filters = json.loads(filters)
@@ -28,42 +29,24 @@ def get_dashboard_data(filters=None):
     )
 
     for asset in assets:
-        # Get associated trips
+        # Get associated trips - MODIFIED THIS SECTION
         trips = frappe.get_all(
             "Trip",
             filters={
                 "truck": asset.name,
-                "date": ["between", [filters.get('from_date'), filters.get('to_date')]]
+                "date": ["between", [filters.get('from_date'), filters.get('to_date')]],
+                "sales_invoice_status": "Invoiced"  # Added filter
             },
-            fields=["name"]
+            fields=["name", "amount", "net_mass"]  # Added fields
         )
         
         trip_names = [t.name for t in trips]
-        trip_count = len(trips)  # Get the count of trips
+        trip_count = len(trips)
         
-        # Initialize revenue data
-        revenue = 0
-        tons = 0
+        # Initialize and calculate revenue and tons directly from trips
+        revenue = sum(trip.amount for trip in trips)
+        tons = sum(trip.net_mass for trip in trips)
         
-        if trip_names:
-            matching_invoices = frappe.db.sql("""
-                SELECT DISTINCT 
-                    si.name,
-                    si.grand_total,
-                    si.total_qty,
-                    sii.item_code,
-                    sii.item_name
-                FROM 
-                    `tabSales Invoice` si
-                    JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
-                WHERE 
-                    si.docstatus = 1
-                    AND (sii.item_code IN %(trips)s OR sii.item_name IN %(trips)s)
-            """, {'trips': trip_names}, as_dict=1)
-
-            revenue = sum(invoice.grand_total for invoice in matching_invoices)
-            tons = sum(invoice.total_qty for invoice in matching_invoices)
-
         # Calculate expenses by type
         expenses = frappe.db.sql("""
             SELECT 
@@ -90,7 +73,7 @@ def get_dashboard_data(filters=None):
             'asset_number': asset.asset_number,
             'revenue': revenue,
             'tons': tons,
-            'trips': trip_count,  # Add the trips count to the row
+            'trips': trip_count,
             'total_expenses': total_expenses,
             'fuel_expenses': expense_by_type.get('Refuel', 0),
             'toll_expenses': expense_by_type.get('Toll', 0),
